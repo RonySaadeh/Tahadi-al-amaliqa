@@ -2,10 +2,11 @@ import { QuestionDifficulty } from "../lib/types";
 
 /**
  * Hand-written (by Claude, directly in conversation — not via an API call)
- * starter question bank: 5 questions per category across all 57 entries in
- * `categoryTaxonomy.ts`. This is what `seedPregeneratedQuestions.ts` loads
- * and uploads — no `ANTHROPIC_API_KEY` needed for this path at all, since
- * the writing already happened, once, right here.
+ * Arabic starter question bank: 8-15 questions per category across all 57
+ * entries in `categoryTaxonomy.ts` (680+ total). This is what
+ * `seedPregeneratedQuestions.ts` loads and uploads — no `ANTHROPIC_API_KEY`
+ * needed for this path at all, since the writing already happened, once,
+ * right here. See `pregeneratedQuestionsEn.ts` for the English counterpart.
  *
  * This is a STARTER pool, not the final word — `seedCategoryTaxonomy.ts`
  * (which does call the Claude API) can top any of these categories up with

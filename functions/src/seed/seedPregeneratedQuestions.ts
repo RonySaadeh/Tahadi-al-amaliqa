@@ -1,22 +1,61 @@
 /**
  * One-off admin script: creates every group + category in
- * `categoryTaxonomy.ts` and uploads the hand-written starter question pool
- * from `pregeneratedQuestions.ts` — 5 questions per category, written by
- * Claude directly in conversation rather than fetched through a live API
- * call. That's the whole point of this script existing separately from
- * `seedCategoryTaxonomy.ts`: it needs NO `ANTHROPIC_API_KEY` and makes NO
- * Claude API calls — only Firebase Admin credentials, same as
- * `importOpenTriviaDb.ts`.
+ * `categoryTaxonomy.ts` and uploads the hand-written starter question pools
+ * from `pregeneratedQuestions.ts` (Arabic) and `pregeneratedQuestionsEn.ts`
+ * (English) — written by Claude directly in conversation rather than
+ * fetched through a live API call. That's the whole point of this script
+ * existing separately from `seedCategoryTaxonomy.ts`: it needs NO
+ * `ANTHROPIC_API_KEY` and makes NO Claude API calls — only Firebase Admin
+ * credentials, same as `importOpenTriviaDb.ts`.
  *
- * This is a starting pool (5/category), not the final word. Once you have
- * your own Claude API key, run `seedCategoryTaxonomy.ts` to top any
- * category up with a much larger AI-generated batch — it skips nothing
- * here, it just adds more.
+ * Every category ends up with both a `language: "ar"` pool and a
+ * `language: "en"` pool (regardless of `CategorySeed.language`, which only
+ * controls the category's own display metadata) — `pickNextQuestion` (see
+ * `functions/src/scoring/resolveDuel.ts`) picks from whichever pool matches
+ * a given duel's `language`.
+ *
+ * This is a starting pool per language, not the final word. Once you have
+ * your own Claude API key, run `seedCategoryTaxonomy.ts` (pass a `language`
+ * to generate for) to top any category up with a much larger AI-generated
+ * batch — it skips nothing here, it just adds more.
  */
 import { db, FieldValue } from "../lib/admin";
 import { CATEGORIES } from "./categoryTaxonomy";
-import { PREGENERATED_QUESTIONS } from "./pregeneratedQuestions";
+import { PregeneratedQuestion, PREGENERATED_QUESTIONS } from "./pregeneratedQuestions";
+import { PREGENERATED_QUESTIONS_EN } from "./pregeneratedQuestionsEn";
 import { ensureCategory, ensureCategoryGroups } from "./taxonomyFirestore";
+
+async function seedLanguagePool(
+  categoryId: string,
+  categoryName: string,
+  language: string,
+  questions: PregeneratedQuestion[] | undefined,
+): Promise<number> {
+  if (!questions || questions.length === 0) {
+    console.warn(`  ${categoryName} (${language}): no pregenerated questions found for id "${categoryId}", skipping`);
+    return 0;
+  }
+
+  const batch = db.batch();
+  for (const question of questions) {
+    batch.set(db.collection("questions").doc(), {
+      categoryId,
+      ownerId: null,
+      questionText: question.questionText,
+      options: question.options,
+      correctAnswerIndex: question.correctAnswerIndex,
+      difficulty: question.difficulty,
+      source: "llm",
+      language,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+  }
+  batch.update(db.collection("categories").doc(categoryId), {
+    questionCount: FieldValue.increment(questions.length),
+  });
+  await batch.commit();
+  return questions.length;
+}
 
 async function seedAll(): Promise<void> {
   await ensureCategoryGroups();
@@ -24,32 +63,10 @@ async function seedAll(): Promise<void> {
   for (const category of CATEGORIES) {
     await ensureCategory(category);
 
-    const questions = PREGENERATED_QUESTIONS[category.id];
-    if (!questions || questions.length === 0) {
-      console.warn(`  ${category.name}: no pregenerated questions found for id "${category.id}", skipping`);
-      continue;
-    }
+    const arCount = await seedLanguagePool(category.id, category.name, "ar", PREGENERATED_QUESTIONS[category.id]);
+    const enCount = await seedLanguagePool(category.id, category.name, "en", PREGENERATED_QUESTIONS_EN[category.id]);
 
-    const batch = db.batch();
-    for (const question of questions) {
-      batch.set(db.collection("questions").doc(), {
-        categoryId: category.id,
-        ownerId: null,
-        questionText: question.questionText,
-        options: question.options,
-        correctAnswerIndex: question.correctAnswerIndex,
-        difficulty: question.difficulty,
-        source: "llm",
-        language: category.language,
-        createdAt: FieldValue.serverTimestamp(),
-      });
-    }
-    batch.update(db.collection("categories").doc(category.id), {
-      questionCount: FieldValue.increment(questions.length),
-    });
-    await batch.commit();
-
-    console.log(`  ${category.name}: +${questions.length} questions`);
+    console.log(`  ${category.name}: +${arCount} Arabic, +${enCount} English`);
   }
 
   console.log("Done.");
@@ -80,8 +97,8 @@ if (require.main === module) {
  *     node lib/seed/seedPregeneratedQuestions.js
  *
  * Safe to re-run: categories use deterministic ids and are never
- * recreated, but re-running DOES add another copy of these same 5
- * questions per category each time — run it once, then use
+ * recreated, but re-running DOES add another copy of this same Arabic +
+ * English starter pool per category each time — run it once, then use
  * `seedCategoryTaxonomy.ts` (needs a Claude key) to add more variety
  * instead of re-running this one repeatedly.
  */

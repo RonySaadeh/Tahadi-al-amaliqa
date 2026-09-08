@@ -148,7 +148,9 @@ async function resolveRoundNow(
   const roundRef = duelRef.collection("rounds").doc(String(roundNumber));
 
   const isFinalRound = roundNumber >= duel.totalRounds;
-  const nextQuestion = isFinalRound ? null : await pickNextQuestion(duel.categoryId, [round.questionId]);
+  const nextQuestion = isFinalRound
+    ? null
+    : await pickNextQuestion(duel.categoryId, duel.language, [round.questionId]);
   // Fetched before the transaction starts (a question's correct answer
   // never changes after creation, so this doesn't need transactional
   // consistency, and every read inside a Firestore transaction must go
@@ -299,14 +301,30 @@ async function getCorrectAnswerIndex(questionId: string): Promise<number> {
   return data?.correctAnswerIndex ?? 0;
 }
 
-/** Picks a random question for `categoryId`, avoiding `excludeIds` when
- * possible (falls back to allowing a repeat if the category is too small —
- * expected for a brand-new home-turf category). */
+/** Picks a random question for `categoryId` in `language`, avoiding
+ * `excludeIds` when possible (falls back to allowing a repeat if the
+ * category is too small — expected for a brand-new home-turf category).
+ *
+ * Falls back to ignoring the language filter entirely if the category has
+ * no questions in that language yet (e.g. an Arabic-only home-turf category
+ * being played by an English-preferring guest, or vice versa) — a duel with
+ * mixed-language rounds is a smaller problem than a duel that can't start
+ * or can't find a second question at all. */
 export async function pickNextQuestion(
   categoryId: string,
+  language: string,
   excludeIds: string[],
 ): Promise<{ id: string; data: QuestionDoc } | null> {
-  const snap = await db.collection("questions").where("categoryId", "==", categoryId).limit(50).get();
+  const byLanguageSnap = await db
+    .collection("questions")
+    .where("categoryId", "==", categoryId)
+    .where("language", "==", language)
+    .limit(50)
+    .get();
+
+  const snap = byLanguageSnap.empty
+    ? await db.collection("questions").where("categoryId", "==", categoryId).limit(50).get()
+    : byLanguageSnap;
   if (snap.empty) return null;
 
   const fresh = snap.docs.filter((d) => !excludeIds.includes(d.id));

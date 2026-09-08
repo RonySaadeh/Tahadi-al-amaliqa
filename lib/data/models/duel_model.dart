@@ -20,6 +20,7 @@ class DuelModel extends Equatable {
     this.player2DisplayName = '',
     required this.categoryId,
     required this.categoryName,
+    this.language = 'ar',
     this.isHomeTurfDuel = false,
     this.homeTurfOwnerId,
     required this.status,
@@ -41,6 +42,10 @@ class DuelModel extends Equatable {
   final String player2DisplayName;
   final String categoryId;
   final String categoryName;
+
+  /// The language both rounds' question text/options are in, fixed for the
+  /// whole duel by whoever started it. `'ar'` or `'en'`.
+  final String language;
   final bool isHomeTurfDuel;
   final String? homeTurfOwnerId;
   final DuelStatus status;
@@ -75,6 +80,7 @@ class DuelModel extends Equatable {
       player2DisplayName: data['player2DisplayName'] as String? ?? '',
       categoryId: data['categoryId'] as String? ?? '',
       categoryName: data['categoryName'] as String? ?? '',
+      language: data['language'] as String? ?? 'ar',
       isHomeTurfDuel: data['isHomeTurfDuel'] as bool? ?? false,
       homeTurfOwnerId: data['homeTurfOwnerId'] as String?,
       status: DuelStatus.fromString(data['status'] as String? ?? 'pending'),
@@ -96,6 +102,7 @@ class DuelModel extends Equatable {
     player1Id,
     player2Id,
     categoryId,
+    language,
     isHomeTurfDuel,
     status,
     player1Score,

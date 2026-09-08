@@ -22,6 +22,19 @@ class ProfileController extends Notifier<AsyncValue<void>> {
       await ref.read(userRepositoryProvider).updateProfile(uid, displayName: displayName);
     });
   }
+
+  /// Sets the player's preferred language (`'ar'` or `'en'`) — drives both
+  /// the app's own UI locale (see `main.dart`) and, from their next duel
+  /// onward, which language its questions are picked in (`createDuel`
+  /// reads this same field).
+  Future<void> updateLocale(String locale) async {
+    final uid = ref.read(currentUserIdProvider);
+    if (uid == null) return;
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await ref.read(userRepositoryProvider).updateProfile(uid, locale: locale);
+    });
+  }
 }
 
 final profileControllerProvider = NotifierProvider<ProfileController, AsyncValue<void>>(

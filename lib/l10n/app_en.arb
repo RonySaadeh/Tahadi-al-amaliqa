@@ -128,6 +128,9 @@
   },
   "profileOwnedCategories": "Owned categories",
   "profileEditName": "Edit name",
+  "profileLanguage": "Language",
+  "profileLanguageArabic": "العربية",
+  "profileLanguageEnglish": "English",
 
   "commonLoading": "Loading...",
   "commonRetry": "Retry",

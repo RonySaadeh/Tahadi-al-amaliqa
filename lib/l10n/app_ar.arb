@@ -129,6 +129,9 @@
   },
   "profileOwnedCategories": "فئاتي المملوكة",
   "profileEditName": "تعديل الاسم",
+  "profileLanguage": "اللغة",
+  "profileLanguageArabic": "العربية",
+  "profileLanguageEnglish": "English",
 
   "commonLoading": "جارِ التحميل...",
   "commonRetry": "إعادة المحاولة",

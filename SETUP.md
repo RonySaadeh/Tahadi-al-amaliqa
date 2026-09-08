@@ -163,9 +163,13 @@ general + specific categories (e.g. Sports → Football General → Real
 Madrid → Barcelona), there are two ways to fill them with questions:
 
 **No Claude API key needed** — `functions/src/seed/seedPregeneratedQuestions.ts`
-uploads a starter pool of 5 hand-written questions per category (285
-total, written directly rather than fetched from any API — see
-`pregeneratedQuestions.ts`). Only needs Firebase Admin credentials:
+uploads a hand-written starter pool per category, in both languages: ~12
+Arabic questions (see `pregeneratedQuestions.ts`) and 5 English questions
+(see `pregeneratedQuestionsEn.ts`), written directly rather than fetched
+from any API. A duel's language is fixed from whoever starts it (their
+`locale` profile field — see the Profile screen's language toggle), and
+`pickNextQuestion` picks each round's question from the matching language
+pool. Only needs Firebase Admin credentials:
 
 ```bash
 cd functions && npm run build

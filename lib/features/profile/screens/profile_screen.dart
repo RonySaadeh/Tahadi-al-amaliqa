@@ -113,6 +113,22 @@ class ProfileScreen extends ConsumerWidget {
                 ],
               ),
               const SizedBox(height: AppSpacing.lg),
+              Text(l10n.profileLanguage, style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: AppSpacing.sm),
+              SegmentedButton<String>(
+                segments: [
+                  ButtonSegment(value: 'ar', label: Text(l10n.profileLanguageArabic)),
+                  ButtonSegment(value: 'en', label: Text(l10n.profileLanguageEnglish)),
+                ],
+                selected: {user.locale},
+                onSelectionChanged: (selection) {
+                  final selected = selection.first;
+                  if (selected != user.locale) {
+                    ref.read(profileControllerProvider.notifier).updateLocale(selected);
+                  }
+                },
+              ),
+              const SizedBox(height: AppSpacing.lg),
               Text(l10n.profileOwnedCategories, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: AppSpacing.sm),
               categoriesAsync.when(

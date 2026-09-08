@@ -7,6 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/theme/app_theme.dart';
+import 'features/home/home_controller.dart';
 import 'firebase_options.dart';
 import 'l10n/app_localizations.dart';
 import 'routing/app_router.dart';
@@ -45,6 +46,17 @@ class TahadiApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(goRouterProvider);
 
+    // Arabic is the primary/default locale; English is fully supported.
+    // Reflects the signed-in player's stored `locale` preference (see
+    // `features/profile`) once their user doc has loaded — defaults to
+    // Arabic before that, and for a signed-out user. `AppLocalizations` is
+    // generated from lib/l10n/app_*.arb — see l10n.yaml. Flutter
+    // automatically flips the whole widget tree to RTL for Arabic via the
+    // `Directionality` inherited from `Locale`, so individual screens don't
+    // need manual RTL handling.
+    final preferredLocale = ref.watch(currentUserProvider).value?.locale;
+    final locale = preferredLocale == 'en' ? const Locale('en') : const Locale('ar');
+
     return MaterialApp.router(
       title: 'تحدي العمالقة',
       debugShowCheckedModeBanner: false,
@@ -52,13 +64,7 @@ class TahadiApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.dark,
       routerConfig: router,
-
-      // Arabic is the primary/default locale; English is fully supported.
-      // `AppLocalizations` is generated from lib/l10n/app_*.arb — see
-      // l10n.yaml. Flutter automatically flips the whole widget tree to RTL
-      // for Arabic via the `Directionality` inherited from `Locale`, so
-      // individual screens don't need manual RTL handling.
-      locale: const Locale('ar'),
+      locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
         AppLocalizations.delegate,

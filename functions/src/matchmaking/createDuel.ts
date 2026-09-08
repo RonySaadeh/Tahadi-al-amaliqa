@@ -21,7 +21,12 @@ export async function createDuelForPlayers(player1Id: string, player2Id: string,
   if (!categorySnap.exists) throw new HttpsError("not-found", "Category not found.");
   const category = categorySnap.data()!;
 
-  const firstQuestion = await pickNextQuestion(categoryId, []);
+  // The duel's language is fixed for its whole lifetime from whoever
+  // started it (player1), so both rounds are always in one language rather
+  // than flipping mid-duel if the two players have different preferences.
+  const language: string = player1Snap.data()?.locale ?? "ar";
+
+  const firstQuestion = await pickNextQuestion(categoryId, language, []);
   if (!firstQuestion) {
     throw new HttpsError("failed-precondition", "This category has no questions yet.");
   }
@@ -34,6 +39,7 @@ export async function createDuelForPlayers(player1Id: string, player2Id: string,
     player2DisplayName: player2Snap.data()?.displayName ?? "",
     categoryId,
     categoryName: category.name,
+    language,
     isHomeTurfDuel: category.ownerId != null,
     homeTurfOwnerId: category.ownerId ?? null,
     status: "active",
