@@ -6,9 +6,11 @@ playing rounds live, and seeing the result.
 ## Where things live
 
 - `duel_controller.dart` — lobby actions: send/accept/decline a challenge,
-  join/leave the open-lobby queue. Also exposes the stream providers used by
-  the lobby screen (`incomingInvitesProvider`, `opponentCandidatesProvider`,
-  `categoriesProvider`, `recentDuelsProvider`).
+  join/cancel the open-lobby quick-match queue. Also exposes the stream
+  providers used by the lobby screen (`incomingInvitesProvider`,
+  `opponentCandidatesProvider`, `categoriesProvider`, `recentDuelsProvider`,
+  `openLobbyStreamProvider`) and `queuedLobbyIdProvider`, which tracks
+  whether we're currently waiting in the quick-match queue.
 - `live_duel_controller.dart` — gameplay state, scoped per `duelId`:
   `duelStreamProvider`/`roundStreamProvider` mirror Firestore in real time,
   and `selectedAnswerProvider` tracks the local player's tap before the
@@ -42,13 +44,20 @@ document, the widget rebuilds and starts watching the next round's document
 instead. Advancing state lives entirely on the server; the client is just
 reacting to whatever `currentRound` currently is.
 
-## Known simplification
+## How quick-match auto-navigation works
 
 `duel_lobby_screen.dart`'s quick-match button navigates immediately if
-matched, but if you're placed in the open-lobby queue instead (no opponent
-available yet), it doesn't currently listen for a match to land — you'd
-need to back out and try again. A full implementation would watch the
-`openLobbies/{lobbyId}` document and auto-navigate once a `duelId` appears
-on it (the Cloud Function side already supports this — see
-`functions/src/matchmaking/openLobby.ts`). Left as a fast-follow since a
-small friend group can mostly rely on direct challenges.
+`joinQuickMatch` finds a waiting opponent right away. Otherwise the
+returned `lobbyId` is stored in `queuedLobbyIdProvider` and the screen
+switches to a "searching" state. From then on `openLobbyStreamProvider`
+keeps listening to `openLobbies/{lobbyId}` in real time; when some *other*
+player's `joinOpenLobby` call matches into that entry, the Cloud Function
+stamps a `duelId` onto it (see `functions/src/matchmaking/openLobby.ts`),
+and `ref.listen` in the lobby screen picks that up and navigates straight
+into the live duel — no polling, no manual refresh.
+
+`queuedLobbyIdProvider` lives in `duel_controller.dart` rather than as
+local widget state specifically so it survives switching to another
+bottom-nav tab and back while still queued (go_router's `ShellRoute`
+disposes/recreates `DuelLobbyScreen` on tab switches, but Riverpod
+providers are not tied to the widget tree).

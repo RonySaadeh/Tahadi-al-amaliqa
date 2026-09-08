@@ -86,9 +86,10 @@ class DuelLobbyScreen extends ConsumerWidget {
     if (duelId != null && context.mounted) {
       context.push(AppRoutes.liveDuelPath(duelId));
     }
-    // If no duelId came back, we're queued in an open lobby — a production
-    // build would listen to that lobby doc here and auto-navigate once
-    // matched. Kept simple for now; see features/duel/README.md.
+    // If no duelId came back, `joinQuickMatch` has already recorded us as
+    // queued (see `queuedLobbyIdProvider`) — `build` below watches that and
+    // switches to the searching UI, then auto-navigates once
+    // `openLobbyStreamProvider` reports a match.
   }
 
   @override
@@ -96,10 +97,24 @@ class DuelLobbyScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final invites = ref.watch(incomingInvitesProvider);
     final duelState = ref.watch(duelControllerProvider);
+    final queuedLobbyId = ref.watch(queuedLobbyIdProvider);
+
+    if (queuedLobbyId != null) {
+      ref.listen(openLobbyStreamProvider(queuedLobbyId), (previous, next) {
+        final duelId = next.value?.duelId;
+        if (duelId == null) return;
+        ref.read(duelControllerProvider.notifier).clearQueueAfterMatch();
+        context.push(AppRoutes.liveDuelPath(duelId));
+      });
+    }
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.duelLobbyTitle)),
-      body: duelState.isLoading
+      body: queuedLobbyId != null
+          ? _QuickMatchSearching(
+              onCancel: () => ref.read(duelControllerProvider.notifier).cancelQuickMatch(),
+            )
+          : duelState.isLoading
           ? const Center(child: BrandedLoadingIndicator())
           : ListView(
               padding: const EdgeInsets.all(AppSpacing.md),
@@ -145,6 +160,30 @@ class DuelLobbyScreen extends ConsumerWidget {
                 ),
               ],
             ),
+    );
+  }
+}
+
+/// Shown in place of the lobby list while queued for a quick match — the
+/// same branded loading indicator used everywhere else, plus a cancel
+/// button that leaves the queue.
+class _QuickMatchSearching extends StatelessWidget {
+  const _QuickMatchSearching({required this.onCancel});
+
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          BrandedLoadingIndicator(message: l10n.duelSearchingMatch),
+          const SizedBox(height: AppSpacing.lg),
+          OutlinedButton(onPressed: onCancel, child: Text(l10n.duelCancel)),
+        ],
+      ),
     );
   }
 }

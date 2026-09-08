@@ -7,6 +7,7 @@ import '../../data/models/category_model.dart';
 import '../../data/models/duel_invite_model.dart';
 import '../../data/models/duel_model.dart';
 import '../../data/models/leaderboard_entry_model.dart';
+import '../../data/models/open_lobby_model.dart';
 
 /// State/logic for challenging friends, quick-matching, and responding to
 /// incoming challenges. The actual live-duel gameplay (answering questions,
@@ -37,26 +38,63 @@ class DuelController extends Notifier<AsyncValue<void>> {
     return duelId;
   }
 
-  /// Returns `(duelId, matchedImmediately)` when matched, or
-  /// `(lobbyId, false)` when the caller must wait for an opponent — see
-  /// `duel_lobby_screen.dart` for how it watches the lobby doc afterwards.
+  /// Joins the quick-match queue. If someone was already waiting, this
+  /// returns a `duelId` immediately. Otherwise it returns a `lobbyId` and
+  /// also records it in [queuedLobbyIdProvider], so `duel_lobby_screen.dart`
+  /// can show a "searching" state and — via [openLobbyStreamProvider] —
+  /// notice the moment a *later* caller's `joinOpenLobby` matches into this
+  /// same entry and stamps a `duelId` onto it.
   Future<Map<String, dynamic>> joinQuickMatch({String? categoryId}) async {
     state = const AsyncValue.loading();
     Map<String, dynamic> result = {};
     state = await AsyncValue.guard(() async {
       result = await ref.read(duelRepositoryProvider).joinOpenLobby(categoryId: categoryId);
+      final lobbyId = result['lobbyId'] as String?;
+      if (lobbyId != null) {
+        ref.read(queuedLobbyIdProvider.notifier).set(lobbyId);
+      }
     });
     return result;
   }
 
-  Future<void> leaveQuickMatchQueue(String lobbyId) {
-    return ref.read(duelRepositoryProvider).leaveOpenLobby(lobbyId);
+  /// Clears the queued state and, if we're still actually queued (as
+  /// opposed to having just been matched), tells the server to remove the
+  /// lobby entry.
+  Future<void> cancelQuickMatch() async {
+    final lobbyId = ref.read(queuedLobbyIdProvider);
+    if (lobbyId == null) return;
+    ref.read(queuedLobbyIdProvider.notifier).set(null);
+    await ref.read(duelRepositoryProvider).leaveOpenLobby(lobbyId);
+  }
+
+  /// Called once [openLobbyStreamProvider] reports a `duelId` — stops
+  /// treating us as queued now that the duel itself is what matters.
+  void clearQueueAfterMatch() {
+    ref.read(queuedLobbyIdProvider.notifier).set(null);
   }
 }
 
 final duelControllerProvider = NotifierProvider<DuelController, AsyncValue<void>>(
   DuelController.new,
 );
+
+/// The lobby entry id we're currently waiting in, or null. Held as its own
+/// provider (rather than local widget state) so it survives switching away
+/// from the Duel tab and back while a quick match is still pending.
+class QueuedLobbyIdController extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void set(String? lobbyId) => state = lobbyId;
+}
+
+final queuedLobbyIdProvider = NotifierProvider<QueuedLobbyIdController, String?>(
+  QueuedLobbyIdController.new,
+);
+
+final openLobbyStreamProvider = StreamProvider.family<OpenLobbyModel?, String>((ref, lobbyId) {
+  return ref.watch(duelRepositoryProvider).watchOpenLobby(lobbyId);
+});
 
 final categoriesProvider = StreamProvider<List<CategoryModel>>((ref) {
   return ref.watch(questionRepositoryProvider).watchAllCategories();

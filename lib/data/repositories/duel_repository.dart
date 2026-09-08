@@ -2,6 +2,7 @@ import '../../core/services/cloud_functions_service.dart';
 import '../../core/services/firestore_service.dart';
 import '../models/duel_invite_model.dart';
 import '../models/duel_model.dart';
+import '../models/open_lobby_model.dart';
 import '../models/round_model.dart';
 
 /// Everything about the live duel flow: reading duel/round state in
@@ -79,6 +80,16 @@ class DuelRepository {
   }
 
   Future<void> leaveOpenLobby(String lobbyId) => _cloudFunctions.leaveOpenLobby(lobbyId);
+
+  /// Watches a single quick-match queue entry so the lobby screen can
+  /// notice the moment another player's `joinOpenLobby` call matches into
+  /// it (i.e. `duelId` goes from null to set) and navigate automatically.
+  Stream<OpenLobbyModel?> watchOpenLobby(String lobbyId) {
+    return _firestore.openLobbies.doc(lobbyId).snapshots().map((doc) {
+      if (!doc.exists) return null;
+      return OpenLobbyModel.fromFirestore(doc);
+    });
+  }
 
   Future<void> sendChallenge({required String toUserId, required String categoryId}) {
     return _cloudFunctions.sendDuelChallenge(toUserId: toUserId, categoryId: categoryId);
