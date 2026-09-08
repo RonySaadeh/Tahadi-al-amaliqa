@@ -1,0 +1,138 @@
+{
+  "@@locale": "ar",
+  "appTitle": "تحدي العمالقة",
+  "@appTitle": {"description": "App name shown on splash and app switcher"},
+
+  "navHome": "الرئيسية",
+  "navDuel": "التحدي",
+  "navLeaderboard": "الترتيب",
+  "navHomeTurf": "أرضي",
+  "navProfile": "حسابي",
+
+  "authWelcomeTitle": "استعد للتحدي",
+  "authWelcomeSubtitle": "بارِز أصدقاءك في مبارزات معرفية مباشرة",
+  "authEmail": "البريد الإلكتروني",
+  "authPassword": "كلمة المرور",
+  "authDisplayName": "اسم العرض",
+  "authSignIn": "تسجيل الدخول",
+  "authSignUp": "إنشاء حساب",
+  "authOrDivider": "أو",
+  "authSignInWithGoogle": "الدخول عبر جوجل",
+  "authSignInWithApple": "الدخول عبر آبل",
+  "authNoAccount": "ليس لديك حساب؟",
+  "authHaveAccount": "لديك حساب بالفعل؟",
+  "authSwitchToSignUp": "أنشئ حسابًا",
+  "authSwitchToSignIn": "سجّل الدخول",
+  "authError": "حدث خطأ، حاول مرة أخرى",
+  "authSignOut": "تسجيل الخروج",
+
+  "homeGreeting": "أهلًا، {name}",
+  "@homeGreeting": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "homeEloLabel": "تصنيفك",
+  "homeChallengeFriend": "تحدَّ صديقًا",
+  "homeQuickMatch": "مباراة سريعة",
+  "homeRecentDuels": "آخر المبارزات",
+  "homeNoRecentDuels": "لا توجد مبارزات بعد. ابدأ أول تحدٍ لك!",
+
+  "duelLobbyTitle": "غرفة الانتظار",
+  "duelSelectCategory": "اختر الفئة",
+  "duelSelectOpponent": "اختر الخصم",
+  "duelWaitingForOpponent": "بانتظار الخصم...",
+  "duelSearchingMatch": "جارِ البحث عن مباراة...",
+  "duelStartingIn": "تبدأ خلال {seconds}",
+  "@duelStartingIn": {
+    "placeholders": {"seconds": {"type": "int"}}
+  },
+  "duelRoundOf": "الجولة {current} من {total}",
+  "@duelRoundOf": {
+    "placeholders": {"current": {"type": "int"}, "total": {"type": "int"}}
+  },
+  "duelYourAnswer": "إجابتك",
+  "duelWaitingOpponentAnswer": "بانتظار إجابة الخصم...",
+  "duelCorrect": "إجابة صحيحة!",
+  "duelIncorrect": "إجابة خاطئة",
+  "duelTimeUp": "انتهى الوقت",
+  "duelPointsEarned": "+{points} نقطة",
+  "@duelPointsEarned": {
+    "placeholders": {"points": {"type": "int"}}
+  },
+  "duelYouWin": "لقد فزت!",
+  "duelYouLose": "خسرت هذه الجولة",
+  "duelDraw": "تعادل",
+  "duelFinalScore": "النتيجة النهائية",
+  "duelEloChange": "تغيّر التصنيف",
+  "duelPlayAgain": "العب مرة أخرى",
+  "duelBackHome": "العودة للرئيسية",
+  "duelHomeTurfBonus": "مضاعفة أرض الديار مفعّلة",
+  "duelCancel": "إلغاء",
+  "duelOpponentLeft": "غادر الخصم المبارزة",
+  "duelChallengeSent": "تم إرسال التحدي إلى {name}",
+  "@duelChallengeSent": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+
+  "leaderboardTitle": "لوحة الصدارة",
+  "leaderboardGlobal": "التصنيف العام",
+  "leaderboardHeadToHead": "وجهًا لوجه",
+  "leaderboardRecordAgainst": "سجلك ضد {name}: {wins}-{losses}",
+  "@leaderboardRecordAgainst": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "wins": {"type": "int"},
+      "losses": {"type": "int"}
+    }
+  },
+  "leaderboardRank": "#{rank}",
+  "@leaderboardRank": {
+    "placeholders": {"rank": {"type": "int"}}
+  },
+  "leaderboardEmpty": "لا يوجد بيانات كافية بعد",
+
+  "homeTurfTitle": "أرضي",
+  "homeTurfMyCategories": "فئاتي",
+  "homeTurfCreateCategory": "فئة جديدة",
+  "homeTurfCategoryName": "اسم الفئة",
+  "homeTurfCategoryDescription": "وصف مختصر",
+  "homeTurfMaxReached": "وصلت للحد الأقصى (3 فئات)",
+  "homeTurfAddQuestion": "أضف سؤالًا",
+  "homeTurfQuestionText": "نص السؤال",
+  "homeTurfOption": "الخيار {index}",
+  "@homeTurfOption": {
+    "placeholders": {"index": {"type": "int"}}
+  },
+  "homeTurfCorrectAnswer": "الإجابة الصحيحة",
+  "homeTurfDifficulty": "الصعوبة",
+  "homeTurfDifficultyEasy": "سهل",
+  "homeTurfDifficultyMedium": "متوسط",
+  "homeTurfDifficultyHard": "صعب",
+  "homeTurfSave": "حفظ",
+  "homeTurfNoCategories": "لم تنشئ أي فئة بعد",
+  "homeTurfGenerateWithAI": "توليد أسئلة بالذكاء الاصطناعي",
+  "homeTurfGenerateTopic": "الموضوع",
+  "homeTurfGenerateCount": "عدد الأسئلة",
+
+  "profileTitle": "حسابي",
+  "profileStats": "الإحصائيات",
+  "profileWins": "الانتصارات",
+  "profileLosses": "الهزائم",
+  "profileCurrentStreak": "السلسلة الحالية",
+  "profileBestStreak": "أفضل سلسلة",
+  "profileEloRating": "التصنيف",
+  "profileMemberSince": "عضو منذ {date}",
+  "@profileMemberSince": {
+    "placeholders": {"date": {"type": "String"}}
+  },
+  "profileOwnedCategories": "فئاتي المملوكة",
+  "profileEditName": "تعديل الاسم",
+
+  "commonLoading": "جارِ التحميل...",
+  "commonRetry": "إعادة المحاولة",
+  "commonCancel": "إلغاء",
+  "commonSave": "حفظ",
+  "commonDelete": "حذف",
+  "commonConfirm": "تأكيد",
+  "commonError": "حدث خطأ ما",
+  "commonSeconds": "ث"
+}

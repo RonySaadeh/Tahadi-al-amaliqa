@@ -1,0 +1,114 @@
+rules_version = '2';
+
+// Security model for this whole app, in one sentence: Cloud Functions run
+// with the Admin SDK and bypass these rules entirely, so anything that must
+// be trusted (scores, ELO, question answer keys, matchmaking) is written
+// ONLY by a Cloud Function — every `allow write: if false` below is a
+// collection whose real write path is `functions/src/**`, not a client.
+// See each feature's README under `lib/features/*/README.md` for which
+// function owns which collection.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isPlayerInDuel(duelId) {
+      let duel = get(/databases/$(database)/documents/duels/$(duelId)).data;
+      return request.auth.uid == duel.player1Id || request.auth.uid == duel.player2Id;
+    }
+
+    // --- users/{uid} ---
+    // Anyone signed in can read any profile (leaderboard, opponent names,
+    // duel history all need this). A user may create ONLY their own
+    // profile document, and only with the fixed starting stats — this is
+    // what stops someone from signing up with elo: 9999. Every stat field
+    // after that (elo, wins, losses, streaks) is only ever changed by
+    // `resolveDuel` in Cloud Functions.
+    match /users/{uid} {
+      allow read: if isSignedIn();
+
+      allow create: if isSignedIn()
+        && request.auth.uid == uid
+        && request.resource.data.elo == 1200
+        && request.resource.data.wins == 0
+        && request.resource.data.losses == 0
+        && request.resource.data.currentStreak == 0
+        && request.resource.data.bestStreak == 0
+        && request.resource.data.ownedCategoryIds.size() == 0;
+
+      allow update: if isSignedIn()
+        && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['displayName', 'photoUrl', 'locale']);
+
+      allow delete: if false;
+    }
+
+    // --- categories/{categoryId} ---
+    // Client-read-only. Created by `createHomeTurfCategory` (which also
+    // enforces the 3-per-owner cap — see functions/src/questions/homeTurf.ts).
+    match /categories/{categoryId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // --- questions/{questionId} ---
+    // Client-read-only. If a client could write here, anyone could plant a
+    // question with a wrong "correct" answer to guarantee a win. Written by
+    // `addHomeTurfQuestion` and `generateQuestions`.
+    match /questions/{questionId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // --- duels/{duelId} + rounds + answers ---
+    // Only the two players in a duel can even read its document — everyone
+    // else gets nothing. `rounds/{n}` intentionally never contains the
+    // correct answer or either player's pick until it's resolved (see
+    // `RoundDoc` in functions/src/lib/types.ts), and the raw `answers`
+    // subcollection is blocked from clients entirely, even for reading —
+    // otherwise a player could peek at Firestore and read their opponent's
+    // submitted answer before submitting their own.
+    match /duels/{duelId} {
+      allow read: if isSignedIn()
+        && (request.auth.uid == resource.data.player1Id || request.auth.uid == resource.data.player2Id);
+      allow write: if false;
+
+      match /rounds/{roundNumber} {
+        allow read: if isSignedIn() && isPlayerInDuel(duelId);
+        allow write: if false;
+
+        match /answers/{uid} {
+          allow read, write: if false;
+        }
+      }
+    }
+
+    // --- duelInvites/{inviteId} ---
+    // Only the sender and recipient can see a challenge. Created by
+    // `sendDuelChallenge`, resolved by `respondToDuelChallenge`.
+    match /duelInvites/{inviteId} {
+      allow read: if isSignedIn()
+        && (request.auth.uid == resource.data.fromUserId || request.auth.uid == resource.data.toUserId);
+      allow write: if false;
+    }
+
+    // --- openLobbies/{lobbyId} ---
+    // The quick-match queue. Readable so a future version of the client can
+    // watch its own queue entry for a match; entries are only ever created/
+    // updated/deleted by `joinOpenLobby`/`leaveOpenLobby`.
+    match /openLobbies/{lobbyId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // --- leaderboardPairings/{pairingId} ---
+    // Head-to-head records. Written only as a side effect of `resolveDuel`.
+    match /leaderboardPairings/{pairingId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+  }
+}

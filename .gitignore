@@ -1,0 +1,55 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+*.g.dart
+*.freezed.dart
+app.*.symbols
+
+# Generated localization
+lib/l10n/app_localizations*.dart
+
+# Platform folders are generated locally via `flutter create` (see RUN_WHEN_HOME.md)
+# and are intentionally NOT committed so no machine-specific/signing config leaks.
+/android/
+/ios/
+/macos/
+/windows/
+/linux/
+/web/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Firebase / secrets — NEVER commit these
+.firebaserc
+**/google-services.json
+**/GoogleService-Info.plist
+lib/firebase_options.dart
+functions/.env
+functions/.env.*
+functions/.runtimeconfig.json
+*.pem
+*.key
+
+# Node (Cloud Functions)
+functions/node_modules/
+functions/lib/
+npm-debug.log*
+
+# Firebase emulator
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+pubsub-debug.log
+
+# OS
+.DS_Store
+Thumbs.db

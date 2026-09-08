@@ -1,0 +1,111 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:equatable/equatable.dart';
+
+import '../../core/constants/app_enums.dart';
+
+/// A single 1v1 duel, stored at `duels/{duelId}` with a `rounds`
+/// subcollection (see [RoundModel]). Every duel gets its own document and
+/// subcollection so concurrent duels never share reads/writes — see the
+/// architecture note in `features/duel/README.md`.
+///
+/// Entirely written by Cloud Functions (`createDuel` on creation,
+/// round-resolution + `resolveDuel` logic as it progresses). The client only
+/// ever reads/listens to this document.
+class DuelModel extends Equatable {
+  const DuelModel({
+    required this.id,
+    required this.player1Id,
+    required this.player2Id,
+    this.player1DisplayName = '',
+    this.player2DisplayName = '',
+    required this.categoryId,
+    required this.categoryName,
+    this.isHomeTurfDuel = false,
+    this.homeTurfOwnerId,
+    required this.status,
+    this.player1Score = 0,
+    this.player2Score = 0,
+    required this.currentRound,
+    required this.totalRounds,
+    this.winnerId,
+    this.eloChange = const {},
+    required this.createdAt,
+    this.startedAt,
+    this.completedAt,
+  });
+
+  final String id;
+  final String player1Id;
+  final String player2Id;
+  final String player1DisplayName;
+  final String player2DisplayName;
+  final String categoryId;
+  final String categoryName;
+  final bool isHomeTurfDuel;
+  final String? homeTurfOwnerId;
+  final DuelStatus status;
+  final int player1Score;
+  final int player2Score;
+  final int currentRound;
+  final int totalRounds;
+
+  /// Null until the duel is completed. Empty string is used for a draw.
+  final String? winnerId;
+
+  /// uid -> ELO delta applied by `resolveDuel`. Empty until completed.
+  final Map<String, int> eloChange;
+
+  final DateTime createdAt;
+  final DateTime? startedAt;
+  final DateTime? completedAt;
+
+  String opponentIdFor(String uid) => uid == player1Id ? player2Id : player1Id;
+
+  int scoreFor(String uid) => uid == player1Id ? player1Score : player2Score;
+
+  bool get isFinished => status == DuelStatus.completed || status == DuelStatus.cancelled;
+
+  factory DuelModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+    final data = doc.data() ?? <String, dynamic>{};
+    return DuelModel(
+      id: doc.id,
+      player1Id: data['player1Id'] as String? ?? '',
+      player2Id: data['player2Id'] as String? ?? '',
+      player1DisplayName: data['player1DisplayName'] as String? ?? '',
+      player2DisplayName: data['player2DisplayName'] as String? ?? '',
+      categoryId: data['categoryId'] as String? ?? '',
+      categoryName: data['categoryName'] as String? ?? '',
+      isHomeTurfDuel: data['isHomeTurfDuel'] as bool? ?? false,
+      homeTurfOwnerId: data['homeTurfOwnerId'] as String?,
+      status: DuelStatus.fromString(data['status'] as String? ?? 'pending'),
+      player1Score: (data['player1Score'] as num?)?.toInt() ?? 0,
+      player2Score: (data['player2Score'] as num?)?.toInt() ?? 0,
+      currentRound: (data['currentRound'] as num?)?.toInt() ?? 1,
+      totalRounds: (data['totalRounds'] as num?)?.toInt() ?? 5,
+      winnerId: data['winnerId'] as String?,
+      eloChange: Map<String, int>.from(data['eloChange'] as Map? ?? const {}),
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      startedAt: (data['startedAt'] as Timestamp?)?.toDate(),
+      completedAt: (data['completedAt'] as Timestamp?)?.toDate(),
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+    id,
+    player1Id,
+    player2Id,
+    categoryId,
+    isHomeTurfDuel,
+    status,
+    player1Score,
+    player2Score,
+    currentRound,
+    totalRounds,
+    winnerId,
+    eloChange,
+    createdAt,
+    startedAt,
+    completedAt,
+  ];
+}

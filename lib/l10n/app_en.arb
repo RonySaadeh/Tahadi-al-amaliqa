@@ -1,0 +1,137 @@
+{
+  "@@locale": "en",
+  "appTitle": "Challenge of the Giants",
+
+  "navHome": "Home",
+  "navDuel": "Duel",
+  "navLeaderboard": "Leaderboard",
+  "navHomeTurf": "Home Turf",
+  "navProfile": "Profile",
+
+  "authWelcomeTitle": "Ready to duel?",
+  "authWelcomeSubtitle": "Face your friends in live trivia duels",
+  "authEmail": "Email",
+  "authPassword": "Password",
+  "authDisplayName": "Display name",
+  "authSignIn": "Sign In",
+  "authSignUp": "Create Account",
+  "authOrDivider": "or",
+  "authSignInWithGoogle": "Continue with Google",
+  "authSignInWithApple": "Continue with Apple",
+  "authNoAccount": "Don't have an account?",
+  "authHaveAccount": "Already have an account?",
+  "authSwitchToSignUp": "Create one",
+  "authSwitchToSignIn": "Sign in",
+  "authError": "Something went wrong, please try again",
+  "authSignOut": "Sign Out",
+
+  "homeGreeting": "Hey, {name}",
+  "@homeGreeting": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "homeEloLabel": "Your rating",
+  "homeChallengeFriend": "Challenge a friend",
+  "homeQuickMatch": "Quick match",
+  "homeRecentDuels": "Recent duels",
+  "homeNoRecentDuels": "No duels yet. Start your first challenge!",
+
+  "duelLobbyTitle": "Lobby",
+  "duelSelectCategory": "Select category",
+  "duelSelectOpponent": "Select opponent",
+  "duelWaitingForOpponent": "Waiting for opponent...",
+  "duelSearchingMatch": "Searching for a match...",
+  "duelStartingIn": "Starting in {seconds}",
+  "@duelStartingIn": {
+    "placeholders": {"seconds": {"type": "int"}}
+  },
+  "duelRoundOf": "Round {current} of {total}",
+  "@duelRoundOf": {
+    "placeholders": {"current": {"type": "int"}, "total": {"type": "int"}}
+  },
+  "duelYourAnswer": "Your answer",
+  "duelWaitingOpponentAnswer": "Waiting for opponent's answer...",
+  "duelCorrect": "Correct!",
+  "duelIncorrect": "Incorrect",
+  "duelTimeUp": "Time's up",
+  "duelPointsEarned": "+{points} pts",
+  "@duelPointsEarned": {
+    "placeholders": {"points": {"type": "int"}}
+  },
+  "duelYouWin": "You Win!",
+  "duelYouLose": "You Lose",
+  "duelDraw": "Draw",
+  "duelFinalScore": "Final Score",
+  "duelEloChange": "Rating change",
+  "duelPlayAgain": "Play Again",
+  "duelBackHome": "Back Home",
+  "duelHomeTurfBonus": "Home turf bonus active",
+  "duelCancel": "Cancel",
+  "duelOpponentLeft": "Opponent left the duel",
+  "duelChallengeSent": "Challenge sent to {name}",
+  "@duelChallengeSent": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+
+  "leaderboardTitle": "Leaderboard",
+  "leaderboardGlobal": "Global ranking",
+  "leaderboardHeadToHead": "Head to head",
+  "leaderboardRecordAgainst": "You vs {name}: {wins}-{losses}",
+  "@leaderboardRecordAgainst": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "wins": {"type": "int"},
+      "losses": {"type": "int"}
+    }
+  },
+  "leaderboardRank": "#{rank}",
+  "@leaderboardRank": {
+    "placeholders": {"rank": {"type": "int"}}
+  },
+  "leaderboardEmpty": "Not enough data yet",
+
+  "homeTurfTitle": "Home Turf",
+  "homeTurfMyCategories": "My categories",
+  "homeTurfCreateCategory": "New category",
+  "homeTurfCategoryName": "Category name",
+  "homeTurfCategoryDescription": "Short description",
+  "homeTurfMaxReached": "You've reached the limit (3 categories)",
+  "homeTurfAddQuestion": "Add question",
+  "homeTurfQuestionText": "Question text",
+  "homeTurfOption": "Option {index}",
+  "@homeTurfOption": {
+    "placeholders": {"index": {"type": "int"}}
+  },
+  "homeTurfCorrectAnswer": "Correct answer",
+  "homeTurfDifficulty": "Difficulty",
+  "homeTurfDifficultyEasy": "Easy",
+  "homeTurfDifficultyMedium": "Medium",
+  "homeTurfDifficultyHard": "Hard",
+  "homeTurfSave": "Save",
+  "homeTurfNoCategories": "You haven't created a category yet",
+  "homeTurfGenerateWithAI": "Generate questions with AI",
+  "homeTurfGenerateTopic": "Topic",
+  "homeTurfGenerateCount": "Number of questions",
+
+  "profileTitle": "Profile",
+  "profileStats": "Stats",
+  "profileWins": "Wins",
+  "profileLosses": "Losses",
+  "profileCurrentStreak": "Current streak",
+  "profileBestStreak": "Best streak",
+  "profileEloRating": "Rating",
+  "profileMemberSince": "Member since {date}",
+  "@profileMemberSince": {
+    "placeholders": {"date": {"type": "String"}}
+  },
+  "profileOwnedCategories": "Owned categories",
+  "profileEditName": "Edit name",
+
+  "commonLoading": "Loading...",
+  "commonRetry": "Retry",
+  "commonCancel": "Cancel",
+  "commonSave": "Save",
+  "commonDelete": "Delete",
+  "commonConfirm": "Confirm",
+  "commonError": "Something went wrong",
+  "commonSeconds": "s"
+}
