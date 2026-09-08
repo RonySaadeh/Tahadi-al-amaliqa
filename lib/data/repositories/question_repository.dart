@@ -1,5 +1,6 @@
 import '../../core/services/cloud_functions_service.dart';
 import '../../core/services/firestore_service.dart';
+import '../models/category_group_model.dart';
 import '../models/category_model.dart';
 import '../models/question_model.dart';
 
@@ -20,6 +21,15 @@ class QuestionRepository {
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snap) => snap.docs.map(CategoryModel.fromFirestore).toList());
+  }
+
+  /// The section headers the category picker groups categories under (see
+  /// `functions/src/seed/categoryTaxonomy.ts`). Small, static-ish list — a
+  /// single unfiltered read is plenty at this app's scale.
+  Stream<List<CategoryGroupModel>> watchCategoryGroups() {
+    return _firestore.categoryGroups.orderBy('order').snapshots().map(
+      (snap) => snap.docs.map(CategoryGroupModel.fromFirestore).toList(),
+    );
   }
 
   Stream<List<CategoryModel>> watchCategoriesOwnedBy(String uid) {

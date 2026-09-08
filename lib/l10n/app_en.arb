@@ -37,6 +37,9 @@
 
   "duelLobbyTitle": "Lobby",
   "duelSelectCategory": "Select category",
+  "duelSearchCategory": "Search categories...",
+  "duelNoCategoriesFound": "No matching categories",
+  "duelHomeTurfCategoriesSection": "Home Turf Categories",
   "duelSelectOpponent": "Select opponent",
   "duelWaitingForOpponent": "Waiting for opponent...",
   "duelSearchingMatch": "Searching for a match...",

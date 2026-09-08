@@ -8,6 +8,7 @@ class FirestorePaths {
   const FirestorePaths._();
 
   static const String users = 'users';
+  static const String categoryGroups = 'categoryGroups';
   static const String categories = 'categories';
   static const String questions = 'questions';
   static const String duels = 'duels';

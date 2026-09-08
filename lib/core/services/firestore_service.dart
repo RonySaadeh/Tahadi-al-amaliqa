@@ -20,6 +20,9 @@ class FirestoreService {
 
   CollectionReference<Map<String, dynamic>> get users => _db.collection(FirestorePaths.users);
 
+  CollectionReference<Map<String, dynamic>> get categoryGroups =>
+      _db.collection(FirestorePaths.categoryGroups);
+
   CollectionReference<Map<String, dynamic>> get categories =>
       _db.collection(FirestorePaths.categories);
 

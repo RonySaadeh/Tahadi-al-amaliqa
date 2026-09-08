@@ -38,6 +38,9 @@
 
   "duelLobbyTitle": "غرفة الانتظار",
   "duelSelectCategory": "اختر الفئة",
+  "duelSearchCategory": "ابحث عن فئة...",
+  "duelNoCategoriesFound": "لا توجد فئات مطابقة",
+  "duelHomeTurfCategoriesSection": "فئات أرض الديار",
   "duelSelectOpponent": "اختر الخصم",
   "duelWaitingForOpponent": "بانتظار الخصم...",
   "duelSearchingMatch": "جارِ البحث عن مباراة...",

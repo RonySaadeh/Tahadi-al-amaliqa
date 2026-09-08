@@ -17,10 +17,24 @@ playing rounds live, and seeing the result.
   server confirms it.
 - `screens/duel_lobby_screen.dart` — the "Duel" bottom-nav tab: incoming
   challenges, challenge-a-friend sheet, quick match button.
+- `screens/category_picker_screen.dart` — full-screen, searchable,
+  grouped category picker used by the challenge-a-friend sheet (see
+  "Category groups" below).
 - `screens/live_duel_screen.dart` — the live round-by-round gameplay screen.
 - `screens/duel_result_screen.dart` — win/lose/draw + ELO change + confetti.
 - `widgets/` — duel-specific UI pieces (timer ring, VS scoreboard, answer
   tiles, score popup, invite card).
+
+## Category groups
+
+With the seeded taxonomy (`functions/src/seed/categoryTaxonomy.ts`) there
+are ~60 categories, so a flat dropdown stops being usable. Categories
+belong to a `categoryGroups/{groupId}` section (Sports, Movies & TV, ...) —
+`categoryGroupsProvider`/`categoriesProvider` in `duel_controller.dart`
+feed `CategoryPickerScreen`, which groups them client-side by `groupId` and
+sorts groups by their `order` field. Home-turf categories have no group
+(`groupId: null`) and show up in a trailing "Home Turf" section instead.
+There's no in-app way to create a group — only the seed script does that.
 
 ## The most important rule in this feature
 

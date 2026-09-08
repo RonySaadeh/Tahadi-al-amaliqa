@@ -46,9 +46,22 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // --- categoryGroups/{groupId} ---
+    // The section headers the category picker groups categories under
+    // (Sports, Movies & TV, ...). Client-read-only, seeded once by
+    // functions/src/seed/seedCategoryTaxonomy.ts — there's no in-app way to
+    // create a group, only categories within the existing ones (home-turf
+    // categories don't belong to a group at all; see `groupId: null` in
+    // functions/src/questions/homeTurf.ts).
+    match /categoryGroups/{groupId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
     // --- categories/{categoryId} ---
     // Client-read-only. Created by `createHomeTurfCategory` (which also
-    // enforces the 3-per-owner cap — see functions/src/questions/homeTurf.ts).
+    // enforces the 3-per-owner cap — see functions/src/questions/homeTurf.ts)
+    // or by the `seedCategoryTaxonomy` admin script for the global taxonomy.
     match /categories/{categoryId} {
       allow read: if isSignedIn();
       allow write: if false;

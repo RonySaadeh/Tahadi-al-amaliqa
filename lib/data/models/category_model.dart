@@ -14,6 +14,7 @@ class CategoryModel extends Equatable {
     required this.description,
     this.ownerId,
     this.ownerDisplayName,
+    this.groupId,
     this.questionCount = 0,
     required this.createdAt,
   });
@@ -23,6 +24,12 @@ class CategoryModel extends Equatable {
   final String description;
   final String? ownerId;
   final String? ownerDisplayName;
+
+  /// Which [CategoryGroupModel] this belongs to in the category picker
+  /// (e.g. "Sports"). Null for home-turf categories — grouping only
+  /// applies to the seeded global taxonomy; see
+  /// `functions/src/seed/categoryTaxonomy.ts`.
+  final String? groupId;
   final int questionCount;
   final DateTime createdAt;
 
@@ -36,11 +43,12 @@ class CategoryModel extends Equatable {
       description: data['description'] as String? ?? '',
       ownerId: data['ownerId'] as String?,
       ownerDisplayName: data['ownerDisplayName'] as String?,
+      groupId: data['groupId'] as String?,
       questionCount: (data['questionCount'] as num?)?.toInt() ?? 0,
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
 
   @override
-  List<Object?> get props => [id, name, description, ownerId, questionCount, createdAt];
+  List<Object?> get props => [id, name, description, ownerId, groupId, questionCount, createdAt];
 }

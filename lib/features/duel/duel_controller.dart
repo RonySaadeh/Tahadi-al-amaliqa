@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/core_providers.dart';
+import '../../data/models/category_group_model.dart';
 import '../../data/models/category_model.dart';
 import '../../data/models/duel_invite_model.dart';
 import '../../data/models/duel_model.dart';
@@ -98,6 +99,10 @@ final openLobbyStreamProvider = StreamProvider.family<OpenLobbyModel?, String>((
 
 final categoriesProvider = StreamProvider<List<CategoryModel>>((ref) {
   return ref.watch(questionRepositoryProvider).watchAllCategories();
+});
+
+final categoryGroupsProvider = StreamProvider<List<CategoryGroupModel>>((ref) {
+  return ref.watch(questionRepositoryProvider).watchCategoryGroups();
 });
 
 /// Reuses the global leaderboard as the "pick an opponent" list — in a small

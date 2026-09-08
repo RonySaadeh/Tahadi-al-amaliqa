@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/branded_loading_indicator.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../routing/app_router.dart';
 import '../duel_controller.dart';
 import '../widgets/invite_card.dart';
+import 'category_picker_screen.dart';
 
 /// The duel hub: incoming challenges, "challenge a friend", and "quick
 /// match". This is a tab in the bottom nav — the actual gameplay happens on
@@ -38,6 +40,14 @@ class DuelLobbyScreen extends ConsumerWidget {
           ),
           child: StatefulBuilder(
             builder: (sheetContext, setState) {
+              String? selectedCategoryName;
+              for (final category in categories) {
+                if (category.id == selectedCategoryId) {
+                  selectedCategoryName = category.name;
+                  break;
+                }
+              }
+
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -54,10 +64,25 @@ class DuelLobbyScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.md),
                   Text(l10n.duelSelectCategory, style: Theme.of(sheetContext).textTheme.titleLarge),
                   const SizedBox(height: AppSpacing.sm),
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedCategoryId,
-                    items: categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
-                    onChanged: (value) => setState(() => selectedCategoryId = value),
+                  // A full-screen grouped picker rather than an inline
+                  // dropdown — with ~60 seeded categories a dropdown list
+                  // stops being usable. See `category_picker_screen.dart`.
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final categoryId = await Navigator.of(
+                        sheetContext,
+                      ).push<String>(MaterialPageRoute(builder: (_) => const CategoryPickerScreen()));
+                      if (categoryId != null) setState(() => selectedCategoryId = categoryId);
+                    },
+                    icon: const Icon(Icons.category_rounded),
+                    label: Text(
+                      selectedCategoryName ?? l10n.duelSelectCategory,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      alignment: AlignmentDirectional.centerStart,
+                      foregroundColor: selectedCategoryName != null ? AppColors.primary : null,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   ElevatedButton(

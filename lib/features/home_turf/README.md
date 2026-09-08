@@ -14,7 +14,13 @@ someone duels them on their own category.
 - `screens/home_turf_screen.dart` — "my categories" list + create dialog.
 - `screens/category_detail_screen.dart` — one category's question bank:
   manual add-question sheet + "Generate with AI" dialog.
-- `widgets/` — `CategoryCard`, `QuestionTile`.
+- `widgets/` — `CategoryCard` (also reused by
+  `features/duel/screens/category_picker_screen.dart` for visual
+  consistency between "my categories" and the global picker), `QuestionTile`.
+
+Home-turf categories always have `groupId: null` — grouping is only used
+for the seeded global taxonomy (see `features/duel/README.md` § Category
+groups); a player's own categories aren't sorted into Sports/Movies/etc.
 
 ## Why categories/questions are never written directly from here
 

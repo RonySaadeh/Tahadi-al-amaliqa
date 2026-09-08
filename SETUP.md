@@ -155,8 +155,29 @@ GOOGLE_APPLICATION_CREDENTIALS=<path-to-a-service-account-key.json> \
 ```
 
 This only pulls free English questions — it doesn't touch the Arabic side.
-For Arabic categories, create a home-turf category in the app and use
-"Generate with AI" (Claude), since no free Arabic trivia database exists.
+
+For a much larger, grouped, mostly-Arabic taxonomy — 10 groups (Sports,
+Movies & TV, Arabic Cinema & Drama, Music, History, Geography, Science &
+Tech, Video Games, Literature & General Knowledge, Food & Puzzles) with
+~57 general + specific categories total (e.g. Sports → Football General →
+Real Madrid → Barcelona) — run
+`functions/src/seed/seedCategoryTaxonomy.ts` instead. Unlike the OpenTDB
+importer, this one calls the Claude API (real, if small, cost — see the
+comment at the top of that file for the expected call count) to write a
+batch of questions per category, the same logic the in-app "Generate with
+AI" button uses:
+
+```bash
+cd functions && npm run build
+GOOGLE_APPLICATION_CREDENTIALS=<path-to-a-service-account-key.json> \
+  ANTHROPIC_API_KEY=sk-ant-... \
+  node lib/seed/seedCategoryTaxonomy.js
+```
+
+To add more categories later (more clubs, more shows, whatever your group
+actually wants to duel on), edit `functions/src/seed/categoryTaxonomy.ts`
+and re-run — it skips categories that already exist and only adds
+questions for new ones plus another batch for existing ones.
 
 ## 8. Run it
 

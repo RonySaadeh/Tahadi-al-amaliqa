@@ -38,6 +38,7 @@ export const createHomeTurfCategory = onCall(async (request) => {
       description: trimmedDescription,
       ownerId: uid,
       ownerDisplayName: user?.displayName ?? "",
+      groupId: null, // groups are only for the seeded system taxonomy — see seed/categoryTaxonomy.ts
       questionCount: 0,
       createdAt: FieldValue.serverTimestamp(),
     });

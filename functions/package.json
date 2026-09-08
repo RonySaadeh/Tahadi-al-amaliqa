@@ -14,7 +14,8 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
     "lint": "eslint src --ext .ts",
-    "seed:opentdb": "npm run build && node lib/seed/importOpenTriviaDb.js"
+    "seed:opentdb": "npm run build && node lib/seed/importOpenTriviaDb.js",
+    "seed:taxonomy": "npm run build && node lib/seed/seedCategoryTaxonomy.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.124.0",
