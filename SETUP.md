@@ -135,6 +135,29 @@ firebase deploy --only firestore:rules,firestore:indexes,storage
 firebase deploy --only functions
 ```
 
+## 7.5. Seed some starter categories (optional, but you need this to actually play)
+
+The app ships with zero categories out of the box — `categories` only gets
+written to by players creating their own home-turf ones. To have something
+playable immediately, `functions/src/seed/importOpenTriviaDb.ts` imports
+free English trivia questions from [Open Trivia DB](https://opentdb.com)
+into 11 starter categories (General Knowledge, Film, Music, Television,
+Video Games, Science & Nature, Sports, Geography, History, Animals, Anime
+& Manga). It's a one-off script, not a deployed function — see the comment
+at the bottom of that file for exact commands. Quick version, against your
+real project:
+
+```bash
+cd functions && npm run build
+gcloud auth application-default login   # once, if you haven't
+GOOGLE_APPLICATION_CREDENTIALS=<path-to-a-service-account-key.json> \
+  node lib/seed/importOpenTriviaDb.js
+```
+
+This only pulls free English questions — it doesn't touch the Arabic side.
+For Arabic categories, create a home-turf category in the app and use
+"Generate with AI" (Claude), since no free Arabic trivia database exists.
+
 ## 8. Run it
 
 Local emulators (Auth + Firestore + Functions + Storage, no real Firebase
