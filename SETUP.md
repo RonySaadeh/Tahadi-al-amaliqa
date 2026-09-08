@@ -156,16 +156,29 @@ GOOGLE_APPLICATION_CREDENTIALS=<path-to-a-service-account-key.json> \
 
 This only pulls free English questions — it doesn't touch the Arabic side.
 
-For a much larger, grouped, mostly-Arabic taxonomy — 10 groups (Sports,
-Movies & TV, Arabic Cinema & Drama, Music, History, Geography, Science &
-Tech, Video Games, Literature & General Knowledge, Food & Puzzles) with
-~57 general + specific categories total (e.g. Sports → Football General →
-Real Madrid → Barcelona) — run
-`functions/src/seed/seedCategoryTaxonomy.ts` instead. Unlike the OpenTDB
-importer, this one calls the Claude API (real, if small, cost — see the
-comment at the top of that file for the expected call count) to write a
-batch of questions per category, the same logic the in-app "Generate with
-AI" button uses:
+For the full grouped, mostly-Arabic taxonomy — 10 groups (Sports, Movies &
+TV, Arabic Cinema & Drama, Music, History, Geography, Science & Tech,
+Video Games, Literature & General Knowledge, Food & Puzzles) with ~57
+general + specific categories (e.g. Sports → Football General → Real
+Madrid → Barcelona), there are two ways to fill them with questions:
+
+**No Claude API key needed** — `functions/src/seed/seedPregeneratedQuestions.ts`
+uploads a starter pool of 5 hand-written questions per category (285
+total, written directly rather than fetched from any API — see
+`pregeneratedQuestions.ts`). Only needs Firebase Admin credentials:
+
+```bash
+cd functions && npm run build
+GOOGLE_APPLICATION_CREDENTIALS=<path-to-a-service-account-key.json> \
+  node lib/seed/seedPregeneratedQuestions.js
+```
+
+**Needs a Claude API key, gives you far more depth** —
+`functions/src/seed/seedCategoryTaxonomy.ts` calls the Claude API (real,
+if small, cost — see the comment at the top of that file for the expected
+call count) to generate a much larger batch per category, the same logic
+the in-app "Generate with AI" button uses. Run this after the pregenerated
+one to top every category up, not instead of it:
 
 ```bash
 cd functions && npm run build
@@ -173,6 +186,10 @@ GOOGLE_APPLICATION_CREDENTIALS=<path-to-a-service-account-key.json> \
   ANTHROPIC_API_KEY=sk-ant-... \
   node lib/seed/seedCategoryTaxonomy.js
 ```
+
+Both scripts share the same category/group creation logic
+(`taxonomyFirestore.ts`) and are safe to run in either order or repeatedly
+— categories are never duplicated, only topped up with more questions.
 
 To add more categories later (more clubs, more shows, whatever your group
 actually wants to duel on), edit `functions/src/seed/categoryTaxonomy.ts`

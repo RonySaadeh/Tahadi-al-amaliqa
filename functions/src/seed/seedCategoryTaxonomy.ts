@@ -16,10 +16,10 @@
  * ids, and it always just adds another batch rather than erroring on
  * existing content.
  */
-import { db, FieldValue } from "../lib/admin";
-import { CATEGORIES, CATEGORY_GROUPS } from "./categoryTaxonomy";
+import { CATEGORIES } from "./categoryTaxonomy";
 import { generateQuestionsCore, resolveClaudeCredentials } from "../questions/generateQuestions";
 import { QuestionDifficulty } from "../lib/types";
+import { ensureCategory, ensureCategoryGroups } from "./taxonomyFirestore";
 
 const DIFFICULTIES: QuestionDifficulty[] = ["easy", "medium", "hard"];
 
@@ -33,50 +33,17 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function ensureGroups(): Promise<void> {
-  const batch = db.batch();
-  for (const group of CATEGORY_GROUPS) {
-    batch.set(
-      db.collection("categoryGroups").doc(group.id),
-      {
-        name: group.name,
-        order: group.order,
-        iconKey: group.iconKey,
-        createdAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
-  }
-  await batch.commit();
-  console.log(`Ensured ${CATEGORY_GROUPS.length} category groups.`);
-}
-
-async function ensureCategory(seed: (typeof CATEGORIES)[number]): Promise<void> {
-  const ref = db.collection("categories").doc(seed.id);
-  const snap = await ref.get();
-  if (snap.exists) return;
-
-  await ref.set({
-    name: seed.name,
-    description: seed.description,
-    ownerId: null,
-    ownerDisplayName: null,
-    groupId: seed.groupId,
-    questionCount: 0,
-    createdAt: FieldValue.serverTimestamp(),
-  });
-  console.log(`Created category "${seed.name}" (${seed.id})`);
-}
-
 async function seedAll(questionsPerDifficulty: number): Promise<void> {
   const { apiKey, model } = resolveClaudeCredentials();
   if (!apiKey) {
     throw new Error(
-      "ANTHROPIC_API_KEY is not set in this process's environment — export it before running this script.",
+      "ANTHROPIC_API_KEY is not set in this process's environment — export it before running this script. " +
+        "If you don't want to deal with an API key at all, run `npm run seed:pregenerated` instead — it uses " +
+        "a hand-written starter question pool and needs no Claude API access.",
     );
   }
 
-  await ensureGroups();
+  await ensureCategoryGroups();
 
   for (const category of CATEGORIES) {
     await ensureCategory(category);

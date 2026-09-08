@@ -15,6 +15,7 @@
     "logs": "firebase functions:log",
     "lint": "eslint src --ext .ts",
     "seed:opentdb": "npm run build && node lib/seed/importOpenTriviaDb.js",
+    "seed:pregenerated": "npm run build && node lib/seed/seedPregeneratedQuestions.js",
     "seed:taxonomy": "npm run build && node lib/seed/seedCategoryTaxonomy.js"
   },
   "dependencies": {
