@@ -87,8 +87,11 @@ class _DuelResultScreenState extends ConsumerState<DuelResultScreen> {
                       const SizedBox(height: AppSpacing.xl),
                       Text(l10n.duelFinalScore, style: Theme.of(context).textTheme.labelSmall),
                       const SizedBox(height: AppSpacing.xs),
+                      // Forced LTR — see the comment on ScorePopup: a score
+                      // pair reorders under RTL bidi rules unless pinned.
                       Text(
                         '$myScore  —  $opponentScore',
+                        textDirection: TextDirection.ltr,
                         style: Theme.of(context).textTheme.displayMedium,
                       ).animate().fadeIn(delay: 150.ms, duration: 300.ms),
                       const SizedBox(height: AppSpacing.lg),
@@ -102,8 +105,12 @@ class _DuelResultScreenState extends ConsumerState<DuelResultScreen> {
                               const SizedBox(width: AppSpacing.sm),
                               Text(l10n.duelEloChange, style: Theme.of(context).textTheme.bodyMedium),
                               const SizedBox(width: AppSpacing.sm),
+                              // Forced LTR — see the comment on ScorePopup:
+                              // a leading '+'/'-' reorders under RTL bidi
+                              // rules unless pinned.
                               Text(
                                 Formatters.signedElo(myEloChange),
+                                textDirection: TextDirection.ltr,
                                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                   color: myEloChange >= 0 ? AppColors.success : AppColors.error,
                                 ),

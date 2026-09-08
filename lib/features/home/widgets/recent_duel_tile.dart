@@ -30,7 +30,13 @@ class RecentDuelTile extends StatelessWidget {
       leading: CircleAvatar(backgroundColor: resultColor.withValues(alpha: 0.2), child: Icon(Icons.bolt_rounded, color: resultColor)),
       title: Text(opponentName, style: Theme.of(context).textTheme.titleMedium),
       subtitle: Text(duel.categoryName, style: Theme.of(context).textTheme.bodyMedium),
-      trailing: Text('$myScore - $opponentScore', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: resultColor)),
+      // Forced LTR — see the comment on ScorePopup: a "12 - 8" style score
+      // pair reorders under RTL bidi rules unless pinned.
+      trailing: Text(
+        '$myScore - $opponentScore',
+        textDirection: TextDirection.ltr,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(color: resultColor),
+      ),
     );
   }
 }

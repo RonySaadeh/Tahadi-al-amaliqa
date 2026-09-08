@@ -38,8 +38,11 @@ class EloStatCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           Text(Formatters.elo(elo, locale: locale), style: AppTypography.statNumber.copyWith(color: AppColors.onBrand)),
           const SizedBox(height: AppSpacing.sm),
+          // Forced LTR — see the comment on ScorePopup: "12-5" reorders
+          // under RTL bidi rules unless pinned.
           Text(
             Formatters.record(wins, losses),
+            textDirection: TextDirection.ltr,
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(color: AppColors.onBrand.withValues(alpha: 0.8)),

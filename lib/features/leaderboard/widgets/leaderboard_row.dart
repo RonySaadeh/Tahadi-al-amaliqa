@@ -55,7 +55,13 @@ class LeaderboardRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(entry.displayName, style: Theme.of(context).textTheme.titleMedium),
-                    Text(Formatters.record(entry.wins, entry.losses), style: Theme.of(context).textTheme.bodyMedium),
+                    // Forced LTR — see the comment on ScorePopup: "12-5"
+                    // reorders under RTL bidi rules unless pinned.
+                    Text(
+                      Formatters.record(entry.wins, entry.losses),
+                      textDirection: TextDirection.ltr,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
                   ],
                 ),
               ),

@@ -19,6 +19,11 @@ class ScorePopup extends StatelessWidget {
 
     return Text(
           label,
+          // Forced LTR: a leading '+' next to a digit run reorders to the
+          // *end* under RTL bidi rules (Arabic being this app's default
+          // locale) — "+180" would otherwise render as "180+". Scores are
+          // conventionally shown LTR even inside RTL UIs for this reason.
+          textDirection: TextDirection.ltr,
           style: Theme.of(context).textTheme.displayMedium?.copyWith(color: color, fontWeight: FontWeight.w900),
         )
         .animate()
