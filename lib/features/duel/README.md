@@ -13,8 +13,9 @@ playing rounds live, and seeing the result.
   whether we're currently waiting in the quick-match queue.
 - `live_duel_controller.dart` — gameplay state, scoped per `duelId`:
   `duelStreamProvider`/`roundStreamProvider` mirror Firestore in real time,
-  and `selectedAnswerProvider` tracks the local player's tap before the
-  server confirms it.
+  `selectedAnswerProvider` tracks the local player's tap before the server
+  confirms it, and `duelPresenceProvider`/`DuelPresenceController` handle
+  connection-loss detection (see below).
 - `screens/duel_lobby_screen.dart` — the "Duel" bottom-nav tab: incoming
   challenges, the category catalog, challenge-a-friend sheet, quick match
   button.
@@ -82,3 +83,28 @@ local widget state specifically so it survives switching to another
 bottom-nav tab and back while still queued (go_router's `ShellRoute`
 disposes/recreates `DuelLobbyScreen` on tab switches, but Riverpod
 providers are not tied to the widget tree).
+
+## Losing connection mid-duel
+
+Two players, two very different experiences of the same disconnect:
+
+- **The player who lost their connection** sees this from
+  `LiveDuelScreen`'s own `connectivityStatusProvider` watch — no server
+  round-trip needed, since it's their own device that knows it's offline.
+  `SelfReconnectOverlay` blocks the screen with a local 35-second countdown
+  (`AppConstants.duelReconnectGraceSeconds`) and a manual retry button. It's
+  purely cosmetic bookkeeping on this side — see below for what actually
+  ends the duel.
+- **The still-connected opponent** has no direct way to observe the other
+  player's radio state, so `DuelPresenceController` pings the `heartbeat`
+  callable every `AppConstants.duelHeartbeatIntervalSeconds` while the duel
+  is active, and watches the *opponent's* last heartbeat (mirrored onto the
+  duel doc as `player{1,2}LastSeenAt`). Once it's stale past the same
+  35-second grace period, `OpponentReconnectBanner` shows a countdown and
+  `DuelPresenceController` calls `forfeitDuel` — awarding itself the win.
+
+Consistent with "this feature never decides who's right" above: `heartbeat`
+and `forfeitDuel` are both Cloud Functions (`functions/src/scoring/presence.ts`),
+not direct Firestore writes, and `forfeitDuel` independently re-verifies the
+opponent's staleness against the server-stamped heartbeat before honoring
+it — a client claiming a forfeit doesn't make it one.

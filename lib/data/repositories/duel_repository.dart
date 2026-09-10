@@ -106,4 +106,13 @@ class DuelRepository {
       selectedIndex: selectedIndex,
     );
   }
+
+  /// See `DuelPresenceController` — called periodically while the local
+  /// player is in an active duel so their opponent can detect a disconnect.
+  Future<void> sendHeartbeat(String duelId) => _cloudFunctions.sendDuelHeartbeat(duelId);
+
+  /// Claims a win because the opponent has been unreachable for longer than
+  /// the reconnect grace period. The server re-checks this before honoring
+  /// it, so calling this speculatively/early is harmless.
+  Future<void> forfeitDuel(String duelId) => _cloudFunctions.forfeitDuel(duelId);
 }

@@ -6,6 +6,7 @@
  */
 export { submitAnswer } from "./scoring/submitAnswer";
 export { expireStaleRounds } from "./scoring/expireStaleRounds";
+export { heartbeat, forfeitDuel } from "./scoring/presence";
 
 export { createHomeTurfCategory, addHomeTurfQuestion } from "./questions/homeTurf";
 
