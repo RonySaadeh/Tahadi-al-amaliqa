@@ -46,7 +46,7 @@ class SplashScreen extends ConsumerWidget {
             // rather than needing imperative Navigator bookkeeping to avoid
             // stacking duplicate dialogs or dismissing a stale one.
             if (isOffline) ...[
-              Positioned.fill(child: ColoredBox(color: AppColors.background.withValues(alpha: 0.85))),
+              Positioned.fill(child: ColoredBox(color: Colors.black.withValues(alpha: 0.45))),
               Padding(
                 padding: const EdgeInsets.all(AppSpacing.xl),
                 child: _NoConnectionDialog(l10n: l10n, ref: ref),

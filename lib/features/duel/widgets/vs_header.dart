@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 
 /// The "player vs player" scoreboard strip shown at the top of the live
@@ -28,9 +29,10 @@ class VsHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.lg),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(AppSpacing.radiusLg)),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppSpacing.radiusLg)),
+        boxShadow: AppShadows.card,
       ),
       child: Column(
         children: [

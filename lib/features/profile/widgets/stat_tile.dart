@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 
 /// One stat in the profile's stats grid (wins, losses, streak, ELO). Built
@@ -17,9 +18,9 @@ class StatTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.sm),
       decoration: BoxDecoration(
-        color: AppColors.surfaceRaised,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        border: Border.all(color: AppColors.surfaceBorder),
+        boxShadow: AppShadows.subtle,
       ),
       child: Column(
         children: [

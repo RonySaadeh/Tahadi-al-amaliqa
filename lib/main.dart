@@ -65,9 +65,9 @@ class TahadiApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'تحدي العمالقة',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.dark,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.lightTheme,
+      themeMode: ThemeMode.light,
       routerConfig: router,
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,

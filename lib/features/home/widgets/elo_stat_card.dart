@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
@@ -27,6 +28,7 @@ class EloStatCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: AppColors.goldGradient,
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        boxShadow: AppShadows.glow(AppColors.gold),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

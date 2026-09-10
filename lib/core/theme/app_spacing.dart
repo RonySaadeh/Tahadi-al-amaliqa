@@ -11,8 +11,8 @@ class AppSpacing {
   static const double xxl = 48;
   static const double xxxl = 64;
 
-  static const double radiusSm = 8;
-  static const double radiusMd = 16;
-  static const double radiusLg = 24;
+  static const double radiusSm = 10;
+  static const double radiusMd = 18;
+  static const double radiusLg = 26;
   static const double radiusPill = 999;
 }
