@@ -7,7 +7,7 @@ import '../../data/models/question_model.dart';
 
 /// Managing a player's own "home turf" categories and questions. All writes
 /// go through Cloud Functions (`createHomeTurfCategory`,
-/// `addHomeTurfQuestion`, `generateQuestions`) — see
+/// `addHomeTurfQuestion`) — see
 /// `data/repositories/question_repository.dart` — because categories and
 /// questions are client-read-only collections (anyone could otherwise plant
 /// a rigged question). The 3-category limit is enforced server-side too;
@@ -47,29 +47,6 @@ class HomeTurfController extends Notifier<AsyncValue<void>> {
             difficulty: difficulty,
           );
     });
-  }
-
-  Future<int> generateWithAI({
-    required String categoryId,
-    required String topic,
-    required String difficulty,
-    required String language,
-    int count = 10,
-  }) async {
-    state = const AsyncValue.loading();
-    int created = 0;
-    state = await AsyncValue.guard(() async {
-      created = await ref
-          .read(questionRepositoryProvider)
-          .generateQuestionsWithAI(
-            categoryId: categoryId,
-            topic: topic,
-            difficulty: difficulty,
-            language: language,
-            count: count,
-          );
-    });
-    return created;
   }
 }
 

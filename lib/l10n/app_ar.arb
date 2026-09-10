@@ -9,6 +9,10 @@
   "navHomeTurf": "أرضي",
   "navProfile": "حسابي",
 
+  "splashChecking": "جارٍ التحقق من الاتصال...",
+  "splashNoConnectionTitle": "لا يوجد اتصال بالإنترنت",
+  "splashNoConnectionMessage": "تحتاج إلى اتصال بالإنترنت لتسجيل الدخول. تحقق من الواي فاي أو بيانات الجوال وحاول مجددًا.",
+
   "authWelcomeTitle": "استعد للتحدي",
   "authWelcomeSubtitle": "بارِز أصدقاءك في مبارزات معرفية مباشرة",
   "authEmail": "البريد الإلكتروني",
@@ -25,6 +29,12 @@
   "authSwitchToSignIn": "سجّل الدخول",
   "authError": "حدث خطأ، حاول مرة أخرى",
   "authSignOut": "تسجيل الخروج",
+  "authVerifyEmailTitle": "فعّل بريدك الإلكتروني",
+  "authVerifyEmailMessage": "أرسلنا رابط تفعيل إلى بريدك الإلكتروني.",
+  "authResendVerification": "إعادة إرسال",
+  "authIveVerified": "لقد فعّلت",
+  "authVerificationSent": "تم إرسال بريد التفعيل",
+  "authStillNotVerified": "لم يتم التفعيل بعد — تحقق من بريدك (ومجلد الرسائل غير المرغوبة)",
 
   "homeGreeting": "أهلًا، {name}",
   "@homeGreeting": {
@@ -38,8 +48,7 @@
 
   "duelLobbyTitle": "غرفة الانتظار",
   "duelSelectCategory": "اختر الفئة",
-  "duelSearchCategory": "ابحث عن فئة...",
-  "duelNoCategoriesFound": "لا توجد فئات مطابقة",
+  "duelAnyCategory": "أي فئة",
   "duelHomeTurfCategoriesSection": "فئات أرض الديار",
   "duelSelectOpponent": "اختر الخصم",
   "duelWaitingForOpponent": "بانتظار الخصم...",
@@ -64,12 +73,22 @@
   "duelYouWin": "لقد فزت!",
   "duelYouLose": "خسرت هذه الجولة",
   "duelDraw": "تعادل",
+  "duelVs": "ضد {name}",
+  "@duelVs": {
+    "placeholders": {"name": {"type": "String"}}
+  },
   "duelFinalScore": "النتيجة النهائية",
   "duelEloChange": "تغيّر التصنيف",
+  "duelLevelUp": "ترقية مستوى!",
+  "duelReachedLevel": "وصلت إلى المستوى {level}",
+  "@duelReachedLevel": {
+    "placeholders": {"level": {"type": "int"}}
+  },
   "duelPlayAgain": "العب مرة أخرى",
   "duelBackHome": "العودة للرئيسية",
   "duelHomeTurfBonus": "مضاعفة أرض الديار مفعّلة",
   "duelCancel": "إلغاء",
+  "duelNoOpponentsAvailable": "لا يوجد لاعبون آخرون بعد — ادعُ صديقًا لإنشاء حساب أولًا",
   "duelOpponentLeft": "غادر الخصم المبارزة",
   "duelChallengeSent": "تم إرسال التحدي إلى {name}",
   "@duelChallengeSent": {
@@ -112,11 +131,16 @@
   "homeTurfDifficultyHard": "صعب",
   "homeTurfSave": "حفظ",
   "homeTurfNoCategories": "لم تنشئ أي فئة بعد",
-  "homeTurfGenerateWithAI": "توليد أسئلة بالذكاء الاصطناعي",
-  "homeTurfGenerateTopic": "الموضوع",
-  "homeTurfGenerateCount": "عدد الأسئلة",
 
   "profileTitle": "حسابي",
+  "profileLevel": "المستوى {level}",
+  "@profileLevel": {
+    "placeholders": {"level": {"type": "int"}}
+  },
+  "profileXpToNext": "{xp} نقطة خبرة للمستوى التالي",
+  "@profileXpToNext": {
+    "placeholders": {"xp": {"type": "int"}}
+  },
   "profileStats": "الإحصائيات",
   "profileWins": "الانتصارات",
   "profileLosses": "الهزائم",

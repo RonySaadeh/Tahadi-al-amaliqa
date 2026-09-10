@@ -1,19 +1,17 @@
 # Home Turf
 
-Each player can own up to 3 categories, hand-write questions for them, or
-generate a batch with the Claude API — and earns a scoring multiplier when
-someone duels them on their own category.
+Each player can own up to 3 categories, hand-write questions for them, and
+earns a scoring multiplier when someone duels them on their own category.
 
 ## Where things live
 
-- `home_turf_controller.dart` — create a category, add a question, or
-  trigger AI generation. Also `myCategoriesProvider` /
-  `categoryQuestionsProvider`. Every write forwards to a Cloud Function
-  (`data/repositories/question_repository.dart`) — this feature never
-  writes `categories`/`questions` documents directly.
+- `home_turf_controller.dart` — create a category or add a question. Also
+  `myCategoriesProvider` / `categoryQuestionsProvider`. Every write
+  forwards to a Cloud Function (`data/repositories/question_repository.dart`)
+  — this feature never writes `categories`/`questions` documents directly.
 - `screens/home_turf_screen.dart` — "my categories" list + create dialog.
 - `screens/category_detail_screen.dart` — one category's question bank:
-  manual add-question sheet + "Generate with AI" dialog.
+  manual add-question sheet.
 - `widgets/` — `CategoryCard` (also reused by
   `features/duel/screens/category_picker_screen.dart` for visual
   consistency between "my categories" and the global picker), `QuestionTile`.
@@ -27,9 +25,9 @@ groups); a player's own categories aren't sorted into Sports/Movies/etc.
 If a client could write straight to `questions`, anyone could plant a
 rigged question with a wrong "correct" answer to win duels. So both
 collections are client-read-only (see `firestore.rules`), and this feature
-only ever calls the `createHomeTurfCategory`, `addHomeTurfQuestion`, and
-`generateQuestions` Cloud Functions, which validate everything (including
-the 3-category-per-owner cap and the LLM's JSON shape) before writing.
+only ever calls the `createHomeTurfCategory` and `addHomeTurfQuestion`
+Cloud Functions, which validate everything (including the
+3-category-per-owner cap) before writing.
 
 ## Where the home-turf scoring bonus actually applies
 

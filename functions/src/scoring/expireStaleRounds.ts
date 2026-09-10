@@ -8,12 +8,13 @@ import { forceResolveStaleRound } from "./resolveDuel";
  * Safety net for abandoned rounds: normally a round resolves the instant
  * both players answer (or a client self-reports a timeout — see
  * `submitAnswer.ts`), but if someone closes the app mid-round, nothing
- * client-side will ever submit their answer. This runs every 30 seconds,
+ * client-side will ever submit their answer. This runs every minute (Cloud
+ * Scheduler's minimum granularity — seconds-level schedules aren't valid),
  * finds any duel whose current round has been open well past its time
  * limit, and force-resolves it (missing players score 0 for that round)
  * so the other player's game isn't stuck waiting forever.
  */
-export const expireStaleRounds = onSchedule("every 30 seconds", async () => {
+export const expireStaleRounds = onSchedule("every 1 minutes", async () => {
   const cutoff = Timestamp.fromMillis(
     Date.now() - (ROUND_TIME_LIMIT_SECONDS + STALE_ROUND_GRACE_SECONDS) * 1000,
   );

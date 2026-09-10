@@ -97,6 +97,22 @@ final openLobbyStreamProvider = StreamProvider.family<OpenLobbyModel?, String>((
   return ref.watch(duelRepositoryProvider).watchOpenLobby(lobbyId);
 });
 
+/// The category currently picked from the lobby's catalog, or null for "any
+/// category". Held as its own provider (rather than local widget state) for
+/// the same reason as [queuedLobbyIdProvider]: go_router's `ShellRoute`
+/// disposes/recreates `DuelLobbyScreen` on every bottom-nav tab switch, so
+/// local State would forget the pick the instant you glanced at another tab.
+class SelectedCategoryIdController extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void set(String? categoryId) => state = categoryId;
+}
+
+final selectedCategoryIdProvider = NotifierProvider<SelectedCategoryIdController, String?>(
+  SelectedCategoryIdController.new,
+);
+
 final categoriesProvider = StreamProvider<List<CategoryModel>>((ref) {
   return ref.watch(questionRepositoryProvider).watchAllCategories();
 });

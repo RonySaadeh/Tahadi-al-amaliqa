@@ -66,20 +66,4 @@ class QuestionRepository {
       difficulty: difficulty,
     );
   }
-
-  Future<int> generateQuestionsWithAI({
-    required String categoryId,
-    required String topic,
-    required String difficulty,
-    required String language,
-    required int count,
-  }) {
-    return _cloudFunctions.generateQuestions(
-      categoryId: categoryId,
-      topic: topic,
-      difficulty: difficulty,
-      count: count,
-      language: language,
-    );
-  }
 }

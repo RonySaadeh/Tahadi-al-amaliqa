@@ -25,8 +25,6 @@ been a while, run `flutter pub outdated` and `npm outdated` (in
 | firebase-functions (functions) | ^7.3.2 | Current 2nd-gen Functions SDK. |
 | firebase-tools (CLI) | ^15.29.0 | Current Firebase CLI. |
 | Cloud Functions runtime | Node.js 22 | Current GA (non-beta) runtime as of scaffold time; matches `@types/node`. |
-| @anthropic-ai/sdk | ^0.124.0 | Current TypeScript SDK for the Claude API. |
-| Claude model | `claude-sonnet-5` | Set in `functions/src/lib/constants.ts` (`DEFAULT_CLAUDE_MODEL`), overridable via the `CLAUDE_MODEL` Cloud Functions environment param without a code change. |
 
 Models are hand-written (no `freezed`/`json_serializable`) — see the note
 at the top of `pubspec.yaml` for why.
@@ -42,10 +40,10 @@ at the top of `pubspec.yaml` for why.
 ## 2. Create the Firebase project
 
 1. https://console.firebase.google.com → **Add project**.
-2. **Upgrade to the Blaze (pay-as-you-go) plan.** Required for: Cloud
-   Functions making outbound network calls (to the Claude API) and for
-   scheduled functions (`expireStaleRounds`). At friend-group scale (dozens
-   of users) this is normally a few cents to a few dollars a month.
+2. **Upgrade to the Blaze (pay-as-you-go) plan.** Required for: 2nd-gen
+   Cloud Functions in general and for scheduled functions
+   (`expireStaleRounds`). At friend-group scale (dozens of users) this is
+   normally a few cents to a few dollars a month.
 3. Enable **Authentication** → Sign-in method → turn on **Email/Password**
    and **Google**. Leave **Apple** off for now (see step 6).
 4. Enable **Firestore Database** → production mode → pick a region close to
@@ -107,20 +105,6 @@ cd functions
 npm install
 ```
 
-Set your Claude API key as a **secret** (not a plain env var — this is the
-key that must never leak):
-
-```bash
-firebase functions:secrets:set ANTHROPIC_API_KEY
-```
-
-(Optional) override the model without touching code — create
-`functions/.env` (already gitignored):
-
-```bash
-echo "CLAUDE_MODEL=claude-sonnet-5" > .env
-```
-
 Build once to check for TypeScript errors:
 
 ```bash
@@ -160,13 +144,11 @@ For the full grouped, mostly-Arabic taxonomy — 10 groups (Sports, Movies &
 TV, Arabic Cinema & Drama, Music, History, Geography, Science & Tech,
 Video Games, Literature & General Knowledge, Food & Puzzles) with ~57
 general + specific categories (e.g. Sports → Football General → Real
-Madrid → Barcelona), there are two ways to fill them with questions:
-
-**No Claude API key needed** — `functions/src/seed/seedPregeneratedQuestions.ts`
-uploads a hand-written starter pool per category, in both languages: ~12
-Arabic questions (see `pregeneratedQuestions.ts`) and 5 English questions
-(see `pregeneratedQuestionsEn.ts`), written directly rather than fetched
-from any API. A duel's language is fixed from whoever starts it (their
+Madrid → Barcelona), `functions/src/seed/seedPregeneratedQuestions.ts`
+uploads a hand-written starter pool per category, in both languages: 40-60
+Arabic questions (see `pregeneratedQuestions.ts`) and 40-60 English
+questions (see `pregeneratedQuestionsEn.ts`), written directly rather than
+fetched from any API. A duel's language is fixed from whoever starts it (their
 `locale` profile field — see the Profile screen's language toggle), and
 `pickNextQuestion` picks each round's question from the matching language
 pool. Only needs Firebase Admin credentials:
@@ -177,28 +159,12 @@ GOOGLE_APPLICATION_CREDENTIALS=<path-to-a-service-account-key.json> \
   node lib/seed/seedPregeneratedQuestions.js
 ```
 
-**Needs a Claude API key, gives you far more depth** —
-`functions/src/seed/seedCategoryTaxonomy.ts` calls the Claude API (real,
-if small, cost — see the comment at the top of that file for the expected
-call count) to generate a much larger batch per category, the same logic
-the in-app "Generate with AI" button uses. Run this after the pregenerated
-one to top every category up, not instead of it:
-
-```bash
-cd functions && npm run build
-GOOGLE_APPLICATION_CREDENTIALS=<path-to-a-service-account-key.json> \
-  ANTHROPIC_API_KEY=sk-ant-... \
-  node lib/seed/seedCategoryTaxonomy.js
-```
-
-Both scripts share the same category/group creation logic
-(`taxonomyFirestore.ts`) and are safe to run in either order or repeatedly
-— categories are never duplicated, only topped up with more questions.
-
-To add more categories later (more clubs, more shows, whatever your group
-actually wants to duel on), edit `functions/src/seed/categoryTaxonomy.ts`
-and re-run — it skips categories that already exist and only adds
-questions for new ones plus another batch for existing ones.
+Safe to run repeatedly, though re-running does add another copy of the
+starter pool per category each time — see the comment at the top of that
+file. To add more categories later (more clubs, more shows, whatever your
+group actually wants to duel on), edit
+`functions/src/seed/categoryTaxonomy.ts` and add matching entries to
+`pregeneratedQuestions.ts`/`pregeneratedQuestionsEn.ts`, then re-run.
 
 ## 8. Run it
 
@@ -230,9 +196,3 @@ flutter run
 - **"firebase_options.dart not found"** → you skipped `flutterfire
   configure` (step 3).
 - **Google Sign-In fails silently on Android** → missing SHA-1 (step 4).
-- **`generateQuestions` returns `permission-denied`** → you're calling it
-  for a category you don't own; only the owner can generate for their own
-  home-turf category.
-- **`generateQuestions` returns `internal`** → check `firebase functions:log`
-  — usually a missing/invalid `ANTHROPIC_API_KEY` secret, or Claude
-  returned non-JSON (rare; the function already strips stray prose/fences).

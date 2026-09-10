@@ -27,12 +27,21 @@ export const sendDuelChallenge = onCall(async (request) => {
   ]);
   if (!categorySnap.exists) throw new HttpsError("not-found", "Category not found.");
 
+  // Picked in the sender's language, since if this invite is accepted,
+  // `createDuelForPlayers` fixes the duel's question language to the
+  // sender's (player1) locale too — keeps the invite's category label
+  // consistent with the language the duel will actually play in.
+  const category = categorySnap.data()!;
+  const senderLocale: string = fromUserSnap.data()?.locale ?? "ar";
+  const categoryName: string =
+    senderLocale === "en" && category.nameEn ? category.nameEn : (category.name ?? "");
+
   await db.collection("duelInvites").add({
     fromUserId: uid,
     fromDisplayName: fromUserSnap.data()?.displayName ?? "",
     toUserId,
     categoryId,
-    categoryName: categorySnap.data()?.name ?? "",
+    categoryName,
     status: "pending" satisfies DuelInviteStatus,
     createdAt: FieldValue.serverTimestamp(),
   });

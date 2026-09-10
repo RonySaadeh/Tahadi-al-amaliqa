@@ -8,6 +8,10 @@
   "navHomeTurf": "Home Turf",
   "navProfile": "Profile",
 
+  "splashChecking": "Checking your connection...",
+  "splashNoConnectionTitle": "No internet connection",
+  "splashNoConnectionMessage": "You need an internet connection to sign in. Check your wifi or mobile data and try again.",
+
   "authWelcomeTitle": "Ready to duel?",
   "authWelcomeSubtitle": "Face your friends in live trivia duels",
   "authEmail": "Email",
@@ -24,6 +28,12 @@
   "authSwitchToSignIn": "Sign in",
   "authError": "Something went wrong, please try again",
   "authSignOut": "Sign Out",
+  "authVerifyEmailTitle": "Verify your email",
+  "authVerifyEmailMessage": "We sent a verification link to your email address.",
+  "authResendVerification": "Resend email",
+  "authIveVerified": "I've verified",
+  "authVerificationSent": "Verification email sent",
+  "authStillNotVerified": "Not verified yet — check your inbox (and spam folder)",
 
   "homeGreeting": "Hey, {name}",
   "@homeGreeting": {
@@ -37,8 +47,7 @@
 
   "duelLobbyTitle": "Lobby",
   "duelSelectCategory": "Select category",
-  "duelSearchCategory": "Search categories...",
-  "duelNoCategoriesFound": "No matching categories",
+  "duelAnyCategory": "Any category",
   "duelHomeTurfCategoriesSection": "Home Turf Categories",
   "duelSelectOpponent": "Select opponent",
   "duelWaitingForOpponent": "Waiting for opponent...",
@@ -63,12 +72,22 @@
   "duelYouWin": "You Win!",
   "duelYouLose": "You Lose",
   "duelDraw": "Draw",
+  "duelVs": "vs {name}",
+  "@duelVs": {
+    "placeholders": {"name": {"type": "String"}}
+  },
   "duelFinalScore": "Final Score",
   "duelEloChange": "Rating change",
+  "duelLevelUp": "Level Up!",
+  "duelReachedLevel": "You reached level {level}",
+  "@duelReachedLevel": {
+    "placeholders": {"level": {"type": "int"}}
+  },
   "duelPlayAgain": "Play Again",
   "duelBackHome": "Back Home",
   "duelHomeTurfBonus": "Home turf bonus active",
   "duelCancel": "Cancel",
+  "duelNoOpponentsAvailable": "No other players yet — invite a friend to sign up first",
   "duelOpponentLeft": "Opponent left the duel",
   "duelChallengeSent": "Challenge sent to {name}",
   "@duelChallengeSent": {
@@ -111,11 +130,16 @@
   "homeTurfDifficultyHard": "Hard",
   "homeTurfSave": "Save",
   "homeTurfNoCategories": "You haven't created a category yet",
-  "homeTurfGenerateWithAI": "Generate questions with AI",
-  "homeTurfGenerateTopic": "Topic",
-  "homeTurfGenerateCount": "Number of questions",
 
   "profileTitle": "Profile",
+  "profileLevel": "Level {level}",
+  "@profileLevel": {
+    "placeholders": {"level": {"type": "int"}}
+  },
+  "profileXpToNext": "{xp} XP to next level",
+  "@profileXpToNext": {
+    "placeholders": {"xp": {"type": "int"}}
+  },
   "profileStats": "Stats",
   "profileWins": "Wins",
   "profileLosses": "Losses",

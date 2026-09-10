@@ -20,7 +20,10 @@ const bool _useFirebaseEmulator = bool.fromEnvironment('USE_FIREBASE_EMULATOR');
 
 /// `10.0.2.2` is how the Android emulator reaches the host machine's
 /// `localhost`; iOS simulators and desktop can use `localhost` directly.
-const String _emulatorHost = String.fromEnvironment('EMULATOR_HOST', defaultValue: 'localhost');
+const String _emulatorHost = String.fromEnvironment(
+  'EMULATOR_HOST',
+  defaultValue: 'localhost',
+);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,7 +58,9 @@ class TahadiApp extends ConsumerWidget {
     // `Directionality` inherited from `Locale`, so individual screens don't
     // need manual RTL handling.
     final preferredLocale = ref.watch(currentUserProvider).value?.locale;
-    final locale = preferredLocale == 'en' ? const Locale('en') : const Locale('ar');
+    final locale = preferredLocale == 'en'
+        ? const Locale('en')
+        : const Locale('ar');
 
     return MaterialApp.router(
       title: 'تحدي العمالقة',

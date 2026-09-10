@@ -65,6 +65,27 @@ class FirebaseAuthService {
     await Future.wait([_auth.signOut(), _googleSignIn.signOut()]);
   }
 
+  /// Whether the signed-in user needs to verify their email — only ever
+  /// true for email/password accounts (Google/Apple already vouch for the
+  /// email themselves, so there's nothing to verify).
+  bool get needsEmailVerification {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+    final isPasswordProvider = user.providerData.any((p) => p.providerId == 'password');
+    return isPasswordProvider && !user.emailVerified;
+  }
+
+  Future<void> sendEmailVerification() async {
+    await _auth.currentUser?.sendEmailVerification();
+  }
+
+  /// Refetches the current user from the server — the client never learns
+  /// about a clicked verification link on its own, so this is the only way
+  /// to notice `emailVerified` flipped to true.
+  Future<void> reloadCurrentUser() async {
+    await _auth.currentUser?.reload();
+  }
+
   String _generateNonce([int length = 32]) {
     const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
     final random = Random.secure();

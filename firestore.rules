@@ -70,7 +70,7 @@ service cloud.firestore {
     // --- questions/{questionId} ---
     // Client-read-only. If a client could write here, anyone could plant a
     // question with a wrong "correct" answer to guarantee a win. Written by
-    // `addHomeTurfQuestion` and `generateQuestions`.
+    // `addHomeTurfQuestion` and the `functions/src/seed` scripts.
     match /questions/{questionId} {
       allow read: if isSignedIn();
       allow write: if false;

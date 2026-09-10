@@ -2,22 +2,14 @@
  * One-off admin script: creates every group + category in
  * `categoryTaxonomy.ts` and uploads the hand-written starter question pools
  * from `pregeneratedQuestions.ts` (Arabic) and `pregeneratedQuestionsEn.ts`
- * (English) — written by Claude directly in conversation rather than
- * fetched through a live API call. That's the whole point of this script
- * existing separately from `seedCategoryTaxonomy.ts`: it needs NO
- * `ANTHROPIC_API_KEY` and makes NO Claude API calls — only Firebase Admin
- * credentials, same as `importOpenTriviaDb.ts`.
+ * (English) — written by hand rather than fetched through a live API call.
+ * It needs only Firebase Admin credentials, same as `importOpenTriviaDb.ts`.
  *
  * Every category ends up with both a `language: "ar"` pool and a
  * `language: "en"` pool (regardless of `CategorySeed.language`, which only
  * controls the category's own display metadata) — `pickNextQuestion` (see
  * `functions/src/scoring/resolveDuel.ts`) picks from whichever pool matches
  * a given duel's `language`.
- *
- * This is a starting pool per language, not the final word. Once you have
- * your own Claude API key, run `seedCategoryTaxonomy.ts` (pass a `language`
- * to generate for) to top any category up with a much larger AI-generated
- * batch — it skips nothing here, it just adds more.
  */
 import { db, FieldValue } from "../lib/admin";
 import { CATEGORIES } from "./categoryTaxonomy";
@@ -98,7 +90,6 @@ if (require.main === module) {
  *
  * Safe to re-run: categories use deterministic ids and are never
  * recreated, but re-running DOES add another copy of this same Arabic +
- * English starter pool per category each time — run it once, then use
- * `seedCategoryTaxonomy.ts` (needs a Claude key) to add more variety
- * instead of re-running this one repeatedly.
+ * English starter pool per category each time — run it once rather than
+ * repeatedly.
  */

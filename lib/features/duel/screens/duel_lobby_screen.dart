@@ -2,30 +2,47 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/branded_loading_indicator.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../routing/app_router.dart';
+import '../../home/home_controller.dart';
 import '../duel_controller.dart';
+import '../widgets/category_catalog.dart';
 import '../widgets/invite_card.dart';
-import 'category_picker_screen.dart';
 
-/// The duel hub: incoming challenges, "challenge a friend", and "quick
-/// match". This is a tab in the bottom nav — the actual gameplay happens on
-/// `LiveDuelScreen`, reached once a duel exists.
+/// The duel hub: incoming challenges, a browsable category catalog, and the
+/// "challenge a friend"/"quick match" actions. This is a tab in the bottom
+/// nav — the actual gameplay happens on `LiveDuelScreen`, reached once a
+/// duel exists.
+///
+/// Category selection happens up front, once, at the top of this screen —
+/// both actions below then act on whichever category is currently selected
+/// (or "any category" if none is), rather than each asking separately.
+/// Picking a category before matching also makes quick match pair up
+/// near-instantly, since it only has to find someone else waiting on that
+/// same category instead of gambling on a random one (see
+/// `functions/src/matchmaking/openLobby.ts`).
 class DuelLobbyScreen extends ConsumerWidget {
   const DuelLobbyScreen({super.key});
 
   Future<void> _openChallengeSheet(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context)!;
     final opponents = ref.read(opponentCandidatesProvider).value ?? [];
-    final categories = ref.read(categoriesProvider).value ?? [];
+    final categoryId = ref.read(selectedCategoryIdProvider);
 
-    if (opponents.isEmpty || categories.isEmpty) return;
+    if (opponents.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.duelNoOpponentsAvailable)));
+      return;
+    }
+    if (categoryId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.duelSelectCategory)));
+      return;
+    }
 
     String? selectedOpponentId;
-    String? selectedCategoryId;
 
     await showModalBottomSheet(
       context: context,
@@ -40,14 +57,6 @@ class DuelLobbyScreen extends ConsumerWidget {
           ),
           child: StatefulBuilder(
             builder: (sheetContext, setState) {
-              String? selectedCategoryName;
-              for (final category in categories) {
-                if (category.id == selectedCategoryId) {
-                  selectedCategoryName = category.name;
-                  break;
-                }
-              }
-
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -61,37 +70,14 @@ class DuelLobbyScreen extends ConsumerWidget {
                         .toList(),
                     onChanged: (value) => setState(() => selectedOpponentId = value),
                   ),
-                  const SizedBox(height: AppSpacing.md),
-                  Text(l10n.duelSelectCategory, style: Theme.of(sheetContext).textTheme.titleLarge),
-                  const SizedBox(height: AppSpacing.sm),
-                  // A full-screen grouped picker rather than an inline
-                  // dropdown — with ~60 seeded categories a dropdown list
-                  // stops being usable. See `category_picker_screen.dart`.
-                  OutlinedButton.icon(
-                    onPressed: () async {
-                      final categoryId = await Navigator.of(
-                        sheetContext,
-                      ).push<String>(MaterialPageRoute(builder: (_) => const CategoryPickerScreen()));
-                      if (categoryId != null) setState(() => selectedCategoryId = categoryId);
-                    },
-                    icon: const Icon(Icons.category_rounded),
-                    label: Text(
-                      selectedCategoryName ?? l10n.duelSelectCategory,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      alignment: AlignmentDirectional.centerStart,
-                      foregroundColor: selectedCategoryName != null ? AppColors.primary : null,
-                    ),
-                  ),
                   const SizedBox(height: AppSpacing.lg),
                   ElevatedButton(
-                    onPressed: (selectedOpponentId == null || selectedCategoryId == null)
+                    onPressed: selectedOpponentId == null
                         ? null
                         : () async {
                             await ref
                                 .read(duelControllerProvider.notifier)
-                                .sendChallenge(toUserId: selectedOpponentId!, categoryId: selectedCategoryId!);
+                                .sendChallenge(toUserId: selectedOpponentId!, categoryId: categoryId);
                             if (sheetContext.mounted) Navigator.of(sheetContext).pop();
                           },
                     child: Text(l10n.homeChallengeFriend),
@@ -106,7 +92,9 @@ class DuelLobbyScreen extends ConsumerWidget {
   }
 
   Future<void> _quickMatch(BuildContext context, WidgetRef ref) async {
-    final result = await ref.read(duelControllerProvider.notifier).joinQuickMatch();
+    final result = await ref
+        .read(duelControllerProvider.notifier)
+        .joinQuickMatch(categoryId: ref.read(selectedCategoryIdProvider));
     final duelId = result['duelId'] as String?;
     if (duelId != null && context.mounted) {
       context.push(AppRoutes.liveDuelPath(duelId));
@@ -123,6 +111,10 @@ class DuelLobbyScreen extends ConsumerWidget {
     final invites = ref.watch(incomingInvitesProvider);
     final duelState = ref.watch(duelControllerProvider);
     final queuedLobbyId = ref.watch(queuedLobbyIdProvider);
+    final groupsAsync = ref.watch(categoryGroupsProvider);
+    final categoriesAsync = ref.watch(categoriesProvider);
+    final selectedCategoryId = ref.watch(selectedCategoryIdProvider);
+    final locale = ref.watch(currentUserProvider).value?.locale;
 
     if (queuedLobbyId != null) {
       ref.listen(openLobbyStreamProvider(queuedLobbyId), (previous, next) {
@@ -171,7 +163,27 @@ class DuelLobbyScreen extends ConsumerWidget {
                   loading: () => const SizedBox.shrink(),
                   error: (_, _) => const SizedBox.shrink(),
                 ),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: AppSpacing.sm),
+                Text(l10n.duelSelectCategory, style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: AppSpacing.sm),
+                groupsAsync.when(
+                  data: (groups) => categoriesAsync.when(
+                    data: (categories) => CategoryCatalog(
+                      groups: groups,
+                      categories: categories,
+                      selectedCategoryId: selectedCategoryId,
+                      locale: locale,
+                      onSelect: (category) => ref
+                          .read(selectedCategoryIdProvider.notifier)
+                          .set(category.id == selectedCategoryId ? null : category.id),
+                    ),
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, _) => Text(l10n.commonError),
+                  ),
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, _) => Text(l10n.commonError),
+                ),
+                const SizedBox(height: AppSpacing.md),
                 ElevatedButton.icon(
                   onPressed: () => _openChallengeSheet(context, ref),
                   icon: const Icon(Icons.person_add_alt_1_rounded),

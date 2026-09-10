@@ -10,6 +10,7 @@ import '../../../routing/app_router.dart';
 import '../../duel/duel_controller.dart';
 import '../home_controller.dart';
 import '../widgets/elo_stat_card.dart';
+import '../widgets/email_verification_banner.dart';
 import '../widgets/recent_duel_tile.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -32,6 +33,7 @@ class HomeScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
+            const EmailVerificationBanner(),
             userAsync.when(
               data: (user) => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

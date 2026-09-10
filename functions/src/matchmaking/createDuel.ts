@@ -31,6 +31,12 @@ export async function createDuelForPlayers(player1Id: string, player2Id: string,
     throw new HttpsError("failed-precondition", "This category has no questions yet.");
   }
 
+  // Snapshotted once here (rather than re-derived from `categoryId` on
+  // every read) so it survives the category being renamed/deleted later —
+  // picked in the same language the duel's questions are in, so the
+  // category label and questions never mismatch languages.
+  const categoryName: string = language === "en" && category.nameEn ? category.nameEn : category.name;
+
   const duelRef = db.collection("duels").doc();
   await duelRef.set({
     player1Id,
@@ -38,7 +44,7 @@ export async function createDuelForPlayers(player1Id: string, player2Id: string,
     player1DisplayName: player1Snap.data()?.displayName ?? "",
     player2DisplayName: player2Snap.data()?.displayName ?? "",
     categoryId,
-    categoryName: category.name,
+    categoryName,
     language,
     isHomeTurfDuel: category.ownerId != null,
     homeTurfOwnerId: category.ownerId ?? null,
@@ -47,6 +53,7 @@ export async function createDuelForPlayers(player1Id: string, player2Id: string,
     player2Score: 0,
     currentRound: 1,
     totalRounds: ROUNDS_PER_DUEL,
+    usedQuestionIds: [firstQuestion.id],
     winnerId: null,
     eloChange: {},
     createdAt: FieldValue.serverTimestamp(),

@@ -19,5 +19,3 @@ export const ELO_K_FACTOR = 32;
  * answering — gives slow-but-still-connected clients a little slack beyond
  * what their own countdown UI shows. */
 export const STALE_ROUND_GRACE_SECONDS = 10;
-
-export const DEFAULT_CLAUDE_MODEL = "claude-sonnet-5";

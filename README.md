@@ -17,8 +17,6 @@ support and RTL layout throughout.
 - **Backend:** Firebase — Auth, Cloud Firestore (with real-time listeners
   for live duel state), Cloud Functions (TypeScript) for every piece of
   server-authoritative logic.
-- **AI:** Claude API, called only from a Cloud Function, to generate
-  trivia questions on demand for home-turf categories.
 
 See `SETUP.md` for exact versions and why, and how to get this running.
 If you're picking this up again after being away from a dev machine, use
@@ -39,7 +37,7 @@ lib/
 functions/
   src/
     scoring/       # resolveDuel.ts is the ONLY place points/ELO are computed
-    questions/     # Claude-powered question generation + home-turf CRUD
+    questions/     # home-turf category/question CRUD
     matchmaking/   # challenge flow + quick-match open lobby
 ```
 

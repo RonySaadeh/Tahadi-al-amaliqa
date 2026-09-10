@@ -2,11 +2,9 @@ import { db, FieldValue } from "../lib/admin";
 import { CATEGORIES, CATEGORY_GROUPS } from "./categoryTaxonomy";
 
 /**
- * Firestore writes shared by every seed script that populates the category
- * taxonomy — `seedCategoryTaxonomy.ts` (Claude-generated questions) and
- * `seedPregeneratedQuestions.ts` (the hand-written starter pool). Both need
- * the same groups/categories to exist first; this is the one place that
- * logic lives so the two scripts can't drift apart on it.
+ * Firestore writes for the category taxonomy, used by
+ * `seedPregeneratedQuestions.ts` before it uploads the hand-written starter
+ * question pool.
  */
 
 export async function ensureCategoryGroups(): Promise<void> {
@@ -16,6 +14,7 @@ export async function ensureCategoryGroups(): Promise<void> {
       db.collection("categoryGroups").doc(group.id),
       {
         name: group.name,
+        nameEn: group.nameEn,
         order: group.order,
         iconKey: group.iconKey,
         createdAt: FieldValue.serverTimestamp(),
@@ -27,21 +26,34 @@ export async function ensureCategoryGroups(): Promise<void> {
   console.log(`Ensured ${CATEGORY_GROUPS.length} category groups.`);
 }
 
-/** Creates the category doc if it doesn't already exist. Never overwrites
- * an existing one, so re-running a seed script is always safe. */
+/** Creates the category doc if it doesn't already exist. For one that
+ * already exists, merge-updates only the display-text fields (name,
+ * nameEn, description, descriptionEn, groupId) so re-running the seed
+ * script after editing `categoryTaxonomy.ts` backfills text changes —
+ * `questionCount`, `ownerId`, and `createdAt` are never touched here. */
 export async function ensureCategory(seed: (typeof CATEGORIES)[number]): Promise<void> {
   const ref = db.collection("categories").doc(seed.id);
   const snap = await ref.get();
-  if (snap.exists) return;
 
-  await ref.set({
+  const textFields = {
     name: seed.name,
+    nameEn: seed.nameEn,
     description: seed.description,
-    ownerId: null,
-    ownerDisplayName: null,
+    descriptionEn: seed.descriptionEn,
     groupId: seed.groupId,
-    questionCount: 0,
-    createdAt: FieldValue.serverTimestamp(),
-  });
-  console.log(`Created category "${seed.name}" (${seed.id})`);
+  };
+
+  if (!snap.exists) {
+    await ref.set({
+      ...textFields,
+      ownerId: null,
+      ownerDisplayName: null,
+      questionCount: 0,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+    console.log(`Created category "${seed.name}" (${seed.id})`);
+    return;
+  }
+
+  await ref.set(textFields, { merge: true });
 }

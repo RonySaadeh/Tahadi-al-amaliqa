@@ -15,3 +15,6 @@ analyzer:
     - '**/*.freezed.dart'
     - 'lib/l10n/app_localizations*.dart'
     - build/**
+    - android/**
+    - ios/**
+    - web/**

@@ -46,7 +46,7 @@ enum QuestionDifficulty {
 /// want to review 'llm' questions before trusting them as much as 'api' ones.
 enum QuestionSource {
   api, // bundled/seeded question bank
-  llm, // generated on demand via the Claude API (see generateQuestions)
+  llm, // hand-written/LLM-assisted starter pool (see functions/src/seed)
   user; // hand-written by a home-turf category owner
 
   static QuestionSource fromString(String value) {

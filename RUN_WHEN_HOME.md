@@ -38,13 +38,6 @@ flutterfire configure
 cd functions && npm install && cd ..
 ```
 
-**Missing the Claude API key?** (one-time per Firebase project, not per
-machine — skip if already set):
-
-```bash
-firebase functions:secrets:set ANTHROPIC_API_KEY
-```
-
 ## Run it
 
 Local emulators (no real Firebase usage, resets on restart):

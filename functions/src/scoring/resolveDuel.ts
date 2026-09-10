@@ -148,9 +148,12 @@ async function resolveRoundNow(
   const roundRef = duelRef.collection("rounds").doc(String(roundNumber));
 
   const isFinalRound = roundNumber >= duel.totalRounds;
+  // Excludes every question used so far THIS duel, not just the round that
+  // just finished — otherwise a short category (or an unlucky random pick)
+  // can repeat a question from an earlier round.
   const nextQuestion = isFinalRound
     ? null
-    : await pickNextQuestion(duel.categoryId, duel.language, [round.questionId]);
+    : await pickNextQuestion(duel.categoryId, duel.language, duel.usedQuestionIds ?? [round.questionId]);
   // Fetched before the transaction starts (a question's correct answer
   // never changes after creation, so this doesn't need transactional
   // consistency, and every read inside a Firestore transaction must go
@@ -212,6 +215,7 @@ async function resolveRoundNow(
         player1Score: newPlayer1Score,
         player2Score: newPlayer2Score,
         currentRound: nextRoundNumber,
+        usedQuestionIds: FieldValue.arrayUnion(nextQuestion.id),
       });
       tx.set(duelRef.collection("rounds").doc(String(nextRoundNumber)), {
         roundNumber: nextRoundNumber,

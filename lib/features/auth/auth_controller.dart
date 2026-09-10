@@ -22,17 +22,25 @@ class AuthController extends Notifier<AsyncValue<void>> {
   Future<void> signInWithEmail(String email, String password) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      await ref.read(firebaseAuthServiceProvider).signInWithEmail(email, password);
+      final credential = await ref
+          .read(firebaseAuthServiceProvider)
+          .signInWithEmail(email, password);
+      // Self-heals accounts whose profile write failed the first time
+      // around (e.g. signed up before Firestore rules were deployed) —
+      // `_ensureProfileExists` is a no-op once the doc actually exists.
+      await _ensureProfileExists(credential.user!);
     });
   }
 
   Future<void> signUpWithEmail(String email, String password, String displayName) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      final credential = await ref
-          .read(firebaseAuthServiceProvider)
-          .signUpWithEmail(email, password);
+      final authService = ref.read(firebaseAuthServiceProvider);
+      final credential = await authService.signUpWithEmail(email, password);
       await _ensureProfileExists(credential.user!, fallbackDisplayName: displayName);
+      // Only email/password accounts need this — Google/Apple already
+      // vouch for the email themselves.
+      await authService.sendEmailVerification();
     });
   }
 
@@ -75,4 +83,30 @@ class AuthController extends Notifier<AsyncValue<void>> {
 
 final authControllerProvider = NotifierProvider<AuthController, AsyncValue<void>>(
   AuthController.new,
+);
+
+/// Whether the signed-in user still needs to verify their email. Recomputed
+/// whenever [authStateChangesProvider] changes (sign-in/out, token
+/// refresh) — but a clicked verification link doesn't push anything to the
+/// client on its own, so [refresh] is the only way to notice it happened;
+/// see `EmailVerificationBanner`, which calls it.
+class EmailVerificationController extends Notifier<bool> {
+  @override
+  bool build() {
+    ref.watch(authStateChangesProvider);
+    return _compute();
+  }
+
+  bool _compute() => ref.read(firebaseAuthServiceProvider).needsEmailVerification;
+
+  Future<void> resend() => ref.read(firebaseAuthServiceProvider).sendEmailVerification();
+
+  Future<void> refresh() async {
+    await ref.read(firebaseAuthServiceProvider).reloadCurrentUser();
+    state = _compute();
+  }
+}
+
+final needsEmailVerificationProvider = NotifierProvider<EmailVerificationController, bool>(
+  EmailVerificationController.new,
 );

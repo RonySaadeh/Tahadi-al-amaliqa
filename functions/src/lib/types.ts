@@ -37,6 +37,10 @@ export interface DuelDoc {
   player2Score: number;
   currentRound: number;
   totalRounds: number;
+  /** Every questionId used so far this duel (all rounds, not just the
+   * latest), so `pickNextQuestion` can avoid repeating one — see
+   * `resolveDuel.ts`. */
+  usedQuestionIds: string[];
   winnerId: string | null;
   eloChange: Record<string, number>;
   createdAt: FirebaseFirestore.FieldValue | FirebaseFirestore.Timestamp;

@@ -84,24 +84,4 @@ class CloudFunctionsService {
       'difficulty': difficulty,
     });
   }
-
-  /// Kicks off LLM question generation for a category. See
-  /// `claude_question_service.dart` for the higher-level wrapper used by
-  /// the home_turf feature.
-  Future<int> generateQuestions({
-    required String categoryId,
-    required String topic,
-    required String difficulty,
-    required int count,
-    required String language,
-  }) async {
-    final result = await _functions.httpsCallable('generateQuestions').call({
-      'categoryId': categoryId,
-      'topic': topic,
-      'difficulty': difficulty,
-      'count': count,
-      'language': language,
-    });
-    return (result.data as Map)['questionsCreated'] as int;
-  }
 }

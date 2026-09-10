@@ -66,6 +66,8 @@ class DuelModel extends Equatable {
 
   String opponentIdFor(String uid) => uid == player1Id ? player2Id : player1Id;
 
+  String opponentDisplayNameFor(String uid) => uid == player1Id ? player2DisplayName : player1DisplayName;
+
   int scoreFor(String uid) => uid == player1Id ? player1Score : player2Score;
 
   bool get isFinished => status == DuelStatus.completed || status == DuelStatus.cancelled;

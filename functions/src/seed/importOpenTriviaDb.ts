@@ -9,13 +9,12 @@
  * Firebase project, not triggered by players. See the "Running this" note
  * at the bottom of the file.
  *
- * Why a separate file from `questions/generateQuestions.ts`: that function
- * calls the Claude API and is scoped to a category's own owner. This
- * script has no owner (categories it creates have `ownerId: null`) and
- * pulls from a different, non-AI source — English trivia questions that
- * already exist rather than ones written on demand. Both end up writing
- * the same `QuestionDoc` shape (see `lib/types.ts`), just tagged with a
- * different `source`.
+ * Why a separate file from `homeTurf.ts`'s `addHomeTurfQuestion`: that
+ * function is scoped to a category's own owner. This script has no owner
+ * (categories it creates have `ownerId: null`) and pulls from an existing
+ * question source rather than ones written by a player. Both end up
+ * writing the same `QuestionDoc` shape (see `lib/types.ts`), just tagged
+ * with a different `source`.
  */
 import { db, FieldValue } from "../lib/admin";
 import { QuestionDifficulty } from "../lib/types";

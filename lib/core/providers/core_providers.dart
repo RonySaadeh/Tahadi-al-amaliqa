@@ -5,8 +5,8 @@ import '../../data/repositories/duel_repository.dart';
 import '../../data/repositories/leaderboard_repository.dart';
 import '../../data/repositories/question_repository.dart';
 import '../../data/repositories/user_repository.dart';
-import '../services/claude_question_service.dart';
 import '../services/cloud_functions_service.dart';
+import '../services/connectivity_service.dart';
 import '../services/firebase_auth_service.dart';
 import '../services/firestore_service.dart';
 
@@ -24,9 +24,7 @@ final firestoreServiceProvider = Provider<FirestoreService>((ref) => FirestoreSe
 final cloudFunctionsServiceProvider = Provider<CloudFunctionsService>(
   (ref) => CloudFunctionsService(),
 );
-final claudeQuestionServiceProvider = Provider<ClaudeQuestionService>(
-  (ref) => ClaudeQuestionService(cloudFunctions: ref.watch(cloudFunctionsServiceProvider)),
-);
+final connectivityServiceProvider = Provider<ConnectivityService>((ref) => ConnectivityService());
 
 // --- Repositories ---
 final userRepositoryProvider = Provider<UserRepository>(
@@ -61,4 +59,17 @@ final authStateChangesProvider = StreamProvider<User?>((ref) {
 /// queries to "my data" (e.g. `watchUser(ref.watch(currentUserIdProvider)!)`).
 final currentUserIdProvider = Provider<String?>((ref) {
   return ref.watch(authStateChangesProvider).value?.uid;
+});
+
+// --- Connectivity ---
+
+/// Whether the device currently has real internet access (not just a radio
+/// connected to something — see `ConnectivityService`). Emits an immediate
+/// initial check, then live updates as the network changes. Used by the
+/// router to hold signed-out users on the splash screen instead of showing
+/// a login form that has nothing to talk to.
+final connectivityStatusProvider = StreamProvider<bool>((ref) async* {
+  final service = ref.watch(connectivityServiceProvider);
+  yield await service.checkConnection();
+  yield* service.onConnectivityChanged;
 });

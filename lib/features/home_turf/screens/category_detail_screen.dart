@@ -9,10 +9,7 @@ import '../../../l10n/app_localizations.dart';
 import '../home_turf_controller.dart';
 import '../widgets/question_tile.dart';
 
-/// Manage one home-turf category's question bank: hand-write questions, or
-/// generate a batch with the Claude API. See
-/// `functions/src/questions/generateQuestions.ts` for what actually happens
-/// server-side when you tap "Generate with AI".
+/// Manage one home-turf category's question bank by hand-writing questions.
 class CategoryDetailScreen extends ConsumerWidget {
   const CategoryDetailScreen({super.key, required this.categoryId});
 
@@ -116,70 +113,6 @@ class CategoryDetailScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _showGenerateWithAiDialog(BuildContext context, WidgetRef ref) async {
-    final l10n = AppLocalizations.of(context)!;
-    final topicController = TextEditingController();
-    final countController = TextEditingController(text: '10');
-    String difficulty = 'medium';
-    final locale = Localizations.localeOf(context).languageCode;
-
-    await showDialog(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setState) {
-          return AlertDialog(
-            title: Text(l10n.homeTurfGenerateWithAI),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: topicController,
-                  decoration: InputDecoration(labelText: l10n.homeTurfGenerateTopic),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                TextField(
-                  controller: countController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: l10n.homeTurfGenerateCount),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                DropdownButtonFormField<String>(
-                  initialValue: difficulty,
-                  decoration: InputDecoration(labelText: l10n.homeTurfDifficulty),
-                  items: [
-                    DropdownMenuItem(value: 'easy', child: Text(l10n.homeTurfDifficultyEasy)),
-                    DropdownMenuItem(value: 'medium', child: Text(l10n.homeTurfDifficultyMedium)),
-                    DropdownMenuItem(value: 'hard', child: Text(l10n.homeTurfDifficultyHard)),
-                  ],
-                  onChanged: (value) => setState(() => difficulty = value!),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(l10n.commonCancel)),
-              FilledButton(
-                onPressed: () async {
-                  final navigator = Navigator.of(dialogContext);
-                  navigator.pop();
-                  await ref
-                      .read(homeTurfControllerProvider.notifier)
-                      .generateWithAI(
-                        categoryId: categoryId,
-                        topic: topicController.text.trim(),
-                        difficulty: difficulty,
-                        language: locale,
-                        count: int.tryParse(countController.text) ?? 10,
-                      );
-                },
-                child: Text(l10n.commonConfirm),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
@@ -187,16 +120,7 @@ class CategoryDetailScreen extends ConsumerWidget {
     final controllerState = ref.watch(homeTurfControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.homeTurfMyCategories),
-        actions: [
-          IconButton(
-            onPressed: () => _showGenerateWithAiDialog(context, ref),
-            icon: const Icon(Icons.auto_awesome_rounded),
-            tooltip: l10n.homeTurfGenerateWithAI,
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text(l10n.homeTurfMyCategories)),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddQuestionSheet(context, ref),
         child: const Icon(Icons.add_rounded),

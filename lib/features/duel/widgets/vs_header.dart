@@ -5,7 +5,9 @@ import '../../../core/theme/app_spacing.dart';
 
 /// The "player vs player" scoreboard strip shown at the top of the live
 /// duel screen — this is the moment that has to feel alive, so both sides
-/// get a strong identity color (see [AppColors.playerOne]/[playerTwo]).
+/// get a strong identity color (see [AppColors.playerOne]/[playerTwo]) and
+/// the score itself animates on every change instead of just snapping to
+/// the new number.
 class VsHeader extends StatelessWidget {
   const VsHeader({
     super.key,
@@ -25,21 +27,20 @@ class VsHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.lg),
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(AppSpacing.radiusLg)),
+      ),
       child: Column(
         children: [
-          Text(
-            roundLabel,
-            style: Theme.of(context).textTheme.labelSmall,
-          ),
-          const SizedBox(height: AppSpacing.xs),
+          Text(roundLabel, style: Theme.of(context).textTheme.labelSmall),
+          const SizedBox(height: AppSpacing.sm),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(child: _PlayerBadge(name: player1Name, score: player1Score, color: AppColors.playerOne)),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                child: Text('VS', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.textSecondary)),
-              ),
+              const _VsBadge(),
               Expanded(
                 child: _PlayerBadge(
                   name: player2Name,
@@ -50,7 +51,30 @@ class VsHeader extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: AppSpacing.sm),
+          Container(height: 3, decoration: const BoxDecoration(gradient: AppColors.vsGradient)),
         ],
+      ),
+    );
+  }
+}
+
+class _VsBadge extends StatelessWidget {
+  const _VsBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+      child: Container(
+        width: 36,
+        height: 36,
+        alignment: Alignment.center,
+        decoration: const BoxDecoration(gradient: AppColors.primaryGradient, shape: BoxShape.circle),
+        child: const Text(
+          'VS',
+          style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white, fontSize: 12),
+        ),
       ),
     );
   }
@@ -75,7 +99,16 @@ class _PlayerBadge extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(color: color),
         ),
-        Text('$score', style: Theme.of(context).textTheme.displayMedium?.copyWith(color: color)),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          transitionBuilder: (child, animation) =>
+              ScaleTransition(scale: animation, child: FadeTransition(opacity: animation, child: child)),
+          child: Text(
+            '$score',
+            key: ValueKey(score),
+            style: Theme.of(context).textTheme.displayMedium?.copyWith(color: color),
+          ),
+        ),
       ],
     );
   }

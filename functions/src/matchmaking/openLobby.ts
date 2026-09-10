@@ -13,21 +13,20 @@ export const joinOpenLobby = onCall(async (request) => {
   if (!uid) throw new HttpsError("unauthenticated", "You must be signed in.");
 
   const { categoryId } = request.data as { categoryId?: unknown };
-  const resolvedCategoryId =
-    typeof categoryId === "string" && categoryId.length > 0 ? categoryId : await pickRandomCategoryId();
+  const hasRequestedCategory = typeof categoryId === "string" && categoryId.length > 0;
 
-  if (!resolvedCategoryId) {
-    throw new HttpsError("failed-precondition", "No categories exist yet to match on.");
+  // A caller with no category preference (the common "quick match" case)
+  // should be willing to pair with ANYONE waiting, regardless of what
+  // category that other player queued on — filtering by a freshly-rolled
+  // random category here would mean two unrelated random picks almost
+  // never coincide, so quick match would nearly always time out instead of
+  // matching. Only a caller with an explicit category preference narrows
+  // the search to that category.
+  let waitingQuery = db.collection("openLobbies").where("status", "==", "open");
+  if (hasRequestedCategory) {
+    waitingQuery = waitingQuery.where("categoryId", "==", categoryId);
   }
-
-  // Look for someone else already waiting on the same category.
-  const waitingSnap = await db
-    .collection("openLobbies")
-    .where("categoryId", "==", resolvedCategoryId)
-    .where("status", "==", "open")
-    .orderBy("createdAt")
-    .limit(5)
-    .get();
+  const waitingSnap = await waitingQuery.orderBy("createdAt").limit(5).get();
 
   const candidate = waitingSnap.docs.find((d) => d.data().hostId !== uid);
 
@@ -41,12 +40,24 @@ export const joinOpenLobby = onCall(async (request) => {
 
     if (matched) {
       const hostId = candidate.data().hostId as string;
-      const duelId = await createDuelForPlayers(hostId, uid, resolvedCategoryId);
+      // Use whichever category the waiting entry already committed to —
+      // not a fresh random pick — so both players duel on the category
+      // that was actually advertised as open.
+      const matchedCategoryId = candidate.data().categoryId as string;
+      const duelId = await createDuelForPlayers(hostId, uid, matchedCategoryId);
       await candidate.ref.update({ duelId });
       return { duelId, matched: true };
     }
     // Someone else grabbed it between our read and our transaction — fall
     // through and just create our own lobby entry below.
+  }
+
+  const resolvedCategoryId = hasRequestedCategory
+    ? (categoryId as string)
+    : await pickRandomCategoryId();
+
+  if (!resolvedCategoryId) {
+    throw new HttpsError("failed-precondition", "No categories exist yet to match on.");
   }
 
   const lobbyRef = await db.collection("openLobbies").add({

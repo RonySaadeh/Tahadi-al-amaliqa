@@ -7,7 +7,6 @@
 export { submitAnswer } from "./scoring/submitAnswer";
 export { expireStaleRounds } from "./scoring/expireStaleRounds";
 
-export { generateQuestions } from "./questions/generateQuestions";
 export { createHomeTurfCategory, addHomeTurfQuestion } from "./questions/homeTurf";
 
 export { sendDuelChallenge, respondToDuelChallenge } from "./matchmaking/duelChallenges";

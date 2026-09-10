@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../core/utils/level_calculator.dart';
 import '../../../core/utils/validators.dart';
+import '../../../core/widgets/level_badge.dart';
 import '../../../core/widgets/skeleton_loader.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/auth_controller.dart';
@@ -72,13 +74,12 @@ class ProfileScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(AppSpacing.md),
             children: [
               Center(
-                child: CircleAvatar(
+                child: PlayerAvatar(
+                  displayName: user.displayName,
+                  photoUrl: user.photoUrl,
+                  wins: user.wins,
+                  losses: user.losses,
                   radius: 44,
-                  backgroundColor: AppColors.surfaceRaised,
-                  backgroundImage: user.photoUrl != null ? NetworkImage(user.photoUrl!) : null,
-                  child: user.photoUrl == null
-                      ? Text(user.displayName.isNotEmpty ? user.displayName[0] : '?', style: const TextStyle(fontSize: 32))
-                      : null,
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
@@ -95,6 +96,8 @@ class ProfileScreen extends ConsumerWidget {
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ),
+              const SizedBox(height: AppSpacing.xs),
+              Center(child: _LevelProgress(wins: user.wins, losses: user.losses)),
               const SizedBox(height: AppSpacing.lg),
               Text(l10n.profileStats, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: AppSpacing.sm),
@@ -145,6 +148,47 @@ class ProfileScreen extends ConsumerWidget {
         loading: () => const SkeletonList(),
         error: (_, _) => Center(child: Text(l10n.commonError)),
       ),
+    );
+  }
+}
+
+/// "Level 5" + a thin XP progress bar toward the next one, shown under the
+/// avatar. See `LevelCalculator` for how wins/losses turn into a level.
+class _LevelProgress extends StatelessWidget {
+  const _LevelProgress({required this.wins, required this.losses});
+
+  final int wins;
+  final int losses;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final playerLevel = LevelCalculator.calculate(wins: wins, losses: losses);
+    final xpRemaining = playerLevel.xpSpanForLevel - playerLevel.xpIntoLevel;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          l10n.profileLevel(playerLevel.level),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.gold),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        SizedBox(
+          width: 160,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            child: LinearProgressIndicator(
+              value: playerLevel.progress.clamp(0, 1),
+              minHeight: 6,
+              backgroundColor: AppColors.surfaceBorder,
+              valueColor: const AlwaysStoppedAnimation(AppColors.gold),
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(l10n.profileXpToNext(xpRemaining), style: Theme.of(context).textTheme.labelSmall),
+      ],
     );
   }
 }
