@@ -61,6 +61,20 @@ class CloudFunctionsService {
     });
   }
 
+  /// Refreshes this player's presence timestamp on the duel doc, used by
+  /// their opponent's client to detect a disconnect — see
+  /// `DuelPresenceController` and `functions/src/scoring/presence.ts`.
+  Future<void> sendDuelHeartbeat(String duelId) async {
+    await _functions.httpsCallable('heartbeat').call({'duelId': duelId});
+  }
+
+  /// Claims an automatic win because the opponent's last heartbeat is older
+  /// than [AppConstants.duelReconnectGraceSeconds] — the server re-verifies
+  /// this independently before honoring it.
+  Future<void> forfeitDuel(String duelId) async {
+    await _functions.httpsCallable('forfeitDuel').call({'duelId': duelId});
+  }
+
   Future<String> createHomeTurfCategory({required String name, required String description}) async {
     final result = await _functions.httpsCallable('createHomeTurfCategory').call({
       'name': name,

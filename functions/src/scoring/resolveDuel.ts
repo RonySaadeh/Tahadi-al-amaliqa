@@ -281,7 +281,7 @@ async function resolveRoundNow(
   });
 }
 
-function updatePlayerAfterDuel(
+export function updatePlayerAfterDuel(
   tx: FirebaseFirestore.Transaction,
   uid: string,
   current: FirebaseFirestore.DocumentData,

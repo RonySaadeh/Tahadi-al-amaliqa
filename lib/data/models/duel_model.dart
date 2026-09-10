@@ -33,6 +33,8 @@ class DuelModel extends Equatable {
     required this.createdAt,
     this.startedAt,
     this.completedAt,
+    this.player1LastSeenAt,
+    this.player2LastSeenAt,
   });
 
   final String id;
@@ -64,11 +66,22 @@ class DuelModel extends Equatable {
   final DateTime? startedAt;
   final DateTime? completedAt;
 
+  /// Last time each player's client called the `heartbeat` Cloud Function
+  /// while this duel was active — see `DuelPresenceController`. Null until
+  /// their first heartbeat.
+  final DateTime? player1LastSeenAt;
+  final DateTime? player2LastSeenAt;
+
   String opponentIdFor(String uid) => uid == player1Id ? player2Id : player1Id;
 
   String opponentDisplayNameFor(String uid) => uid == player1Id ? player2DisplayName : player1DisplayName;
 
   int scoreFor(String uid) => uid == player1Id ? player1Score : player2Score;
+
+  /// The other player's last known heartbeat, from the perspective of [uid].
+  /// Null if they haven't sent one yet (e.g. right after the duel started).
+  DateTime? opponentLastSeenAtFor(String uid) =>
+      uid == player1Id ? player2LastSeenAt : player1LastSeenAt;
 
   bool get isFinished => status == DuelStatus.completed || status == DuelStatus.cancelled;
 
@@ -95,6 +108,8 @@ class DuelModel extends Equatable {
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       startedAt: (data['startedAt'] as Timestamp?)?.toDate(),
       completedAt: (data['completedAt'] as Timestamp?)?.toDate(),
+      player1LastSeenAt: (data['player1LastSeenAt'] as Timestamp?)?.toDate(),
+      player2LastSeenAt: (data['player2LastSeenAt'] as Timestamp?)?.toDate(),
     );
   }
 

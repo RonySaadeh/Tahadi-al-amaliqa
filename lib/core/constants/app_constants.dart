@@ -24,4 +24,20 @@ class AppConstants {
 
   /// Standard ELO K-factor. Higher = ratings move faster per duel.
   static const int eloKFactor = 32;
+
+  /// Minimum time the splash screen stays up on a cold start, even if auth
+  /// and connectivity resolve instantly — long enough to read as a
+  /// deliberate branded loading moment, short enough to never feel slow.
+  static const int splashMinDurationMs = 900;
+
+  /// How often a client in an active duel pings the `heartbeat` callable —
+  /// mirrors `functions/src/lib/constants.ts`.
+  static const int duelHeartbeatIntervalSeconds = 8;
+
+  /// How long a player has to reconnect before their opponent can claim an
+  /// automatic forfeit win — the "35 second reconnecting phase". Mirrors
+  /// `functions/src/lib/constants.ts`; the server re-checks this
+  /// independently before honoring a forfeit, so this copy is for the UI
+  /// countdown only.
+  static const int duelReconnectGraceSeconds = 35;
 }

@@ -12,6 +12,8 @@
   "splashNoConnectionTitle": "No internet connection",
   "splashNoConnectionMessage": "You need an internet connection to sign in. Check your wifi or mobile data and try again.",
 
+  "appOfflineMessage": "You're offline — waiting to reconnect...",
+
   "authWelcomeTitle": "Ready to duel?",
   "authWelcomeSubtitle": "Face your friends in live trivia duels",
   "authEmail": "Email",
@@ -62,6 +64,14 @@
   },
   "duelYourAnswer": "Your answer",
   "duelWaitingOpponentAnswer": "Waiting for opponent's answer...",
+  "duelReconnectingTitle": "You lost connection",
+  "duelReconnectingMessage": "Reconnect before the timer runs out, or your opponent wins automatically.",
+  "duelReconnectTimeUpTitle": "Time's up",
+  "duelReconnectTimeUpMessage": "You were disconnected too long — this duel has been forfeited.",
+  "duelOpponentReconnecting": "Opponent lost connection — {seconds}s until you win automatically",
+  "@duelOpponentReconnecting": {
+    "placeholders": {"seconds": {"type": "int"}}
+  },
   "duelCorrect": "Correct!",
   "duelIncorrect": "Incorrect",
   "duelTimeUp": "Time's up",

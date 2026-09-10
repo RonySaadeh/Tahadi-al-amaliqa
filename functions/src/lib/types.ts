@@ -46,6 +46,12 @@ export interface DuelDoc {
   createdAt: FirebaseFirestore.FieldValue | FirebaseFirestore.Timestamp;
   startedAt: FirebaseFirestore.FieldValue | FirebaseFirestore.Timestamp | null;
   completedAt: FirebaseFirestore.FieldValue | FirebaseFirestore.Timestamp | null;
+  /** Last time each player's client called the `heartbeat` callable while
+   * this duel was active — see `scoring/presence.ts`. Absent/undefined until
+   * their first heartbeat; never set on a duel that finished before this
+   * feature shipped. */
+  player1LastSeenAt?: FirebaseFirestore.FieldValue | FirebaseFirestore.Timestamp | null;
+  player2LastSeenAt?: FirebaseFirestore.FieldValue | FirebaseFirestore.Timestamp | null;
 }
 
 export interface RoundDoc {

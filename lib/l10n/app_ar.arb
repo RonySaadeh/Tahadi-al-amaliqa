@@ -13,6 +13,8 @@
   "splashNoConnectionTitle": "لا يوجد اتصال بالإنترنت",
   "splashNoConnectionMessage": "تحتاج إلى اتصال بالإنترنت لتسجيل الدخول. تحقق من الواي فاي أو بيانات الجوال وحاول مجددًا.",
 
+  "appOfflineMessage": "أنت غير متصل بالإنترنت — بانتظار عودة الاتصال...",
+
   "authWelcomeTitle": "استعد للتحدي",
   "authWelcomeSubtitle": "بارِز أصدقاءك في مبارزات معرفية مباشرة",
   "authEmail": "البريد الإلكتروني",
@@ -63,6 +65,14 @@
   },
   "duelYourAnswer": "إجابتك",
   "duelWaitingOpponentAnswer": "بانتظار إجابة الخصم...",
+  "duelReconnectingTitle": "انقطع اتصالك",
+  "duelReconnectingMessage": "أعد الاتصال قبل انتهاء الوقت وإلا سيفوز خصمك تلقائيًا.",
+  "duelReconnectTimeUpTitle": "انتهى الوقت",
+  "duelReconnectTimeUpMessage": "انقطع اتصالك لفترة طويلة جدًا — تم اعتبارك خاسرًا لهذا التحدي.",
+  "duelOpponentReconnecting": "انقطع اتصال خصمك — {seconds} ث حتى تفوز تلقائيًا",
+  "@duelOpponentReconnecting": {
+    "placeholders": {"seconds": {"type": "int"}}
+  },
   "duelCorrect": "إجابة صحيحة!",
   "duelIncorrect": "إجابة خاطئة",
   "duelTimeUp": "انتهى الوقت",

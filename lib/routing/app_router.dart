@@ -54,14 +54,23 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final isGoingToSplash = state.matchedLocation == AppRoutes.splash;
       final isGoingToWelcome = state.matchedLocation == AppRoutes.welcome;
 
+      // Every cold start sits on the splash screen for at least this long,
+      // regardless of how fast auth/connectivity resolve — a deliberate,
+      // branded loading beat instead of an instant flash. See
+      // `splashMinDurationElapsedProvider`.
+      final minDurationElapsed = ref.read(splashMinDurationElapsedProvider).value == true;
+      if (isGoingToSplash && !minDurationElapsed) return null;
+
       // Signed-in sessions never wait on a connectivity check here — this
       // gate exists to stop a *signed-out* user from being shown a login
       // form with no internet to submit it to, not to re-litigate an
       // already-authenticated session every time the radio blips. Once
       // inside the app, Firestore's own offline cache carries a real
-      // session through a momentary drop.
+      // session through a momentary drop, and `AppShell` shows its own
+      // "reconnecting" loading screen for that case — see
+      // `app_shell.dart`.
       if (isSignedIn) {
-        if (isGoingToSplash || isGoingToWelcome) return AppRoutes.home;
+        if (minDurationElapsed && (isGoingToSplash || isGoingToWelcome)) return AppRoutes.home;
         return null;
       }
 
@@ -110,10 +119,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   );
 });
 
-/// Bridges Riverpod's `authStateChangesProvider` and `connectivityStatusProvider`
-/// streams into the `Listenable` go_router's `refreshListenable` expects, so
-/// navigation re-evaluates the redirect the instant either sign-in state or
-/// connectivity changes.
+/// Bridges Riverpod's `authStateChangesProvider`, `connectivityStatusProvider`,
+/// and `splashMinDurationElapsedProvider` into the `Listenable` go_router's
+/// `refreshListenable` expects, so navigation re-evaluates the redirect the
+/// instant sign-in state, connectivity, or the splash timer changes.
 class _AppRefreshNotifier extends ChangeNotifier {
   _AppRefreshNotifier(this._ref) {
     _authSubscription = _ref.listen(authStateChangesProvider, (previous, next) {
@@ -122,16 +131,21 @@ class _AppRefreshNotifier extends ChangeNotifier {
     _connectivitySubscription = _ref.listen(connectivityStatusProvider, (previous, next) {
       notifyListeners();
     });
+    _splashMinDurationSubscription = _ref.listen(splashMinDurationElapsedProvider, (previous, next) {
+      notifyListeners();
+    });
   }
 
   final Ref _ref;
   late final ProviderSubscription<AsyncValue<dynamic>> _authSubscription;
   late final ProviderSubscription<AsyncValue<bool>> _connectivitySubscription;
+  late final ProviderSubscription<AsyncValue<bool>> _splashMinDurationSubscription;
 
   @override
   void dispose() {
     _authSubscription.close();
     _connectivitySubscription.close();
+    _splashMinDurationSubscription.close();
     super.dispose();
   }
 }

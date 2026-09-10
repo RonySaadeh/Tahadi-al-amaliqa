@@ -36,48 +36,50 @@ class SplashScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: isOffline ? _NoConnection(l10n: l10n, ref: ref) : BrandedLoadingIndicator(message: l10n.splashChecking),
-          ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Center(child: BrandedLoadingIndicator(message: l10n.splashChecking)),
+            // A real pop-up (an `AlertDialog` laid out inline rather than
+            // pushed via `showDialog`) over a dimming scrim — declarative,
+            // so it appears/disappears purely from `isOffline` flipping
+            // rather than needing imperative Navigator bookkeeping to avoid
+            // stacking duplicate dialogs or dismissing a stale one.
+            if (isOffline) ...[
+              Positioned.fill(child: ColoredBox(color: AppColors.background.withValues(alpha: 0.85))),
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                child: _NoConnectionDialog(l10n: l10n, ref: ref),
+              ),
+            ],
+          ],
         ),
       ),
     );
   }
 }
 
-class _NoConnection extends StatelessWidget {
-  const _NoConnection({required this.l10n, required this.ref});
+class _NoConnectionDialog extends StatelessWidget {
+  const _NoConnectionDialog({required this.l10n, required this.ref});
 
   final AppLocalizations l10n;
   final WidgetRef ref;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Icon(Icons.wifi_off_rounded, size: 64, color: AppColors.textSecondary),
-        const SizedBox(height: AppSpacing.lg),
-        Text(
-          l10n.splashNoConnectionTitle,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Text(
-          l10n.splashNoConnectionMessage,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        OutlinedButton.icon(
+    return AlertDialog(
+      backgroundColor: AppColors.surfaceRaised,
+      icon: const Icon(Icons.wifi_off_rounded, size: 40, color: AppColors.error),
+      title: Text(l10n.splashNoConnectionTitle, textAlign: TextAlign.center),
+      content: Text(l10n.splashNoConnectionMessage, textAlign: TextAlign.center),
+      actionsAlignment: MainAxisAlignment.center,
+      actions: [
+        FilledButton.icon(
           onPressed: () => ref.invalidate(connectivityStatusProvider),
           icon: const Icon(Icons.refresh_rounded),
           label: Text(l10n.commonRetry),
         ),
       ],
-    ).animate().fadeIn(duration: 300.ms);
+    ).animate().fadeIn(duration: 250.ms).scale(begin: const Offset(0.95, 0.95));
   }
 }
