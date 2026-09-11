@@ -85,11 +85,16 @@ export const addHomeTurfQuestion = onCall(async (request) => {
   }
 
   const categoryRef = db.collection("categories").doc(categoryId);
-  const categorySnap = await categoryRef.get();
+  const [categorySnap, userSnap] = await Promise.all([categoryRef.get(), db.collection("users").doc(uid).get()]);
   if (!categorySnap.exists) throw new HttpsError("not-found", "Category not found.");
   if (categorySnap.data()?.ownerId !== uid) {
     throw new HttpsError("permission-denied", "You can only add questions to your own category.");
   }
+  // Tags the question in whatever language its author actually writes in,
+  // same as `createDuel.ts` does for a duel's question language — rather
+  // than a fixed default that would mislabel every home-turf question
+  // written by a player whose profile isn't in that language.
+  const language = (userSnap.data() as UserDoc | undefined)?.locale ?? "en";
 
   const batch = db.batch();
   batch.set(db.collection("questions").doc(), {
@@ -100,7 +105,7 @@ export const addHomeTurfQuestion = onCall(async (request) => {
     correctAnswerIndex,
     difficulty,
     source: "user",
-    language: "ar",
+    language,
     createdAt: FieldValue.serverTimestamp(),
   });
   batch.update(categoryRef, { questionCount: FieldValue.increment(1) });

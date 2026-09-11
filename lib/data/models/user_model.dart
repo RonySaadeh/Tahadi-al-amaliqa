@@ -23,7 +23,7 @@ class UserModel extends Equatable {
     this.bestStreak = 0,
     this.ownedCategoryIds = const [],
     required this.createdAt,
-    this.locale = 'ar',
+    this.locale = 'en',
     this.categoryWins = const {},
   });
 
@@ -65,7 +65,7 @@ class UserModel extends Equatable {
       bestStreak: (data['bestStreak'] as num?)?.toInt() ?? 0,
       ownedCategoryIds: List<String>.from(data['ownedCategoryIds'] as List? ?? const []),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      locale: data['locale'] as String? ?? 'ar',
+      locale: data['locale'] as String? ?? 'en',
       categoryWins: _parseCategoryWins(data['categoryStats']),
     );
   }

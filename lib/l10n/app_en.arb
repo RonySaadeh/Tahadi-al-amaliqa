@@ -193,6 +193,7 @@
   "commonRetry": "Retry",
   "commonCancel": "Cancel",
   "commonSave": "Save",
+  "commonSettings": "Settings",
   "commonDelete": "Delete",
   "commonConfirm": "Confirm",
   "commonError": "Something went wrong",

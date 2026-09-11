@@ -17,6 +17,7 @@ import '../../auth/auth_controller.dart';
 import '../../home/home_controller.dart';
 import '../../home_turf/home_turf_controller.dart';
 import '../profile_controller.dart';
+import '../widgets/profile_settings_drawer.dart';
 import '../widgets/stat_tile.dart';
 
 /// The player's own page. Header is an arena field with the avatar
@@ -73,18 +74,27 @@ class ProfileScreen extends ConsumerWidget {
     final categoriesAsync = ref.watch(myCategoriesProvider);
     final locale = Localizations.localeOf(context).languageCode;
 
-    return Scaffold(
-      body: userAsync.when(
-        loading: () => const SkeletonList(),
-        error: (_, _) => Center(child: Text(l10n.commonError)),
-        data: (user) {
-          if (user == null) return const SizedBox.shrink();
+    return userAsync.when(
+      loading: () => const Scaffold(body: SkeletonList()),
+      error: (_, _) => Scaffold(body: Center(child: Text(l10n.commonError))),
+      data: (user) {
+        if (user == null) return const Scaffold(body: SizedBox.shrink());
 
-          final level = LevelCalculator.calculate(wins: user.wins, losses: user.losses);
-          final tier = RankTier.forElo(user.elo);
-          final xpRemaining = level.xpSpanForLevel - level.xpIntoLevel;
+        final level = LevelCalculator.calculate(wins: user.wins, losses: user.losses);
+        final tier = RankTier.forElo(user.elo);
+        final xpRemaining = level.xpSpanForLevel - level.xpIntoLevel;
 
-          return ListView(
+        return Scaffold(
+          drawer: ProfileSettingsDrawer(
+            displayName: user.displayName,
+            photoUrl: user.photoUrl,
+            tier: tier,
+            locale: user.locale,
+            onEditName: () => _showEditNameDialog(context, ref, user.displayName),
+            onLocaleChanged: (value) => ref.read(profileControllerProvider.notifier).updateLocale(value),
+            onSignOut: () => ref.read(authControllerProvider.notifier).signOut(),
+          ),
+          body: ListView(
             padding: EdgeInsets.zero,
             children: [
               Stack(
@@ -102,10 +112,12 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                     child: Align(
                       alignment: AlignmentDirectional.centerEnd,
-                      child: IconButton(
-                        onPressed: () => ref.read(authControllerProvider.notifier).signOut(),
-                        icon: const Icon(Icons.logout_rounded, color: AppColors.onArenaMuted),
-                        tooltip: l10n.authSignOut,
+                      child: Builder(
+                        builder: (context) => IconButton(
+                          onPressed: () => Scaffold.of(context).openDrawer(),
+                          icon: const Icon(Icons.settings_rounded, color: AppColors.onArenaMuted),
+                          tooltip: l10n.commonSettings,
+                        ),
                       ),
                     ),
                   ),
@@ -124,13 +136,7 @@ class ProfileScreen extends ConsumerWidget {
               // Reclaims the space the avatar is hanging into.
               const SizedBox(height: _avatarSize * 0.42 + AppSpacing.sm),
 
-              Center(
-                child: TextButton.icon(
-                  onPressed: () => _showEditNameDialog(context, ref, user.displayName),
-                  icon: const Icon(Icons.edit_rounded, size: 15),
-                  label: Text(user.displayName, style: theme.textTheme.displaySmall),
-                ),
-              ),
+              Center(child: Text(user.displayName, style: theme.textTheme.displaySmall)),
               Center(child: RankBadge(tier: tier)),
               const SizedBox(height: AppSpacing.sm),
               Center(
@@ -151,28 +157,6 @@ class ProfileScreen extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 child: ResponsiveCenter(child: _StatsGrid(user: user, locale: locale, l10n: l10n)),
-              ),
-
-              const SizedBox(height: AppSpacing.lg),
-              _Section(title: l10n.profileLanguage),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                child: ResponsiveCenter(
-                  child: SegmentedButton<String>(
-                    segments: [
-                      ButtonSegment(value: 'en', label: Text(l10n.profileLanguageEnglish)),
-                      ButtonSegment(value: 'ar', label: Text(l10n.profileLanguageArabic)),
-                    ],
-                    selected: {user.locale},
-                    showSelectedIcon: false,
-                    onSelectionChanged: (selection) {
-                      final selected = selection.first;
-                      if (selected != user.locale) {
-                        ref.read(profileControllerProvider.notifier).updateLocale(selected);
-                      }
-                    },
-                  ),
-                ),
               ),
 
               const SizedBox(height: AppSpacing.lg),
@@ -213,9 +197,9 @@ class ProfileScreen extends ConsumerWidget {
                 ),
               ),
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

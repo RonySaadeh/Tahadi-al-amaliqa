@@ -47,7 +47,7 @@ class QuestionModel extends Equatable {
       correctAnswerIndex: (data['correctAnswerIndex'] as num?)?.toInt() ?? 0,
       difficulty: QuestionDifficulty.fromString(data['difficulty'] as String? ?? 'medium'),
       source: QuestionSource.fromString(data['source'] as String? ?? 'api'),
-      language: data['language'] as String? ?? 'ar',
+      language: data['language'] as String? ?? 'en',
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }

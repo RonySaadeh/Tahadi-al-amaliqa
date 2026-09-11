@@ -24,7 +24,7 @@ export async function createDuelForPlayers(player1Id: string, player2Id: string,
   // The duel's language is fixed for its whole lifetime from whoever
   // started it (player1), so both rounds are always in one language rather
   // than flipping mid-duel if the two players have different preferences.
-  const language: string = player1Snap.data()?.locale ?? "ar";
+  const language: string = player1Snap.data()?.locale ?? "en";
 
   const firstQuestion = await pickNextQuestion(categoryId, language, []);
   if (!firstQuestion) {

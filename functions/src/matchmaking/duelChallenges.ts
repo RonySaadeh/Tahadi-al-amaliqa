@@ -32,7 +32,7 @@ export const sendDuelChallenge = onCall(async (request) => {
   // sender's (player1) locale too — keeps the invite's category label
   // consistent with the language the duel will actually play in.
   const category = categorySnap.data()!;
-  const senderLocale: string = fromUserSnap.data()?.locale ?? "ar";
+  const senderLocale: string = fromUserSnap.data()?.locale ?? "en";
   const categoryName: string =
     senderLocale === "en" && category.nameEn ? category.nameEn : (category.name ?? "");
 
