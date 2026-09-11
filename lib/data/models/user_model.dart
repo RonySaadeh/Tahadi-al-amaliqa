@@ -24,6 +24,7 @@ class UserModel extends Equatable {
     this.ownedCategoryIds = const [],
     required this.createdAt,
     this.locale = 'ar',
+    this.categoryWins = const {},
   });
 
   final String uid;
@@ -39,9 +40,16 @@ class UserModel extends Equatable {
   final DateTime createdAt;
   final String locale;
 
+  /// categoryId -> wins in that category, written by `resolveDuel`'s
+  /// `updatePlayerAfterDuel` alongside the global `wins` counter. Absent for
+  /// any category this player hasn't won a duel in yet — see [winsInCategory].
+  final Map<String, int> categoryWins;
+
   int get totalDuels => wins + losses;
 
   bool get canCreateHomeTurf => ownedCategoryIds.length < AppConstants.maxHomeTurfCategories;
+
+  int winsInCategory(String categoryId) => categoryWins[categoryId] ?? 0;
 
   factory UserModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? <String, dynamic>{};
@@ -58,7 +66,20 @@ class UserModel extends Equatable {
       ownedCategoryIds: List<String>.from(data['ownedCategoryIds'] as List? ?? const []),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       locale: data['locale'] as String? ?? 'ar',
+      categoryWins: _parseCategoryWins(data['categoryStats']),
     );
+  }
+
+  static Map<String, int> _parseCategoryWins(dynamic raw) {
+    if (raw is! Map) return const {};
+    final result = <String, int>{};
+    for (final entry in raw.entries) {
+      final stats = entry.value;
+      if (stats is Map && stats['wins'] != null) {
+        result[entry.key as String] = (stats['wins'] as num).toInt();
+      }
+    }
+    return result;
   }
 
   /// Full document written once, on first sign-in only.
@@ -97,6 +118,7 @@ class UserModel extends Equatable {
     int? bestStreak,
     List<String>? ownedCategoryIds,
     String? locale,
+    Map<String, int>? categoryWins,
   }) {
     return UserModel(
       uid: uid,
@@ -111,6 +133,7 @@ class UserModel extends Equatable {
       ownedCategoryIds: ownedCategoryIds ?? this.ownedCategoryIds,
       createdAt: createdAt,
       locale: locale ?? this.locale,
+      categoryWins: categoryWins ?? this.categoryWins,
     );
   }
 
@@ -128,5 +151,6 @@ class UserModel extends Equatable {
     ownedCategoryIds,
     createdAt,
     locale,
+    categoryWins,
   ];
 }

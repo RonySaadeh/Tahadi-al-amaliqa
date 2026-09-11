@@ -118,7 +118,17 @@ class HomeScreen extends ConsumerWidget {
                             return _EmptyDuels(message: l10n.homeNoRecentDuels);
                           }
                           return Column(
-                            children: duels.map((d) => RecentDuelTile(duel: d, myUid: myUid)).toList(),
+                            children: duels
+                                .map(
+                                  (d) => RecentDuelTile(
+                                    duel: d,
+                                    myUid: myUid,
+                                    onTap: () => context.push(
+                                      AppRoutes.playerProfilePath(d.opponentIdFor(myUid)),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
                           );
                         },
                         loading: () => const SkeletonList(itemCount: 3),

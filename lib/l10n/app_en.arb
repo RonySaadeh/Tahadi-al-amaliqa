@@ -70,6 +70,8 @@
   "@duelStartingIn": {
     "placeholders": {"seconds": {"type": "int"}}
   },
+  "duelIntroMessage": "Duelers, sharpen your brains…",
+  "duelIntroCategoryWinsLabel": "Category wins",
   "duelRoundOf": "Round {current} of {total}",
   "@duelRoundOf": {
     "placeholders": {"current": {"type": "int"}, "total": {"type": "int"}}
@@ -184,6 +186,8 @@
   "profileLanguage": "Language",
   "profileLanguageArabic": "العربية",
   "profileLanguageEnglish": "English",
+  "playerProfileHeadToHeadTitle": "Your record",
+  "playerProfileNeverPlayed": "You haven't dueled yet",
 
   "commonLoading": "Loading...",
   "commonRetry": "Retry",

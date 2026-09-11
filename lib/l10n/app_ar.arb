@@ -72,6 +72,8 @@
   "@duelStartingIn": {
     "placeholders": {"seconds": {"type": "int"}}
   },
+  "duelIntroMessage": "أيها المتبارزون، جهزوا عقولكم...",
+  "duelIntroCategoryWinsLabel": "انتصارات في الفئة",
   "duelRoundOf": "الجولة {current} من {total}",
   "@duelRoundOf": {
     "placeholders": {"current": {"type": "int"}, "total": {"type": "int"}}
@@ -186,6 +188,8 @@
   "profileLanguage": "اللغة",
   "profileLanguageArabic": "العربية",
   "profileLanguageEnglish": "English",
+  "playerProfileHeadToHeadTitle": "سجلك",
+  "playerProfileNeverPlayed": "لم تبارزه بعد",
 
   "commonLoading": "جارِ التحميل...",
   "commonRetry": "إعادة المحاولة",

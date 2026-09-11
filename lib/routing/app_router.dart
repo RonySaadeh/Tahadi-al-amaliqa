@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../core/providers/core_providers.dart';
 import '../features/auth/screens/welcome_screen.dart';
+import '../features/duel/screens/duel_intro_screen.dart';
 import '../features/duel/screens/duel_lobby_screen.dart';
 import '../features/duel/screens/duel_result_screen.dart';
 import '../features/duel/screens/live_duel_screen.dart';
@@ -11,6 +12,7 @@ import '../features/home/screens/home_screen.dart';
 import '../features/home_turf/screens/category_detail_screen.dart';
 import '../features/home_turf/screens/home_turf_screen.dart';
 import '../features/leaderboard/screens/leaderboard_screen.dart';
+import '../features/profile/screens/player_profile_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
 import '../features/splash/screens/splash_screen.dart';
 import 'app_shell.dart';
@@ -28,10 +30,14 @@ class AppRoutes {
   static const String homeTurf = '/home-turf';
   static const String homeTurfCategory = '/home-turf/:categoryId';
   static const String profile = '/profile';
+  static const String playerProfile = '/players/:uid';
+  static const String duelIntro = '/duel/:duelId/intro';
   static const String liveDuel = '/duel/:duelId/live';
   static const String duelResult = '/duel/:duelId/result';
 
   static String homeTurfCategoryPath(String categoryId) => '/home-turf/$categoryId';
+  static String playerProfilePath(String uid) => '/players/$uid';
+  static String duelIntroPath(String duelId) => '/duel/$duelId/intro';
   static String liveDuelPath(String duelId) => '/duel/$duelId/live';
   static String duelResultPath(String duelId) => '/duel/$duelId/result';
 }
@@ -87,7 +93,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
       // Full-screen duel routes live outside the bottom-nav shell — the
       // live duel screen especially should have zero chrome competing for
-      // attention.
+      // attention. The intro screen joins them: it hands off straight into
+      // `LiveDuelScreen`, so popping the nav shell back in between would be
+      // pointless churn.
+      GoRoute(
+        path: AppRoutes.duelIntro,
+        builder: (context, state) => DuelIntroScreen(duelId: state.pathParameters['duelId']!),
+      ),
       GoRoute(
         path: AppRoutes.liveDuel,
         builder: (context, state) => LiveDuelScreen(duelId: state.pathParameters['duelId']!),
@@ -110,6 +122,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 CategoryDetailScreen(categoryId: state.pathParameters['categoryId']!),
           ),
           GoRoute(path: AppRoutes.profile, builder: (context, state) => const ProfileScreen()),
+          GoRoute(
+            path: AppRoutes.playerProfile,
+            builder: (context, state) => PlayerProfileScreen(uid: state.pathParameters['uid']!),
+          ),
         ],
       ),
     ],

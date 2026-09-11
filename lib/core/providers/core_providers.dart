@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/models/user_model.dart';
 import '../../data/repositories/duel_repository.dart';
 import '../../data/repositories/leaderboard_repository.dart';
 import '../../data/repositories/question_repository.dart';
@@ -60,6 +61,15 @@ final authStateChangesProvider = StreamProvider<User?>((ref) {
 /// queries to "my data" (e.g. `watchUser(ref.watch(currentUserIdProvider)!)`).
 final currentUserIdProvider = Provider<String?>((ref) {
   return ref.watch(authStateChangesProvider).value?.uid;
+});
+
+/// A one-time fetch of *another* player's profile by uid — e.g. an
+/// opponent's category-win count on the pre-duel VS screen, or viewing their
+/// profile from a past duel or the leaderboard. A `Future`, not a `Stream`:
+/// these are read-once snapshots, unlike [currentUserProvider]'s live watch
+/// on the signed-in player's own document.
+final userByIdProvider = FutureProvider.family<UserModel?, String>((ref, uid) {
+  return ref.watch(userRepositoryProvider).getUser(uid);
 });
 
 // --- Connectivity ---

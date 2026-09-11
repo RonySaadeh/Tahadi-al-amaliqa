@@ -101,7 +101,7 @@ class DuelLobbyScreen extends ConsumerWidget {
         .joinQuickMatch(categoryId: ref.read(selectedCategoryIdProvider));
     final duelId = result['duelId'] as String?;
     if (duelId != null && context.mounted) {
-      context.push(AppRoutes.liveDuelPath(duelId));
+      context.push(AppRoutes.duelIntroPath(duelId));
     }
     // If no duelId came back, `joinQuickMatch` has already recorded us as
     // queued (see `queuedLobbyIdProvider`) — `build` below watches that and
@@ -125,7 +125,7 @@ class DuelLobbyScreen extends ConsumerWidget {
         final duelId = next.value?.duelId;
         if (duelId == null) return;
         ref.read(duelControllerProvider.notifier).clearQueueAfterMatch();
-        context.push(AppRoutes.liveDuelPath(duelId));
+        context.push(AppRoutes.duelIntroPath(duelId));
       });
     }
 
@@ -195,7 +195,7 @@ class DuelLobbyScreen extends ConsumerWidget {
                                             .read(duelControllerProvider.notifier)
                                             .respondToChallenge(inviteId: invite.id, accept: true);
                                         if (duelId != null && context.mounted) {
-                                          context.push(AppRoutes.liveDuelPath(duelId));
+                                          context.push(AppRoutes.duelIntroPath(duelId));
                                         }
                                       },
                                       onDecline: () => ref

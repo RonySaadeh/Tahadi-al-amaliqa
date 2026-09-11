@@ -172,9 +172,18 @@ class _DuelResultScreenState extends ConsumerState<DuelResultScreen> {
                           .animate()
                           .fadeIn(delay: 150.ms, duration: 300.ms),
                       const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        l10n.duelVs(opponentName),
-                        style: theme.textTheme.bodySmall?.copyWith(color: AppColors.onArenaMuted),
+                      GestureDetector(
+                        onTap: () => context.push(
+                          AppRoutes.playerProfilePath(duel.opponentIdFor(myUid)),
+                        ),
+                        child: Text(
+                          l10n.duelVs(opponentName),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppColors.onArenaMuted,
+                            decoration: TextDecoration.underline,
+                            decorationColor: AppColors.onArenaMuted,
+                          ),
+                        ),
                       ),
 
                       const SizedBox(height: AppSpacing.lg),
