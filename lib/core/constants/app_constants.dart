@@ -52,4 +52,15 @@ class AppConstants {
   /// loses answer time (server shorter) or the timer visibly holds past 0
   /// on the live duel screen for a moment (server longer).
   static const int duelIntroSeconds = 10;
+
+  /// How long `LiveDuelScreen` holds on a round's resolved state — colored
+  /// answer tiles, the correct answer revealed, the "+N" score popup —
+  /// before advancing to the next round or (on the final round) navigating
+  /// to the results screen. Purely a client-side pacing choice with no
+  /// server-side counterpart: `resolveRoundNow` (in resolveDuel.ts) writes
+  /// the resolved round *and* advances `duel.currentRound`/`status` in the
+  /// same transaction, so without this pause the client would jump to the
+  /// next round the instant that single update lands — the result would be
+  /// visible for barely a frame.
+  static const int roundResultPauseMs = 2200;
 }

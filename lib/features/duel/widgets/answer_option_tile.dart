@@ -142,11 +142,21 @@ class _AnswerOptionTileState extends State<AnswerOptionTile> {
 
     return switch (widget.visualState) {
       AnswerTileVisualState.incorrect => tappable.animate().shake(duration: 350.ms, hz: 5),
+      // A pop to land the hit, then a double-blink so "correct" reads as an
+      // event happening, not just a color that was always going to be here.
       AnswerTileVisualState.correct => tappable
           .animate()
           .scaleXY(duration: 220.ms, begin: 1, end: 1.03, curve: Curves.easeOut)
           .then()
-          .scaleXY(duration: 160.ms, begin: 1, end: 1 / 1.03),
+          .scaleXY(duration: 160.ms, begin: 1, end: 1 / 1.03)
+          .then(delay: 80.ms)
+          .fadeOut(duration: 110.ms, curve: Curves.easeInOut)
+          .then()
+          .fadeIn(duration: 110.ms)
+          .then()
+          .fadeOut(duration: 110.ms)
+          .then()
+          .fadeIn(duration: 110.ms),
       _ => tappable,
     };
   }
