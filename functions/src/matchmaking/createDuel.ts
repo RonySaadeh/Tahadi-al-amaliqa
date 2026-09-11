@@ -41,6 +41,7 @@ export async function createDuelForPlayers(player1Id: string, player2Id: string,
   await duelRef.set({
     player1Id,
     player2Id,
+    participantIds: [player1Id, player2Id],
     player1DisplayName: player1Snap.data()?.displayName ?? "",
     player2DisplayName: player2Snap.data()?.displayName ?? "",
     categoryId,

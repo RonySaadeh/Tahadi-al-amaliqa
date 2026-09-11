@@ -54,6 +54,7 @@ export const sendFriendRequest = onCall(async (request) => {
     tx.set(friendshipRef, {
       uidA,
       uidB,
+      participantIds: [uidA, uidB],
       fromUserId: uid,
       fromDisplayName,
       toUserId,

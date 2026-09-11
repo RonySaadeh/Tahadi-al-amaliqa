@@ -4,15 +4,7 @@
       "collectionGroup": "duels",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "player1Id", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "duels",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "player2Id", "order": "ASCENDING" },
+        { "fieldPath": "participantIds", "arrayConfig": "CONTAINS" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     },

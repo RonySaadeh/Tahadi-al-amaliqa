@@ -43,8 +43,14 @@ class ArenaPanel extends StatelessWidget {
         ),
         // The clip eats into the bottom-right corner, so anything sitting at
         // the bottom of the panel needs the slant added back as padding or
-        // it gets sliced.
-        padding: padding.add(EdgeInsets.only(bottom: slantHeight)),
+        // it gets sliced. The status bar/notch height is added to the top
+        // for the same kind of reason: every caller uses this panel as a
+        // full-bleed screen-top hero with no `AppBar`/`SafeArea` of its own
+        // (that's the whole point — see the class doc), so without this the
+        // panel's own content (a title, an avatar row, a settings icon)
+        // would render right up against the device's status bar instead of
+        // just the background gradient bleeding under it.
+        padding: padding.add(EdgeInsets.only(top: MediaQuery.paddingOf(context).top, bottom: slantHeight)),
         child: child,
       ),
     );

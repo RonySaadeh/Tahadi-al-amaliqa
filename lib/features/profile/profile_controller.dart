@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/core_providers.dart';
+import '../../data/models/user_model.dart';
+import '../home/home_controller.dart';
 
 /// The profile screen reuses `currentUserProvider` from the home feature
 /// (see `features/home/home_controller.dart`) and `myCategoriesProvider`
@@ -35,8 +37,37 @@ class ProfileController extends Notifier<AsyncValue<void>> {
       await ref.read(userRepositoryProvider).updateProfile(uid, locale: locale);
     });
   }
+
+  /// Called from `ProfileScreen` the moment it sees the signed-in player's
+  /// own doc missing a `playerId` — an account created before that field
+  /// existed. `firestore.rules` only allows this exact write while
+  /// `playerId` is still absent, so it's safe to call this unconditionally
+  /// every time that's true rather than tracking "have I already tried".
+  Future<void> backfillLegacyPlayerId(UserModel user) async {
+    if (user.playerId.isNotEmpty) return;
+    await ref
+        .read(userRepositoryProvider)
+        .backfillLegacyProfileFields(
+          user.uid,
+          playerId: UserModel.generatePlayerId(),
+          displayName: user.displayName,
+        );
+  }
 }
 
 final profileControllerProvider = NotifierProvider<ProfileController, AsyncValue<void>>(
   ProfileController.new,
 );
+
+/// Self-heals an account created before Player ID existed, the moment its
+/// own profile doc is seen missing one — same "run a side effect as a
+/// plain `Provider<void>` reacts" pattern as `presenceControllerProvider`
+/// in `core_providers.dart`. Watched from `ProfileScreen`; harmless to
+/// re-run on every `currentUserProvider` emission (e.g. a presence
+/// heartbeat) since it's a no-op once `playerId` is no longer empty.
+final playerIdBackfillProvider = Provider<void>((ref) {
+  final user = ref.watch(currentUserProvider).value;
+  if (user != null && user.playerId.isEmpty) {
+    ref.read(profileControllerProvider.notifier).backfillLegacyPlayerId(user);
+  }
+});

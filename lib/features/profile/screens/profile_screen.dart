@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -66,6 +67,12 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
+  void _copyPlayerId(BuildContext context, WidgetRef ref, String playerId) {
+    final l10n = AppLocalizations.of(context)!;
+    Clipboard.setData(ClipboardData(text: playerId));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.profilePlayerIdCopied)));
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
@@ -73,6 +80,11 @@ class ProfileScreen extends ConsumerWidget {
     final userAsync = ref.watch(currentUserProvider);
     final categoriesAsync = ref.watch(myCategoriesProvider);
     final locale = Localizations.localeOf(context).languageCode;
+
+    // Accounts created before Player ID existed have an empty one — repair
+    // it the moment we see that, so it's ready by the time the user reaches
+    // for the copy button below. See `playerIdBackfillProvider`.
+    ref.watch(playerIdBackfillProvider);
 
     return userAsync.when(
       loading: () => const Scaffold(body: SkeletonList()),
@@ -152,6 +164,10 @@ class ProfileScreen extends ConsumerWidget {
                   style: theme.textTheme.bodySmall,
                 ),
               ),
+              if (user.playerId.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Center(child: _PlayerIdChip(playerId: user.playerId, onTap: () => _copyPlayerId(context, ref, user.playerId))),
+              ],
 
               const SizedBox(height: AppSpacing.lg),
               Padding(
@@ -336,6 +352,52 @@ class _LevelRingAvatar extends StatelessWidget {
                   ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// The player's shareable code, styled like a little badge rather than
+/// plain text — it's meant to be noticed and tapped, not just read.
+class _PlayerIdChip extends StatelessWidget {
+  const _PlayerIdChip({required this.playerId, required this.onTap});
+
+  final String playerId;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+
+    return Material(
+      color: AppColors.surfaceRaised,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${l10n.profilePlayerIdLabel}: ',
+                style: theme.textTheme.labelSmall?.copyWith(color: AppColors.textSecondary),
+              ),
+              Text(
+                playerId,
+                textDirection: TextDirection.ltr,
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.5,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              const Icon(Icons.copy_rounded, size: 14, color: AppColors.textSecondary),
+            ],
+          ),
+        ),
       ),
     );
   }

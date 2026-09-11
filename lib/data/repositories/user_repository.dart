@@ -46,6 +46,15 @@ class UserRepository {
     await _firestore.users.doc(uid).update(updates);
   }
 
+  /// One-time repair for an account created before `playerId` existed — see
+  /// [UserModel.legacyBackfillFields] and the matching narrow update path in
+  /// `firestore.rules` that only allows this while `playerId` is absent.
+  Future<void> backfillLegacyProfileFields(String uid, {required String playerId, required String displayName}) {
+    return _firestore.users
+        .doc(uid)
+        .update(UserModel.legacyBackfillFields(playerId: playerId, displayName: displayName));
+  }
+
   /// Fetches multiple profiles in one batch, e.g. to show opponent names in
   /// a duel history list. Firestore `whereIn` is capped at 30 ids.
   Future<List<UserModel>> getUsersByIds(List<String> uids) async {

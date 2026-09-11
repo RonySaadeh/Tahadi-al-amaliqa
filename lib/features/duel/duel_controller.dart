@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/core_providers.dart';
@@ -138,54 +136,9 @@ final incomingInvitesProvider = StreamProvider<List<DuelInviteModel>>((ref) {
   return ref.watch(duelRepositoryProvider).watchIncomingInvites(myUid);
 });
 
-/// Merges the two "am I player1 or player2" queries into one sorted,
-/// deduplicated recent-duels list. Firestore can't OR two different-field
-/// equality filters in one query, so we run both and combine client-side —
-/// cheap at this app's per-user duel volume.
 final recentDuelsProvider = StreamProvider<List<DuelModel>>((ref) {
   final myUid = ref.watch(currentUserIdProvider);
   if (myUid == null) return const Stream.empty();
 
-  final repo = ref.watch(duelRepositoryProvider);
-  return _mergeByCreatedAt(
-    repo.watchRecentDuelsFor(myUid),
-    repo.watchRecentDuelsAsPlayerTwo(myUid),
-  );
+  return ref.watch(duelRepositoryProvider).watchRecentDuelsFor(myUid);
 });
-
-Stream<List<DuelModel>> _mergeByCreatedAt(
-  Stream<List<DuelModel>> a,
-  Stream<List<DuelModel>> b, {
-  int limit = 10,
-}) {
-  late final StreamController<List<DuelModel>> controller;
-  List<DuelModel> latestA = const [];
-  List<DuelModel> latestB = const [];
-  StreamSubscription<List<DuelModel>>? subA;
-  StreamSubscription<List<DuelModel>>? subB;
-
-  void emitMerged() {
-    final merged = {for (final d in [...latestA, ...latestB]) d.id: d}.values.toList()
-      ..sort((x, y) => y.createdAt.compareTo(x.createdAt));
-    controller.add(merged.take(limit).toList());
-  }
-
-  controller = StreamController<List<DuelModel>>.broadcast(
-    onListen: () {
-      subA = a.listen((value) {
-        latestA = value;
-        emitMerged();
-      });
-      subB = b.listen((value) {
-        latestB = value;
-        emitMerged();
-      });
-    },
-    onCancel: () {
-      subA?.cancel();
-      subB?.cancel();
-    },
-  );
-
-  return controller.stream;
-}

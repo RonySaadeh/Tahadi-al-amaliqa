@@ -27,6 +27,14 @@ export interface QuestionDoc {
 export interface DuelDoc {
   player1Id: string;
   player2Id: string;
+  /** `[player1Id, player2Id]` — lets the client find "my duels" with a
+   * single `array-contains` query instead of running the `player1Id`/
+   * `player2Id` queries separately. Firestore rejects a `list` query
+   * against a rule that ORs two different `resource.data` fields (it can't
+   * prove every possible result satisfies a field the query itself didn't
+   * filter on), so `firestore.rules`' `duels` read rule checks membership
+   * in this array instead — see the same note on `FriendshipDoc`. */
+  participantIds: string[];
   player1DisplayName: string;
   player2DisplayName: string;
   categoryId: string;
@@ -98,6 +106,11 @@ export interface UserDoc {
 export interface FriendshipDoc {
   uidA: string;
   uidB: string;
+  /** `[uidA, uidB]` — see the identical field on `DuelDoc` above for why:
+   * `firestore.rules`' `friendships` read rule needs a single array field
+   * to check membership against, because a `list` query can't be proven
+   * safe against a rule that ORs two separate `resource.data` fields. */
+  participantIds: string[];
   fromUserId: string;
   fromDisplayName: string;
   toUserId: string;

@@ -186,6 +186,8 @@
   },
   "profileOwnedCategories": "فئاتي المملوكة",
   "profileEditName": "تعديل الاسم",
+  "profilePlayerIdLabel": "معرّف اللاعب",
+  "profilePlayerIdCopied": "تم نسخ معرّف اللاعب",
   "profileLanguage": "اللغة",
   "profileLanguageArabic": "العربية",
   "profileLanguageEnglish": "English",
@@ -193,7 +195,7 @@
   "playerProfileNeverPlayed": "لم تبارزه بعد",
 
   "friendsTitle": "الأصدقاء",
-  "friendsSearchHint": "ابحث عن لاعبين",
+  "friendsSearchHint": "ابحث بالاسم أو معرّف اللاعب",
   "friendsSearchNoResults": "لم يتم العثور على لاعبين",
   "friendsSendRequest": "إضافة صديق",
   "friendsRequestSent": "تم إرسال الطلب",
