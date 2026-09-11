@@ -9,6 +9,17 @@ export const ROUNDS_PER_DUEL = 5;
 export const ROUND_TIME_LIMIT_SECONDS = 15;
 export const MAX_HOME_TURF_CATEGORIES = 3;
 
+/** How long the client holds every cold-matched duel on its "VS" intro
+ * screen (see `DuelIntroScreen`) before it navigates into the live duel —
+ * mirrors `AppConstants.duelIntroSeconds`. Round 1's `startedAt` (set in
+ * `createDuel.ts`) is stamped this many seconds in the future rather than
+ * "now", so its `ROUND_TIME_LIMIT_SECONDS` answer window starts counting
+ * down from the moment a player can actually *see* the question, the same
+ * as every later round already does — not from several seconds before
+ * that, which would otherwise silently rob round 1 of most of its time
+ * limit. */
+export const DUEL_INTRO_SECONDS = 10;
+
 export const BASE_POINTS_CORRECT = 100;
 export const MAX_SPEED_BONUS = 100;
 export const HOME_TURF_MULTIPLIER = 1.25;

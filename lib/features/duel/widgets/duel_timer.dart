@@ -50,6 +50,12 @@ class _DuelTimerState extends State<DuelTimer> {
   Duration _computeRemaining() {
     final elapsed = DateTime.now().difference(widget.roundStartedAt);
     final total = Duration(seconds: widget.timeLimitSeconds);
+    // `roundStartedAt` can legitimately be in the future — round 1's is
+    // stamped a few seconds ahead server-side so its answer window starts
+    // once the VS intro screen ends, not before (see `createDuel.ts`).
+    // Without this clamp a future `roundStartedAt` makes `elapsed` negative
+    // and this would count UP past `total` instead of just holding there.
+    if (elapsed.isNegative) return total;
     final remaining = total - elapsed;
     return remaining.isNegative ? Duration.zero : remaining;
   }

@@ -41,4 +41,15 @@ class AppConstants {
   /// independently before honoring a forfeit, so this copy is for the UI
   /// countdown only.
   static const int duelReconnectGraceSeconds = 35;
+
+  /// How long `DuelIntroScreen` holds a cold-matched duel on its "VS"
+  /// countdown before handing off to the live duel. Mirrors
+  /// `functions/src/lib/constants.ts`'s `DUEL_INTRO_SECONDS`, which is the
+  /// one that actually matters: round 1's `startedAt` is stamped that many
+  /// seconds in the future server-side, precisely so its answer window
+  /// starts once this screen's countdown ends rather than before it. If you
+  /// change this value, change the server copy to match, or round 1 either
+  /// loses answer time (server shorter) or the timer visibly holds past 0
+  /// on the live duel screen for a moment (server longer).
+  static const int duelIntroSeconds = 10;
 }

@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/constants/app_constants.dart';
 import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -16,21 +17,23 @@ import '../live_duel_controller.dart';
 import '../widgets/arena_hud.dart';
 import '../widgets/duel_timer.dart';
 
-/// Shown for exactly 10 seconds between a match being found and the first
-/// question appearing — who you're about to play, and what each of you has
-/// done in this category before, doesn't fit inside `LiveDuelScreen`'s own
-/// opening beat, which is built entirely around a question that's already
-/// ticking down. This screen owns that pause instead.
+/// Shown for [AppConstants.duelIntroSeconds] between a match being found
+/// and the first question appearing — who you're about to play, and what
+/// each of you has done in this category before, doesn't fit inside
+/// `LiveDuelScreen`'s own opening beat, which is built entirely around a
+/// question that's already ticking down. This screen owns that pause
+/// instead.
 ///
-/// Purely a client-side delay: `duels/{duelId}` and its first round already
-/// exist the instant this screen is pushed (see `createDuel.ts`), nothing
-/// server-side distinguishes "just matched" from "round in progress" (see
-/// `DuelStatus`). So this only holds the player here, then hands off to
-/// `LiveDuelScreen` — which means round 1's own 15-second timer is already
-/// running underneath this screen the whole time. A player sees roughly
-/// `15 - 10 = 5` seconds left on round 1 the moment it appears; every later
-/// round is unaffected, since its timer only starts once `LiveDuelScreen`
-/// is already on screen watching for it.
+/// A client-side delay backed by a matching server-side one: round 1's
+/// `startedAt` (set in `createDuel.ts`) is stamped
+/// [AppConstants.duelIntroSeconds] in the future rather than "now", so its
+/// answer window starts counting down from the moment a player actually
+/// *sees* the question — the same guarantee every later round already has,
+/// since nothing server-side otherwise distinguishes "just matched" from
+/// "round in progress" (see `DuelStatus`). `DuelTimer` treats a future
+/// `roundStartedAt` as "hasn't started yet" rather than counting up past
+/// its own limit, so a player who arrives a moment before that timestamp
+/// (or after, from network jitter) still just sees a normal countdown.
 class DuelIntroScreen extends ConsumerStatefulWidget {
   const DuelIntroScreen({super.key, required this.duelId});
 
@@ -41,8 +44,6 @@ class DuelIntroScreen extends ConsumerStatefulWidget {
 }
 
 class _DuelIntroScreenState extends ConsumerState<DuelIntroScreen> {
-  static const int _introSeconds = 10;
-
   // A field, not a call inside `build()`: `DuelTimer` keys its whole
   // countdown off this value, so it must stay fixed across this screen's
   // rebuilds (duel/user data streaming in) rather than resetting the clock
@@ -142,7 +143,7 @@ class _DuelIntroScreenState extends ConsumerState<DuelIntroScreen> {
                         const SizedBox(height: AppSpacing.lg),
                         DuelTimer(
                           roundStartedAt: _introStartedAt,
-                          timeLimitSeconds: _introSeconds,
+                          timeLimitSeconds: AppConstants.duelIntroSeconds,
                           diameter: 96,
                           onTimeUp: _enterDuel,
                         ),
