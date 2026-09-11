@@ -40,8 +40,18 @@ service cloud.firestore {
 
       allow update: if isSignedIn()
         && request.auth.uid == uid
-        && request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['displayName', 'photoUrl', 'locale']);
+        && (
+          request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['displayName', 'photoUrl', 'locale'])
+          // Presence heartbeat: its own narrow path, separate from the
+          // profile-edit path above, and only ever the server's own clock —
+          // `== request.time` stops a client from writing an arbitrary
+          // (e.g. future) timestamp to fake "online" status.
+          || (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastActiveAt'])
+            && request.resource.data.lastActiveAt == request.time
+          )
+        );
 
       allow delete: if false;
     }
@@ -122,6 +132,35 @@ service cloud.firestore {
     match /leaderboardPairings/{pairingId} {
       allow read: if isSignedIn();
       allow write: if false;
+    }
+
+    // --- friendships/{pairingId} ---
+    // One doc per pair, keyed the same deterministic sorted-uid way as
+    // `leaderboardPairings` (see `FirestorePaths.pairingId`) — that's what
+    // stops a duplicate friend request or a duplicate friendship from ever
+    // existing. `status` moves pending -> accepted/declined; a decline can
+    // be re-requested later, which just resets this same doc. Only the two
+    // people in the pair can read it. Written only by
+    // `sendFriendRequest`/`respondToFriendRequest`.
+    match /friendships/{pairingId} {
+      allow read: if isSignedIn()
+        && (request.auth.uid == resource.data.fromUserId || request.auth.uid == resource.data.toUserId);
+      allow write: if false;
+    }
+
+    // --- notifications/{notificationId} ---
+    // A user's in-app inbox (friend requests, challenges). Created only by
+    // Cloud Functions (`sendFriendRequest`, `sendDuelChallenge`) as a side
+    // effect of the real action — never directly. The one thing a client
+    // legitimately owns here is dismissing its own unread badge, so `read`
+    // gets a narrow client-writable exception the same way a duel's
+    // presence heartbeat does on `users/{uid}` above.
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow update: if isSignedIn()
+        && request.auth.uid == resource.data.userId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow create, delete: if false;
     }
   }
 }

@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/arena_panel.dart';
 import '../../../core/widgets/branded_loading_indicator.dart';
+import '../../../core/widgets/responsive_center.dart';
 import '../../../core/widgets/slab_button.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../routing/app_router.dart';
@@ -100,7 +101,7 @@ class DuelLobbyScreen extends ConsumerWidget {
         .joinQuickMatch(categoryId: ref.read(selectedCategoryIdProvider));
     final duelId = result['duelId'] as String?;
     if (duelId != null && context.mounted) {
-      context.push(AppRoutes.liveDuelPath(duelId));
+      context.push(AppRoutes.duelIntroPath(duelId));
     }
     // If no duelId came back, `joinQuickMatch` has already recorded us as
     // queued (see `queuedLobbyIdProvider`) — `build` below watches that and
@@ -124,7 +125,7 @@ class DuelLobbyScreen extends ConsumerWidget {
         final duelId = next.value?.duelId;
         if (duelId == null) return;
         ref.read(duelControllerProvider.notifier).clearQueueAfterMatch();
-        context.push(AppRoutes.liveDuelPath(duelId));
+        context.push(AppRoutes.duelIntroPath(duelId));
       });
     }
 
@@ -172,59 +173,61 @@ class DuelLobbyScreen extends ConsumerWidget {
                   ),
                 ),
                 Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.md,
-                      AppSpacing.md,
-                      AppSpacing.md,
-                      AppSpacing.md,
-                    ),
-                    children: [
-                      invites.when(
-                        data: (list) => Column(
-                          children: list
-                              .map(
-                                (invite) => Padding(
-                                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                                  child: InviteCard(
-                                    invite: invite,
-                                    onAccept: () async {
-                                      final duelId = await ref
-                                          .read(duelControllerProvider.notifier)
-                                          .respondToChallenge(inviteId: invite.id, accept: true);
-                                      if (duelId != null && context.mounted) {
-                                        context.push(AppRoutes.liveDuelPath(duelId));
-                                      }
-                                    },
-                                    onDecline: () => ref
-                                        .read(duelControllerProvider.notifier)
-                                        .respondToChallenge(inviteId: invite.id, accept: false),
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        ),
-                        loading: () => const SizedBox.shrink(),
-                        error: (_, _) => const SizedBox.shrink(),
+                  child: ResponsiveCenter(
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.md,
+                        AppSpacing.md,
+                        AppSpacing.md,
+                        AppSpacing.md,
                       ),
-                      groupsAsync.when(
-                        data: (groups) => categoriesAsync.when(
-                          data: (categories) => CategoryCatalog(
-                            groups: groups,
-                            categories: categories,
-                            selectedCategoryId: selectedCategoryId,
-                            locale: locale,
-                            onSelect: (category) => ref
-                                .read(selectedCategoryIdProvider.notifier)
-                                .set(category.id == selectedCategoryId ? null : category.id),
+                      children: [
+                        invites.when(
+                          data: (list) => Column(
+                            children: list
+                                .map(
+                                  (invite) => Padding(
+                                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                                    child: InviteCard(
+                                      invite: invite,
+                                      onAccept: () async {
+                                        final duelId = await ref
+                                            .read(duelControllerProvider.notifier)
+                                            .respondToChallenge(inviteId: invite.id, accept: true);
+                                        if (duelId != null && context.mounted) {
+                                          context.push(AppRoutes.duelIntroPath(duelId));
+                                        }
+                                      },
+                                      onDecline: () => ref
+                                          .read(duelControllerProvider.notifier)
+                                          .respondToChallenge(inviteId: invite.id, accept: false),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, _) => const SizedBox.shrink(),
+                        ),
+                        groupsAsync.when(
+                          data: (groups) => categoriesAsync.when(
+                            data: (categories) => CategoryCatalog(
+                              groups: groups,
+                              categories: categories,
+                              selectedCategoryId: selectedCategoryId,
+                              locale: locale,
+                              onSelect: (category) => ref
+                                  .read(selectedCategoryIdProvider.notifier)
+                                  .set(category.id == selectedCategoryId ? null : category.id),
+                            ),
+                            loading: () => const SizedBox.shrink(),
+                            error: (_, _) => Text(l10n.commonError),
                           ),
                           loading: () => const SizedBox.shrink(),
                           error: (_, _) => Text(l10n.commonError),
                         ),
-                        loading: () => const SizedBox.shrink(),
-                        error: (_, _) => Text(l10n.commonError),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 // Pinned rather than trailing the scroll: the two things you
@@ -241,28 +244,30 @@ class DuelLobbyScreen extends ConsumerWidget {
                     color: AppColors.surface,
                     border: Border(top: BorderSide(color: AppColors.surfaceBorder)),
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: SlabButton(
-                          label: l10n.homeQuickMatch,
-                          icon: Icons.bolt_rounded,
-                          gradient: AppColors.primaryGradient,
-                          background: AppColors.primary,
-                          onPressed: () => _quickMatch(context, ref),
+                  child: ResponsiveCenter(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: SlabButton(
+                            label: l10n.homeQuickMatch,
+                            icon: Icons.bolt_rounded,
+                            gradient: AppColors.primaryGradient,
+                            background: AppColors.primary,
+                            onPressed: () => _quickMatch(context, ref),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: SlabButton(
-                          label: l10n.homeChallengeFriend,
-                          icon: Icons.person_add_alt_1_rounded,
-                          background: AppColors.gold,
-                          foreground: AppColors.onBrand,
-                          onPressed: () => _openChallengeSheet(context, ref),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: SlabButton(
+                            label: l10n.homeChallengeFriend,
+                            icon: Icons.person_add_alt_1_rounded,
+                            background: AppColors.gold,
+                            foreground: AppColors.onBrand,
+                            onPressed: () => _openChallengeSheet(context, ref),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],

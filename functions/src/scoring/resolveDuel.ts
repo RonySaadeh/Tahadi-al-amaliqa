@@ -261,8 +261,24 @@ async function resolveRoundNow(
       completedAt: FieldValue.serverTimestamp(),
     });
 
-    updatePlayerAfterDuel(tx, duel.player1Id, player1, delta1, winnerId === duel.player1Id, winnerId === "");
-    updatePlayerAfterDuel(tx, duel.player2Id, player2, delta2, winnerId === duel.player2Id, winnerId === "");
+    updatePlayerAfterDuel(
+      tx,
+      duel.player1Id,
+      player1,
+      delta1,
+      winnerId === duel.player1Id,
+      winnerId === "",
+      duel.categoryId,
+    );
+    updatePlayerAfterDuel(
+      tx,
+      duel.player2Id,
+      player2,
+      delta2,
+      winnerId === duel.player2Id,
+      winnerId === "",
+      duel.categoryId,
+    );
 
     const [playerAId, playerBId] = [duel.player1Id, duel.player2Id].sort();
     const pairingRef = db.collection("leaderboardPairings").doc(`${playerAId}_${playerBId}`);
@@ -288,6 +304,7 @@ export function updatePlayerAfterDuel(
   eloChangeAmount: number,
   won: boolean,
   isDraw: boolean,
+  categoryId: string,
 ): void {
   const newStreak = isDraw ? 0 : won ? (current.currentStreak ?? 0) + 1 : 0;
   tx.update(db.collection("users").doc(uid), {
@@ -296,6 +313,11 @@ export function updatePlayerAfterDuel(
     losses: FieldValue.increment(!isDraw && !won ? 1 : 0),
     currentStreak: newStreak,
     bestStreak: Math.max(current.bestStreak ?? 0, newStreak),
+    // Dot-path update into a per-category map — `FieldValue.increment`
+    // treats a missing field as 0, so this needs no prior read and creates
+    // `categoryStats.{categoryId}` on a player's first duel in it. Used to
+    // show "N wins in this category" on the pre-duel VS screen.
+    [`categoryStats.${categoryId}.wins`]: FieldValue.increment(!isDraw && won ? 1 : 0),
   });
 }
 

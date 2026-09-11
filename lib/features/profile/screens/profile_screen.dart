@@ -9,6 +9,7 @@ import '../../../core/utils/rank_tier.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/arena_panel.dart';
 import '../../../core/widgets/rank_badge.dart';
+import '../../../core/widgets/responsive_center.dart';
 import '../../../core/widgets/skeleton_loader.dart';
 import '../../../data/models/user_model.dart';
 import '../../../l10n/app_localizations.dart';
@@ -16,6 +17,7 @@ import '../../auth/auth_controller.dart';
 import '../../home/home_controller.dart';
 import '../../home_turf/home_turf_controller.dart';
 import '../profile_controller.dart';
+import '../widgets/profile_settings_drawer.dart';
 import '../widgets/stat_tile.dart';
 
 /// The player's own page. Header is an arena field with the avatar
@@ -72,18 +74,27 @@ class ProfileScreen extends ConsumerWidget {
     final categoriesAsync = ref.watch(myCategoriesProvider);
     final locale = Localizations.localeOf(context).languageCode;
 
-    return Scaffold(
-      body: userAsync.when(
-        loading: () => const SkeletonList(),
-        error: (_, _) => Center(child: Text(l10n.commonError)),
-        data: (user) {
-          if (user == null) return const SizedBox.shrink();
+    return userAsync.when(
+      loading: () => const Scaffold(body: SkeletonList()),
+      error: (_, _) => Scaffold(body: Center(child: Text(l10n.commonError))),
+      data: (user) {
+        if (user == null) return const Scaffold(body: SizedBox.shrink());
 
-          final level = LevelCalculator.calculate(wins: user.wins, losses: user.losses);
-          final tier = RankTier.forElo(user.elo);
-          final xpRemaining = level.xpSpanForLevel - level.xpIntoLevel;
+        final level = LevelCalculator.calculate(wins: user.wins, losses: user.losses);
+        final tier = RankTier.forElo(user.elo);
+        final xpRemaining = level.xpSpanForLevel - level.xpIntoLevel;
 
-          return ListView(
+        return Scaffold(
+          drawer: ProfileSettingsDrawer(
+            displayName: user.displayName,
+            photoUrl: user.photoUrl,
+            tier: tier,
+            locale: user.locale,
+            onEditName: () => _showEditNameDialog(context, ref, user.displayName),
+            onLocaleChanged: (value) => ref.read(profileControllerProvider.notifier).updateLocale(value),
+            onSignOut: () => ref.read(authControllerProvider.notifier).signOut(),
+          ),
+          body: ListView(
             padding: EdgeInsets.zero,
             children: [
               Stack(
@@ -101,10 +112,12 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                     child: Align(
                       alignment: AlignmentDirectional.centerEnd,
-                      child: IconButton(
-                        onPressed: () => ref.read(authControllerProvider.notifier).signOut(),
-                        icon: const Icon(Icons.logout_rounded, color: AppColors.onArenaMuted),
-                        tooltip: l10n.authSignOut,
+                      child: Builder(
+                        builder: (context) => IconButton(
+                          onPressed: () => Scaffold.of(context).openDrawer(),
+                          icon: const Icon(Icons.settings_rounded, color: AppColors.onArenaMuted),
+                          tooltip: l10n.commonSettings,
+                        ),
                       ),
                     ),
                   ),
@@ -123,13 +136,7 @@ class ProfileScreen extends ConsumerWidget {
               // Reclaims the space the avatar is hanging into.
               const SizedBox(height: _avatarSize * 0.42 + AppSpacing.sm),
 
-              Center(
-                child: TextButton.icon(
-                  onPressed: () => _showEditNameDialog(context, ref, user.displayName),
-                  icon: const Icon(Icons.edit_rounded, size: 15),
-                  label: Text(user.displayName, style: theme.textTheme.displaySmall),
-                ),
-              ),
+              Center(child: Text(user.displayName, style: theme.textTheme.displaySmall)),
               Center(child: RankBadge(tier: tier)),
               const SizedBox(height: AppSpacing.sm),
               Center(
@@ -149,27 +156,7 @@ class ProfileScreen extends ConsumerWidget {
               const SizedBox(height: AppSpacing.lg),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                child: _StatsGrid(user: user, locale: locale, l10n: l10n),
-              ),
-
-              const SizedBox(height: AppSpacing.lg),
-              _Section(title: l10n.profileLanguage),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                child: SegmentedButton<String>(
-                  segments: [
-                    ButtonSegment(value: 'en', label: Text(l10n.profileLanguageEnglish)),
-                    ButtonSegment(value: 'ar', label: Text(l10n.profileLanguageArabic)),
-                  ],
-                  selected: {user.locale},
-                  showSelectedIcon: false,
-                  onSelectionChanged: (selection) {
-                    final selected = selection.first;
-                    if (selected != user.locale) {
-                      ref.read(profileControllerProvider.notifier).updateLocale(selected);
-                    }
-                  },
-                ),
+                child: ResponsiveCenter(child: _StatsGrid(user: user, locale: locale, l10n: l10n)),
               ),
 
               const SizedBox(height: AppSpacing.lg),
@@ -181,36 +168,38 @@ class ProfileScreen extends ConsumerWidget {
                   AppSpacing.md,
                   AppSpacing.xxl,
                 ),
-                child: categoriesAsync.when(
-                  data: (categories) => categories.isEmpty
-                      ? Text(l10n.homeTurfNoCategories, style: theme.textTheme.bodyMedium)
-                      : Wrap(
-                          spacing: AppSpacing.sm,
-                          runSpacing: AppSpacing.sm,
-                          children: categories
-                              .map(
-                                (c) => Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: AppSpacing.md,
-                                    vertical: AppSpacing.sm,
+                child: ResponsiveCenter(
+                  child: categoriesAsync.when(
+                    data: (categories) => categories.isEmpty
+                        ? Text(l10n.homeTurfNoCategories, style: theme.textTheme.bodyMedium)
+                        : Wrap(
+                            spacing: AppSpacing.sm,
+                            runSpacing: AppSpacing.sm,
+                            children: categories
+                                .map(
+                                  (c) => Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: AppSpacing.md,
+                                      vertical: AppSpacing.sm,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.surfaceRaised,
+                                      borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+                                    ),
+                                    child: Text(c.name, style: theme.textTheme.labelMedium),
                                   ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.surfaceRaised,
-                                    borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
-                                  ),
-                                  child: Text(c.name, style: theme.textTheme.labelMedium),
-                                ),
-                              )
-                              .toList(),
-                        ),
-                  loading: () => const SkeletonListTile(),
-                  error: (_, _) => const SizedBox.shrink(),
+                                )
+                                .toList(),
+                          ),
+                    loading: () => const SkeletonListTile(),
+                    error: (_, _) => const SizedBox.shrink(),
+                  ),
                 ),
               ),
             ],
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -226,10 +215,12 @@ class _StatsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // `IntrinsicHeight` rather than a fixed `SizedBox` height: each row still
+    // sizes its cells to the tallest one, but now grows with the content
+    // (e.g. a larger accessibility text scale) instead of clipping it.
     return Column(
       children: [
-        SizedBox(
-          height: 108,
+        IntrinsicHeight(
           child: Row(
             children: [
               Expanded(
@@ -255,8 +246,7 @@ class _StatsGrid extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        SizedBox(
-          height: 86,
+        IntrinsicHeight(
           child: Row(
             children: [
               Expanded(

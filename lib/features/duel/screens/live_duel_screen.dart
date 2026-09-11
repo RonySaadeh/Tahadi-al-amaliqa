@@ -1,14 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/app_enums.dart';
 import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/arena_panel.dart';
 import '../../../core/widgets/branded_loading_indicator.dart';
+import '../../../core/widgets/responsive_center.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../routing/app_router.dart';
 import '../live_duel_controller.dart';
@@ -29,24 +33,84 @@ import '../widgets/score_popup.dart';
 /// slabs. There is no card, no app bar, and no scroll — the question and the
 /// four ways to answer it are the entire screen.
 ///
-/// This widget is intentionally "dumb": every value it shows (question,
-/// correctness, points, whose turn) comes straight from
-/// `duelStreamProvider`/`roundStreamProvider`, which mirror
-/// `duels/{duelId}` and `duels/{duelId}/rounds/{n}` in real time. There is
-/// no local game-state machine to keep in sync with the server — advancing
-/// to the next round happens automatically because `duel.currentRound`
-/// changing is itself what this screen watches.
-class LiveDuelScreen extends ConsumerWidget {
+/// Every value it shows (question, correctness, points, whose turn) comes
+/// straight from `duelStreamProvider`/`roundStreamProvider`, which mirror
+/// `duels/{duelId}` and `duels/{duelId}/rounds/{n}` in real time — this
+/// widget never decides who was right or how many points that's worth. The
+/// one thing it *does* keep locally is [_displayedRound]: the server
+/// resolves a round and advances `duel.currentRound` in the same
+/// transaction (see `resolveDuel.ts`), so without holding here on purpose,
+/// a resolved round's colors/score would be visible for barely a frame
+/// before the next question replaced it. See [_scheduleAfterPause].
+class LiveDuelScreen extends ConsumerStatefulWidget {
   const LiveDuelScreen({super.key, required this.duelId});
-
-  static const List<String> _optionLabels = ['A', 'B', 'C', 'D'];
 
   final String duelId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LiveDuelScreen> createState() => _LiveDuelScreenState();
+}
+
+class _LiveDuelScreenState extends ConsumerState<LiveDuelScreen> {
+  static const List<String> _optionLabels = ['A', 'B', 'C', 'D'];
+
+  /// Which round this screen is showing right now. Deliberately allowed to
+  /// lag behind `duel.currentRound` — see the class doc.
+  int? _displayedRound;
+
+  Timer? _pauseTimer;
+
+  /// Guards against scheduling the results navigation more than once —
+  /// `duel.status == completed` stays true on every subsequent rebuild
+  /// while the pause is still running.
+  bool _resultsScheduled = false;
+
+  @override
+  void dispose() {
+    _pauseTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Runs [action] after [AppConstants.roundResultPauseMs], unless a pause
+  /// is already running — the round-advance and results-navigation call
+  /// sites both funnel through here, so only one pause is ever in flight.
+  void _scheduleAfterPause(VoidCallback action) {
+    if (_pauseTimer != null) return;
+    _pauseTimer = Timer(const Duration(milliseconds: AppConstants.roundResultPauseMs), () {
+      _pauseTimer = null;
+      if (mounted) action();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final duelAsync = ref.watch(duelStreamProvider(duelId));
+
+    // Side-effects (starting the hold-then-advance pause, scheduling the
+    // navigation to results) belong here, not inline in the `data:` branch
+    // below — `ref.listen` is what Riverpod actually means for "do
+    // something when a provider's value changes" during a build.
+    ref.listen(duelStreamProvider(widget.duelId), (previous, next) {
+      final duel = next.value;
+      if (duel == null) return;
+
+      if (duel.status == DuelStatus.completed) {
+        if (_resultsScheduled) return;
+        _resultsScheduled = true;
+        _scheduleAfterPause(() => context.go(AppRoutes.duelResultPath(widget.duelId)));
+        return;
+      }
+
+      _displayedRound ??= duel.currentRound;
+      if (duel.currentRound != _displayedRound) {
+        final targetRound = duel.currentRound;
+        _scheduleAfterPause(() {
+          setState(() => _displayedRound = targetRound);
+        });
+      }
+    });
+
+    final duelAsync = ref.watch(duelStreamProvider(widget.duelId));
     final myUid = ref.watch(currentUserIdProvider);
 
     // Keeps `DuelPresenceController` alive for the lifetime of this screen —
@@ -55,14 +119,7 @@ class LiveDuelScreen extends ConsumerWidget {
     // screen deliberately does no connection reasoning of its own; having
     // two places decide that is what let both players be told the *other*
     // one disconnected.
-    final presence = ref.watch(duelPresenceProvider(duelId));
-
-    ref.listen(duelStreamProvider(duelId), (previous, next) {
-      final duel = next.value;
-      if (duel != null && duel.status == DuelStatus.completed) {
-        context.go(AppRoutes.duelResultPath(duelId));
-      }
-    });
+    final presence = ref.watch(duelPresenceProvider(widget.duelId));
 
     return Scaffold(
       backgroundColor: AppColors.arenaDark,
@@ -81,7 +138,12 @@ class LiveDuelScreen extends ConsumerWidget {
                   return Center(child: _ArenaMessage(text: l10n.commonError));
                 }
 
-                final roundKey = (duelId: duelId, roundNumber: duel.currentRound);
+                // First build (and only then) — `ref.listen` above only
+                // fires on *changes*, so the very first value needs its own
+                // adoption here.
+                _displayedRound ??= duel.currentRound;
+
+                final roundKey = (duelId: widget.duelId, roundNumber: _displayedRound!);
                 final roundAsync = ref.watch(roundStreamProvider(roundKey));
 
                 return roundAsync.when(
@@ -99,7 +161,9 @@ class LiveDuelScreen extends ConsumerWidget {
                     final myAnswerIndex = round.playerAnswers[myUid];
                     final opponentId = duel.opponentIdFor(myUid);
 
-                    return Column(
+                    return ResponsiveCenter(
+                      maxWidth: 560,
+                      child: Column(
                       children: [
                         Padding(
                           padding: const EdgeInsets.fromLTRB(
@@ -130,7 +194,7 @@ class LiveDuelScreen extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: AppSpacing.sm),
-                        _RoundChip(label: l10n.duelRoundOf(duel.currentRound, duel.totalRounds)),
+                        _RoundChip(label: l10n.duelRoundOf(_displayedRound!, duel.totalRounds)),
 
                         // The question owns the vertical center. `Expanded`
                         // rather than a fixed block so a long question grows
@@ -214,6 +278,7 @@ class LiveDuelScreen extends ConsumerWidget {
                           homeTurfLabel: duel.isHomeTurfDuel ? l10n.duelHomeTurfBonus : null,
                         ),
                       ],
+                      ),
                     );
                   },
                 );

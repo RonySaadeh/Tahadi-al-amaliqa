@@ -23,7 +23,9 @@ class UserModel extends Equatable {
     this.bestStreak = 0,
     this.ownedCategoryIds = const [],
     required this.createdAt,
-    this.locale = 'ar',
+    this.locale = 'en',
+    this.categoryWins = const {},
+    this.lastActiveAt,
   });
 
   final String uid;
@@ -39,9 +41,23 @@ class UserModel extends Equatable {
   final DateTime createdAt;
   final String locale;
 
+  /// categoryId -> wins in that category, written by `resolveDuel`'s
+  /// `updatePlayerAfterDuel` alongside the global `wins` counter. Absent for
+  /// any category this player hasn't won a duel in yet — see [winsInCategory].
+  final Map<String, int> categoryWins;
+
+  /// Stamped by the client itself via `FriendsRepository.updatePresence`,
+  /// not a Cloud Function — see the narrow presence-only path in
+  /// `firestore.rules`. Null until this player's first heartbeat. "Online"
+  /// is derived from this (recent enough), not stored as its own flag — see
+  /// `core/utils/presence.dart`.
+  final DateTime? lastActiveAt;
+
   int get totalDuels => wins + losses;
 
   bool get canCreateHomeTurf => ownedCategoryIds.length < AppConstants.maxHomeTurfCategories;
+
+  int winsInCategory(String categoryId) => categoryWins[categoryId] ?? 0;
 
   factory UserModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? <String, dynamic>{};
@@ -57,8 +73,22 @@ class UserModel extends Equatable {
       bestStreak: (data['bestStreak'] as num?)?.toInt() ?? 0,
       ownedCategoryIds: List<String>.from(data['ownedCategoryIds'] as List? ?? const []),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      locale: data['locale'] as String? ?? 'ar',
+      locale: data['locale'] as String? ?? 'en',
+      categoryWins: _parseCategoryWins(data['categoryStats']),
+      lastActiveAt: (data['lastActiveAt'] as Timestamp?)?.toDate(),
     );
+  }
+
+  static Map<String, int> _parseCategoryWins(dynamic raw) {
+    if (raw is! Map) return const {};
+    final result = <String, int>{};
+    for (final entry in raw.entries) {
+      final stats = entry.value;
+      if (stats is Map && stats['wins'] != null) {
+        result[entry.key as String] = (stats['wins'] as num).toInt();
+      }
+    }
+    return result;
   }
 
   /// Full document written once, on first sign-in only.
@@ -97,6 +127,8 @@ class UserModel extends Equatable {
     int? bestStreak,
     List<String>? ownedCategoryIds,
     String? locale,
+    Map<String, int>? categoryWins,
+    DateTime? lastActiveAt,
   }) {
     return UserModel(
       uid: uid,
@@ -111,6 +143,8 @@ class UserModel extends Equatable {
       ownedCategoryIds: ownedCategoryIds ?? this.ownedCategoryIds,
       createdAt: createdAt,
       locale: locale ?? this.locale,
+      categoryWins: categoryWins ?? this.categoryWins,
+      lastActiveAt: lastActiveAt ?? this.lastActiveAt,
     );
   }
 
@@ -128,5 +162,7 @@ class UserModel extends Equatable {
     ownedCategoryIds,
     createdAt,
     locale,
+    categoryWins,
+    lastActiveAt,
   ];
 }

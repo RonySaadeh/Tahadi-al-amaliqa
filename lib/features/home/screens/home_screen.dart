@@ -5,11 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/widgets/responsive_center.dart';
 import '../../../core/widgets/skeleton_loader.dart';
 import '../../../core/widgets/slab_button.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../routing/app_router.dart';
 import '../../duel/duel_controller.dart';
+import '../../notifications/notifications_controller.dart';
 import '../home_controller.dart';
 import '../widgets/arena_rating_header.dart';
 import '../widgets/email_verification_banner.dart';
@@ -44,49 +46,67 @@ class HomeScreen extends ConsumerWidget {
           padding: EdgeInsets.zero,
           children: [
             const EmailVerificationBanner(),
-            userAsync.when(
-              data: (user) => ArenaRatingHeader(
-                displayName: user?.displayName ?? '',
-                elo: user?.elo ?? 0,
-                wins: user?.wins ?? 0,
-                losses: user?.losses ?? 0,
-              ),
-              loading: () => const SizedBox(
-                height: 240,
-                child: ColoredBox(color: AppColors.arenaDark),
-              ),
-              error: (_, _) => const SizedBox(
-                height: 240,
-                child: ColoredBox(color: AppColors.arenaDark),
-              ),
+            Stack(
+              children: [
+                userAsync.when(
+                  data: (user) => ArenaRatingHeader(
+                    displayName: user?.displayName ?? '',
+                    elo: user?.elo ?? 0,
+                    wins: user?.wins ?? 0,
+                    losses: user?.losses ?? 0,
+                  ),
+                  loading: () => const SizedBox(
+                    height: 240,
+                    child: ColoredBox(color: AppColors.arenaDark),
+                  ),
+                  error: (_, _) => const SizedBox(
+                    height: 240,
+                    child: ColoredBox(color: AppColors.arenaDark),
+                  ),
+                ),
+                Positioned.fill(
+                  child: SafeArea(
+                    bottom: false,
+                    child: Align(
+                      alignment: AlignmentDirectional.topEnd,
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSpacing.xs),
+                        child: _NotificationBell(),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
 
             Transform.translate(
               offset: const Offset(0, -_overlap),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: SlabButton(
-                        label: l10n.homeQuickMatch,
-                        icon: Icons.bolt_rounded,
-                        gradient: AppColors.primaryGradient,
-                        background: AppColors.primary,
-                        onPressed: () => context.go(AppRoutes.duelLobby),
+                child: ResponsiveCenter(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: SlabButton(
+                          label: l10n.homeQuickMatch,
+                          icon: Icons.bolt_rounded,
+                          gradient: AppColors.primaryGradient,
+                          background: AppColors.primary,
+                          onPressed: () => context.go(AppRoutes.duelLobby),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: SlabButton(
-                        label: l10n.homeChallengeFriend,
-                        icon: Icons.people_alt_rounded,
-                        background: AppColors.gold,
-                        foreground: AppColors.onBrand,
-                        onPressed: () => context.go(AppRoutes.duelLobby),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: SlabButton(
+                          label: l10n.homeChallengeFriend,
+                          icon: Icons.people_alt_rounded,
+                          background: AppColors.gold,
+                          foreground: AppColors.onBrand,
+                          onPressed: () => context.go(AppRoutes.duelLobby),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -100,32 +120,69 @@ class HomeScreen extends ConsumerWidget {
                   AppSpacing.md,
                   AppSpacing.md,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.homeRecentDuels.toUpperCase(),
-                      style: theme.textTheme.labelSmall,
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    recentDuelsAsync.when(
-                      data: (duels) {
-                        if (duels.isEmpty || myUid == null) {
-                          return _EmptyDuels(message: l10n.homeNoRecentDuels);
-                        }
-                        return Column(
-                          children: duels.map((d) => RecentDuelTile(duel: d, myUid: myUid)).toList(),
-                        );
-                      },
-                      loading: () => const SkeletonList(itemCount: 3),
-                      error: (_, _) => const SizedBox.shrink(),
-                    ),
-                  ],
+                child: ResponsiveCenter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.homeRecentDuels.toUpperCase(),
+                        style: theme.textTheme.labelSmall,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      recentDuelsAsync.when(
+                        data: (duels) {
+                          if (duels.isEmpty || myUid == null) {
+                            return _EmptyDuels(message: l10n.homeNoRecentDuels);
+                          }
+                          return Column(
+                            children: duels
+                                .map(
+                                  (d) => RecentDuelTile(
+                                    duel: d,
+                                    myUid: myUid,
+                                    onTap: () => context.push(
+                                      AppRoutes.playerProfilePath(d.opponentIdFor(myUid)),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                          );
+                        },
+                        loading: () => const SkeletonList(itemCount: 3),
+                        error: (_, _) => const SizedBox.shrink(),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Opens the notifications inbox. Overlaid on the arena header rather than
+/// added as an `AppBar` — this screen deliberately has none (see the class
+/// doc above) — so a single icon is the whole footprint this adds.
+class _NotificationBell extends ConsumerWidget {
+  const _NotificationBell();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final unreadCount = ref.watch(unreadNotificationCountProvider);
+
+    return Badge(
+      isLabelVisible: unreadCount > 0,
+      label: Text('$unreadCount'),
+      backgroundColor: AppColors.gold,
+      textColor: AppColors.onBrand,
+      child: IconButton(
+        onPressed: () => context.push(AppRoutes.notifications),
+        icon: const Icon(Icons.notifications_rounded, color: Colors.white),
+        tooltip: l10n.notificationsTitle,
       ),
     );
   }

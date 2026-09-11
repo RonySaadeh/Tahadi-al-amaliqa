@@ -40,6 +40,12 @@ class FirestoreService {
   CollectionReference<Map<String, dynamic>> get leaderboardPairings =>
       _db.collection(FirestorePaths.leaderboardPairings);
 
+  CollectionReference<Map<String, dynamic>> get friendships =>
+      _db.collection(FirestorePaths.friendships);
+
+  CollectionReference<Map<String, dynamic>> get notifications =>
+      _db.collection(FirestorePaths.notifications);
+
   CollectionReference<Map<String, dynamic>> duelRounds(String duelId) =>
       duels.doc(duelId).collection(FirestorePaths.rounds);
 

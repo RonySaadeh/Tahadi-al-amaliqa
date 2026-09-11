@@ -12,3 +12,5 @@ export { createHomeTurfCategory, addHomeTurfQuestion } from "./questions/homeTur
 
 export { sendDuelChallenge, respondToDuelChallenge } from "./matchmaking/duelChallenges";
 export { joinOpenLobby, leaveOpenLobby } from "./matchmaking/openLobby";
+
+export { sendFriendRequest, respondToFriendRequest } from "./social/friends";

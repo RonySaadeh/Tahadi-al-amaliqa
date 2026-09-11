@@ -1,6 +1,6 @@
 import { HttpsError } from "firebase-functions/v2/https";
-import { db, FieldValue } from "../lib/admin";
-import { ROUNDS_PER_DUEL } from "../lib/constants";
+import { db, FieldValue, Timestamp } from "../lib/admin";
+import { DUEL_INTRO_SECONDS, ROUNDS_PER_DUEL } from "../lib/constants";
 import { RoundDoc } from "../lib/types";
 import { pickNextQuestion } from "../scoring/resolveDuel";
 
@@ -24,7 +24,7 @@ export async function createDuelForPlayers(player1Id: string, player2Id: string,
   // The duel's language is fixed for its whole lifetime from whoever
   // started it (player1), so both rounds are always in one language rather
   // than flipping mid-duel if the two players have different preferences.
-  const language: string = player1Snap.data()?.locale ?? "ar";
+  const language: string = player1Snap.data()?.locale ?? "en";
 
   const firstQuestion = await pickNextQuestion(categoryId, language, []);
   if (!firstQuestion) {
@@ -71,7 +71,14 @@ export async function createDuelForPlayers(player1Id: string, player2Id: string,
     correctAnswerIndex: null,
     playerAnswers: {},
     pointsAwarded: {},
-    startedAt: FieldValue.serverTimestamp(),
+    // Deliberately not `serverTimestamp()` (i.e. "now") — every client
+    // spends the next `DUEL_INTRO_SECONDS` on the VS intro screen before it
+    // ever shows this round, so starting the clock "now" would burn most of
+    // round 1's answer window before either player can even see the
+    // question. Every later round's `startedAt` (set in resolveDuel.ts) IS
+    // "now", since there's no intro screen between rounds 2-5 — this is
+    // round 1 alone catching up to that same guarantee.
+    startedAt: Timestamp.fromMillis(Date.now() + DUEL_INTRO_SECONDS * 1000),
   } satisfies Partial<RoundDoc>);
 
   return duelRef.id;

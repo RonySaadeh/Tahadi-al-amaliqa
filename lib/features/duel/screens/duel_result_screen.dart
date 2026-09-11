@@ -12,6 +12,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/level_calculator.dart';
 import '../../../core/widgets/branded_loading_indicator.dart';
+import '../../../core/widgets/responsive_center.dart';
 import '../../../core/widgets/slab_button.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../routing/app_router.dart';
@@ -115,7 +116,8 @@ class _DuelResultScreenState extends ConsumerState<DuelResultScreen> {
               SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                  child: Column(
+                  child: ResponsiveCenter(
+                    child: Column(
                     children: [
                       const SizedBox(height: AppSpacing.xl),
                       _BadgeChip(label: badge, color: accent)
@@ -170,9 +172,18 @@ class _DuelResultScreenState extends ConsumerState<DuelResultScreen> {
                           .animate()
                           .fadeIn(delay: 150.ms, duration: 300.ms),
                       const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        l10n.duelVs(opponentName),
-                        style: theme.textTheme.bodySmall?.copyWith(color: AppColors.onArenaMuted),
+                      GestureDetector(
+                        onTap: () => context.push(
+                          AppRoutes.playerProfilePath(duel.opponentIdFor(myUid)),
+                        ),
+                        child: Text(
+                          l10n.duelVs(opponentName),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppColors.onArenaMuted,
+                            decoration: TextDecoration.underline,
+                            decorationColor: AppColors.onArenaMuted,
+                          ),
+                        ),
                       ),
 
                       const SizedBox(height: AppSpacing.lg),
@@ -207,6 +218,7 @@ class _DuelResultScreenState extends ConsumerState<DuelResultScreen> {
                       ),
                       const SizedBox(height: AppSpacing.lg),
                     ],
+                    ),
                   ),
                 ),
               ),

@@ -129,7 +129,7 @@ async function resolveForfeit(duelId: string, callerUid: string): Promise<void> 
       completedAt: FieldValue.serverTimestamp(),
     });
 
-    updatePlayerAfterDuel(tx, callerUid, callerUser, callerDelta, true, false);
-    updatePlayerAfterDuel(tx, opponentId, opponentUser, opponentDelta, false, false);
+    updatePlayerAfterDuel(tx, callerUid, callerUser, callerDelta, true, false, duel.categoryId);
+    updatePlayerAfterDuel(tx, opponentId, opponentUser, opponentDelta, false, false, duel.categoryId);
   });
 }

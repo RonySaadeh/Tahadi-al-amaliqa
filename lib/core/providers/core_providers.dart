@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/models/user_model.dart';
 import '../../data/repositories/duel_repository.dart';
+import '../../data/repositories/friends_repository.dart';
 import '../../data/repositories/leaderboard_repository.dart';
+import '../../data/repositories/notifications_repository.dart';
 import '../../data/repositories/question_repository.dart';
 import '../../data/repositories/user_repository.dart';
 import '../constants/app_constants.dart';
@@ -46,6 +51,15 @@ final questionRepositoryProvider = Provider<QuestionRepository>(
 final leaderboardRepositoryProvider = Provider<LeaderboardRepository>(
   (ref) => LeaderboardRepository(firestoreService: ref.watch(firestoreServiceProvider)),
 );
+final friendsRepositoryProvider = Provider<FriendsRepository>(
+  (ref) => FriendsRepository(
+    firestoreService: ref.watch(firestoreServiceProvider),
+    cloudFunctions: ref.watch(cloudFunctionsServiceProvider),
+  ),
+);
+final notificationsRepositoryProvider = Provider<NotificationsRepository>(
+  (ref) => NotificationsRepository(firestoreService: ref.watch(firestoreServiceProvider)),
+);
 
 // --- Auth state ---
 
@@ -62,17 +76,63 @@ final currentUserIdProvider = Provider<String?>((ref) {
   return ref.watch(authStateChangesProvider).value?.uid;
 });
 
+/// A one-time fetch of *another* player's profile by uid — e.g. an
+/// opponent's category-win count on the pre-duel VS screen, or viewing their
+/// profile from a past duel or the leaderboard. A `Future`, not a `Stream`:
+/// these are read-once snapshots, unlike [currentUserProvider]'s live watch
+/// on the signed-in player's own document.
+final userByIdProvider = FutureProvider.family<UserModel?, String>((ref, uid) {
+  return ref.watch(userRepositoryProvider).getUser(uid);
+});
+
+/// A *live* watch of another player's profile by uid — unlike
+/// [userByIdProvider]'s one-time fetch, this stays subscribed, so e.g. a
+/// friend's online status on the friends list updates the instant their own
+/// device's presence heartbeat lands.
+final userStreamProvider = StreamProvider.family<UserModel?, String>((ref, uid) {
+  return ref.watch(userRepositoryProvider).watchUser(uid);
+});
+
 // --- Connectivity ---
 
 /// Whether the device currently has real internet access (not just a radio
 /// connected to something — see `ConnectivityService`). Emits an immediate
 /// initial check, then live updates as the network changes. Used by the
-/// router to hold signed-out users on the splash screen instead of showing
-/// a login form that has nothing to talk to.
+/// router to hold every cold start on the splash screen — signed in or not
+/// — until the device is actually online, instead of letting a
+/// disconnected device through to a login form or an app it can't talk to.
 final connectivityStatusProvider = StreamProvider<bool>((ref) async* {
   final service = ref.watch(connectivityServiceProvider);
   yield await service.checkConnection();
   yield* service.onConnectivityChanged;
+});
+
+// --- Presence ---
+
+/// Keeps the signed-in player's `lastActiveAt` fresh while they're actually
+/// using the app, so friends can see them as online — see
+/// `FriendsRepository.updatePresence`. Watched from `AppShell`, so it's only
+/// alive while a signed-in session is inside the main app (not on
+/// splash/welcome), and stops the instant that's no longer true — Riverpod
+/// disposes the old timer via `ref.onDispose` and this re-runs whenever
+/// [currentUserIdProvider] changes.
+///
+/// Deliberately just a foreground timer, not a true realtime presence
+/// system: Firestore has no `onDisconnect` the way Realtime Database does,
+/// so there's no reliable way to detect "the app was killed" and flip a
+/// boolean off. Going to the background simply lets this timer stop firing;
+/// "online" is derived elsewhere as "seen within the last couple of
+/// minutes" rather than tracked as its own flag that could go stale.
+final presenceControllerProvider = Provider<void>((ref) {
+  final uid = ref.watch(currentUserIdProvider);
+  if (uid == null) return;
+
+  final repo = ref.watch(friendsRepositoryProvider);
+  void ping() => repo.updatePresence(uid);
+
+  ping();
+  final timer = Timer.periodic(const Duration(seconds: 60), (_) => ping());
+  ref.onDispose(timer.cancel);
 });
 
 /// Resolves to `true` after [AppConstants.splashMinDurationMs] have passed

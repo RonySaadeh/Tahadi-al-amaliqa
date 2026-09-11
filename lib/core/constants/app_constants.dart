@@ -26,9 +26,10 @@ class AppConstants {
   static const int eloKFactor = 32;
 
   /// Minimum time the splash screen stays up on a cold start, even if auth
-  /// and connectivity resolve instantly — long enough to read as a
-  /// deliberate branded loading moment, short enough to never feel slow.
-  static const int splashMinDurationMs = 900;
+  /// and connectivity resolve instantly — long enough for the logo entrance
+  /// animation to actually finish and read as a deliberate branded moment,
+  /// short enough to never feel slow.
+  static const int splashMinDurationMs = 2200;
 
   /// How often a client in an active duel pings the `heartbeat` callable —
   /// mirrors `functions/src/lib/constants.ts`.
@@ -40,4 +41,26 @@ class AppConstants {
   /// independently before honoring a forfeit, so this copy is for the UI
   /// countdown only.
   static const int duelReconnectGraceSeconds = 35;
+
+  /// How long `DuelIntroScreen` holds a cold-matched duel on its "VS"
+  /// countdown before handing off to the live duel. Mirrors
+  /// `functions/src/lib/constants.ts`'s `DUEL_INTRO_SECONDS`, which is the
+  /// one that actually matters: round 1's `startedAt` is stamped that many
+  /// seconds in the future server-side, precisely so its answer window
+  /// starts once this screen's countdown ends rather than before it. If you
+  /// change this value, change the server copy to match, or round 1 either
+  /// loses answer time (server shorter) or the timer visibly holds past 0
+  /// on the live duel screen for a moment (server longer).
+  static const int duelIntroSeconds = 10;
+
+  /// How long `LiveDuelScreen` holds on a round's resolved state — colored
+  /// answer tiles, the correct answer revealed, the "+N" score popup —
+  /// before advancing to the next round or (on the final round) navigating
+  /// to the results screen. Purely a client-side pacing choice with no
+  /// server-side counterpart: `resolveRoundNow` (in resolveDuel.ts) writes
+  /// the resolved round *and* advances `duel.currentRound`/`status` in the
+  /// same transaction, so without this pause the client would jump to the
+  /// next round the instant that single update lands — the result would be
+  /// visible for barely a frame.
+  static const int roundResultPauseMs = 2200;
 }

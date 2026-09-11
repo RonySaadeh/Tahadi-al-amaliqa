@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import 'animated_score.dart';
 
 /// The scoreboard across the top of the arena: you on one side, your
 /// opponent on the other, and whatever the moment calls for between them
@@ -128,16 +129,9 @@ class _Side extends StatelessWidget {
       crossAxisAlignment: alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          transitionBuilder: (child, animation) =>
-              ScaleTransition(scale: animation, child: FadeTransition(opacity: animation, child: child)),
-          child: Text(
-            '$score',
-            key: ValueKey(score),
-            textDirection: TextDirection.ltr,
-            style: theme.textTheme.displaySmall?.copyWith(fontSize: 24, color: color),
-          ),
+        AnimatedScore(
+          score: score,
+          style: theme.textTheme.displaySmall?.copyWith(fontSize: 24, color: color),
         ),
         Text(
           name.toUpperCase(),
