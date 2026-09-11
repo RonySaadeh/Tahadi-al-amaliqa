@@ -16,6 +16,30 @@ class AppColors {
   static const Color surfaceRaised = Color(0xFFEFEBFA);
   static const Color surfaceBorder = Color(0xFFEDE9F9);
 
+  // --- Arena surfaces (the dark half of the identity) ---
+  //
+  // The app is still light-first, but every hero moment — the duel itself,
+  // the rating header, the result flood — is punched out of the light page
+  // as a deep "arena" field. That contrast is the identity: the light
+  // surfaces are where you *browse*, the dark ones are where you *compete*.
+  // Deliberately violet-black rather than neutral black so it reads as the
+  // same brand family as [primary].
+  static const Color arenaDark = Color(0xFF140E2A);
+  static const Color arenaDeep = Color(0xFF0D091A);
+
+  /// Elevated surface *inside* an arena field — idle answer slabs, chips,
+  /// dividers. The dark-mode counterpart of [surfaceRaised].
+  static const Color arenaRaised = Color(0xFF2A2440);
+
+  /// Text/icons on an arena field. [onArenaMuted] is the dark-field
+  /// counterpart of [textSecondary].
+  static const Color onArena = Color(0xFFF8F6FD);
+  static const Color onArenaMuted = Color(0xFF827D99);
+
+  /// High-voltage accent reserved for the duel clash moment — the one color
+  /// that only ever appears when something is happening right now.
+  static const Color clashYellow = Color(0xFFFFEF3D);
+
   // --- Brand ---
   /// Vivid violet — primary brand color, used for CTAs and highlights.
   static const Color primary = Color(0xFF6C4CFF);
@@ -63,5 +87,33 @@ class AppColors {
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
     colors: [playerOne, playerTwo],
+  );
+
+  /// The default arena field — a barely-there vertical fade that keeps a
+  /// full-screen dark region from looking like flat paint.
+  static const LinearGradient arenaGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [arenaDark, arenaDeep],
+  );
+
+  /// Result-screen floods. The outcome owns the whole screen's color rather
+  /// than being announced by a badge on a neutral background.
+  static const LinearGradient winGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFF1D4ED8), arenaDark],
+  );
+
+  static const LinearGradient lossGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFF881337), arenaDark],
+  );
+
+  static const LinearGradient drawGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFF4A4266), arenaDark],
   );
 }

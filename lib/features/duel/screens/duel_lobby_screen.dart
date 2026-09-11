@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/widgets/arena_panel.dart';
 import '../../../core/widgets/branded_loading_indicator.dart';
+import '../../../core/widgets/slab_button.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../routing/app_router.dart';
 import '../../home/home_controller.dart';
@@ -125,75 +128,142 @@ class DuelLobbyScreen extends ConsumerWidget {
       });
     }
 
+    if (queuedLobbyId != null) {
+      return Scaffold(
+        backgroundColor: AppColors.arenaDark,
+        body: _QuickMatchSearching(
+          onCancel: () => ref.read(duelControllerProvider.notifier).cancelQuickMatch(),
+        ),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.duelLobbyTitle)),
-      body: queuedLobbyId != null
-          ? _QuickMatchSearching(
-              onCancel: () => ref.read(duelControllerProvider.notifier).cancelQuickMatch(),
-            )
-          : duelState.isLoading
+      body: duelState.isLoading
           ? const Center(child: BrandedLoadingIndicator())
-          : ListView(
-              padding: const EdgeInsets.all(AppSpacing.md),
+          : Column(
               children: [
-                invites.when(
-                  data: (list) => Column(
-                    children: list
-                        .map(
-                          (invite) => Padding(
-                            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                            child: InviteCard(
-                              invite: invite,
-                              onAccept: () async {
-                                final duelId = await ref
-                                    .read(duelControllerProvider.notifier)
-                                    .respondToChallenge(inviteId: invite.id, accept: true);
-                                if (duelId != null && context.mounted) {
-                                  context.push(AppRoutes.liveDuelPath(duelId));
-                                }
-                              },
-                              onDecline: () => ref
-                                  .read(duelControllerProvider.notifier)
-                                  .respondToChallenge(inviteId: invite.id, accept: false),
-                            ),
-                          ),
-                        )
-                        .toList(),
+                ArenaPanel(
+                  gradient: AppColors.arenaGradient,
+                  slantHeight: 24,
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.xl,
+                    AppSpacing.lg,
+                    AppSpacing.md,
                   ),
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, _) => const SizedBox.shrink(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.duelLobbyTitle.toUpperCase(),
+                        style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                          fontSize: 28,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        l10n.duelSelectCategory,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.onArenaMuted,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(l10n.duelSelectCategory, style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: AppSpacing.sm),
-                groupsAsync.when(
-                  data: (groups) => categoriesAsync.when(
-                    data: (categories) => CategoryCatalog(
-                      groups: groups,
-                      categories: categories,
-                      selectedCategoryId: selectedCategoryId,
-                      locale: locale,
-                      onSelect: (category) => ref
-                          .read(selectedCategoryIdProvider.notifier)
-                          .set(category.id == selectedCategoryId ? null : category.id),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.md,
+                      AppSpacing.md,
+                      AppSpacing.md,
+                      AppSpacing.md,
                     ),
-                    loading: () => const SizedBox.shrink(),
-                    error: (_, _) => Text(l10n.commonError),
+                    children: [
+                      invites.when(
+                        data: (list) => Column(
+                          children: list
+                              .map(
+                                (invite) => Padding(
+                                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                                  child: InviteCard(
+                                    invite: invite,
+                                    onAccept: () async {
+                                      final duelId = await ref
+                                          .read(duelControllerProvider.notifier)
+                                          .respondToChallenge(inviteId: invite.id, accept: true);
+                                      if (duelId != null && context.mounted) {
+                                        context.push(AppRoutes.liveDuelPath(duelId));
+                                      }
+                                    },
+                                    onDecline: () => ref
+                                        .read(duelControllerProvider.notifier)
+                                        .respondToChallenge(inviteId: invite.id, accept: false),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                        loading: () => const SizedBox.shrink(),
+                        error: (_, _) => const SizedBox.shrink(),
+                      ),
+                      groupsAsync.when(
+                        data: (groups) => categoriesAsync.when(
+                          data: (categories) => CategoryCatalog(
+                            groups: groups,
+                            categories: categories,
+                            selectedCategoryId: selectedCategoryId,
+                            locale: locale,
+                            onSelect: (category) => ref
+                                .read(selectedCategoryIdProvider.notifier)
+                                .set(category.id == selectedCategoryId ? null : category.id),
+                          ),
+                          loading: () => const SizedBox.shrink(),
+                          error: (_, _) => Text(l10n.commonError),
+                        ),
+                        loading: () => const SizedBox.shrink(),
+                        error: (_, _) => Text(l10n.commonError),
+                      ),
+                    ],
                   ),
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, _) => Text(l10n.commonError),
                 ),
-                const SizedBox(height: AppSpacing.md),
-                ElevatedButton.icon(
-                  onPressed: () => _openChallengeSheet(context, ref),
-                  icon: const Icon(Icons.person_add_alt_1_rounded),
-                  label: Text(l10n.homeChallengeFriend),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                OutlinedButton.icon(
-                  onPressed: () => _quickMatch(context, ref),
-                  icon: const Icon(Icons.flash_on_rounded),
-                  label: Text(l10n.homeQuickMatch),
+                // Pinned rather than trailing the scroll: the two things you
+                // came here to do shouldn't be reachable only after scrolling
+                // past the catalog.
+                Container(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.sm,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: AppColors.surface,
+                    border: Border(top: BorderSide(color: AppColors.surfaceBorder)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: SlabButton(
+                          label: l10n.homeQuickMatch,
+                          icon: Icons.bolt_rounded,
+                          gradient: AppColors.primaryGradient,
+                          background: AppColors.primary,
+                          onPressed: () => _quickMatch(context, ref),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: SlabButton(
+                          label: l10n.homeChallengeFriend,
+                          icon: Icons.person_add_alt_1_rounded,
+                          background: AppColors.gold,
+                          foreground: AppColors.onBrand,
+                          onPressed: () => _openChallengeSheet(context, ref),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -201,9 +271,10 @@ class DuelLobbyScreen extends ConsumerWidget {
   }
 }
 
-/// Shown in place of the lobby list while queued for a quick match — the
-/// same branded loading indicator used everywhere else, plus a cancel
-/// button that leaves the queue.
+/// Shown while queued for a quick match. Takes over the whole screen as an
+/// arena field rather than sitting inside the lobby: waiting for an opponent
+/// is already part of the duel, and the transition into the match should
+/// feel continuous rather than like leaving a list behind.
 class _QuickMatchSearching extends StatelessWidget {
   const _QuickMatchSearching({required this.onCancel});
 
@@ -212,15 +283,36 @@ class _QuickMatchSearching extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          BrandedLoadingIndicator(message: l10n.duelSearchingMatch),
-          const SizedBox(height: AppSpacing.lg),
-          OutlinedButton(onPressed: onCancel, child: Text(l10n.duelCancel)),
-        ],
-      ),
+
+    return Stack(
+      children: [
+        const Positioned.fill(
+          child: DecoratedBox(decoration: BoxDecoration(gradient: AppColors.arenaGradient)),
+        ),
+        const Positioned.fill(child: ClashBackdrop(opacity: 0.1)),
+        SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  BrandedLoadingIndicator(message: l10n.duelSearchingMatch, onDark: true),
+                  const SizedBox(height: AppSpacing.xxl),
+                  SlabButton(
+                    label: l10n.duelCancel,
+                    expand: false,
+                    background: AppColors.arenaRaised,
+                    depthColor: AppColors.arenaDeep,
+                    fontSize: 13,
+                    onPressed: onCancel,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

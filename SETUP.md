@@ -116,7 +116,20 @@ npm run build
 ```bash
 firebase use --add          # first time only: pick your project, alias it "default"
 firebase deploy --only firestore:rules,firestore:indexes,storage
-firebase deploy --only functions
+FUNCTIONS_DISCOVERY_TIMEOUT=120 firebase deploy --only functions
+```
+
+**Always check the deploy actually listed every function.** Before uploading,
+the CLI boots your compiled code in a local server and asks it what functions
+exist. On Windows that step routinely exceeds its silent 10-second default and
+dies with `User code failed to load. Cannot determine backend specification.
+Timeout after 10000` — at which point **nothing** deploys and whatever was
+live before just stays live, so the app keeps running against a stale backend
+that's missing your newest functions. `FUNCTIONS_DISCOVERY_TIMEOUT=120` (in
+seconds) is what avoids it. Confirm with:
+
+```bash
+firebase functions:list     # should list all 10
 ```
 
 ## 7.5. Seed some starter categories (optional, but you need this to actually play)

@@ -5,9 +5,12 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/level_calculator.dart';
+import '../../../core/utils/rank_tier.dart';
 import '../../../core/utils/validators.dart';
-import '../../../core/widgets/level_badge.dart';
+import '../../../core/widgets/arena_panel.dart';
+import '../../../core/widgets/rank_badge.dart';
 import '../../../core/widgets/skeleton_loader.dart';
+import '../../../data/models/user_model.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/auth_controller.dart';
 import '../../home/home_controller.dart';
@@ -15,8 +18,14 @@ import '../../home_turf/home_turf_controller.dart';
 import '../profile_controller.dart';
 import '../widgets/stat_tile.dart';
 
+/// The player's own page. Header is an arena field with the avatar
+/// overlapping its lower edge — the single clearest example of the
+/// "break the container" rule in the app, and the reason this screen no
+/// longer reads as a settings list with a picture on top.
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
+
+  static const double _avatarSize = 92;
 
   Future<void> _showEditNameDialog(BuildContext context, WidgetRef ref, String currentName) async {
     final l10n = AppLocalizations.of(context)!;
@@ -31,15 +40,21 @@ class ProfileScreen extends ConsumerWidget {
           key: formKey,
           child: TextFormField(
             controller: controller,
+            autofocus: true,
             validator: (v) => Validators.displayName(v) == null ? null : l10n.commonError,
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(), child: Text(l10n.commonCancel)),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(l10n.commonCancel),
+          ),
           FilledButton(
             onPressed: () async {
               if (!formKey.currentState!.validate()) return;
-              await ref.read(profileControllerProvider.notifier).updateDisplayName(controller.text.trim());
+              await ref
+                  .read(profileControllerProvider.notifier)
+                  .updateDisplayName(controller.text.trim());
               if (dialogContext.mounted) Navigator.of(dialogContext).pop();
             },
             child: Text(l10n.commonSave),
@@ -52,143 +67,300 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
     final userAsync = ref.watch(currentUserProvider);
     final categoriesAsync = ref.watch(myCategoriesProvider);
     final locale = Localizations.localeOf(context).languageCode;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.profileTitle),
-        actions: [
-          IconButton(
-            onPressed: () => ref.read(authControllerProvider.notifier).signOut(),
-            icon: const Icon(Icons.logout_rounded),
-            tooltip: l10n.authSignOut,
-          ),
-        ],
-      ),
       body: userAsync.when(
+        loading: () => const SkeletonList(),
+        error: (_, _) => Center(child: Text(l10n.commonError)),
         data: (user) {
           if (user == null) return const SizedBox.shrink();
+
+          final level = LevelCalculator.calculate(wins: user.wins, losses: user.losses);
+          final tier = RankTier.forElo(user.elo);
+          final xpRemaining = level.xpSpanForLevel - level.xpIntoLevel;
+
           return ListView(
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: EdgeInsets.zero,
             children: [
-              Center(
-                child: PlayerAvatar(
-                  displayName: user.displayName,
-                  photoUrl: user.photoUrl,
-                  wins: user.wins,
-                  losses: user.losses,
-                  radius: 44,
-                ),
+              Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.bottomCenter,
+                children: [
+                  ArenaPanel(
+                    gradient: AppColors.arenaGradient,
+                    slantHeight: 26,
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.md,
+                      AppSpacing.lg,
+                      _avatarSize * 0.55,
+                    ),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: IconButton(
+                        onPressed: () => ref.read(authControllerProvider.notifier).signOut(),
+                        icon: const Icon(Icons.logout_rounded, color: AppColors.onArenaMuted),
+                        tooltip: l10n.authSignOut,
+                      ),
+                    ),
+                  ),
+                  // Deliberately hangs below the panel and over the page.
+                  Positioned(
+                    bottom: -_avatarSize * 0.42,
+                    child: _LevelRingAvatar(
+                      displayName: user.displayName,
+                      photoUrl: user.photoUrl,
+                      progress: level.progress,
+                      size: _avatarSize,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: AppSpacing.sm),
+              // Reclaims the space the avatar is hanging into.
+              const SizedBox(height: _avatarSize * 0.42 + AppSpacing.sm),
+
               Center(
                 child: TextButton.icon(
                   onPressed: () => _showEditNameDialog(context, ref, user.displayName),
-                  icon: const Icon(Icons.edit_rounded, size: 16),
-                  label: Text(user.displayName, style: Theme.of(context).textTheme.titleLarge),
+                  icon: const Icon(Icons.edit_rounded, size: 15),
+                  label: Text(user.displayName, style: theme.textTheme.displaySmall),
                 ),
               ),
+              Center(child: RankBadge(tier: tier)),
+              const SizedBox(height: AppSpacing.sm),
               Center(
                 child: Text(
-                  l10n.profileMemberSince(Formatters.joinDate(user.createdAt, locale: locale)),
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  '${l10n.profileLevel(level.level).toUpperCase()}  ·  ${l10n.profileXpToNext(xpRemaining).toUpperCase()}',
+                  style: theme.textTheme.labelSmall,
                 ),
               ),
               const SizedBox(height: AppSpacing.xs),
-              Center(child: _LevelProgress(wins: user.wins, losses: user.losses)),
-              const SizedBox(height: AppSpacing.lg),
-              Text(l10n.profileStats, style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: AppSpacing.sm),
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: AppSpacing.sm,
-                crossAxisSpacing: AppSpacing.sm,
-                childAspectRatio: 1.6,
-                children: [
-                  StatTile(label: l10n.profileEloRating, value: Formatters.elo(user.elo, locale: locale)),
-                  StatTile(label: l10n.profileWins, value: '${user.wins}', accentColor: AppColors.success),
-                  StatTile(label: l10n.profileLosses, value: '${user.losses}', accentColor: AppColors.error),
-                  StatTile(label: l10n.profileCurrentStreak, value: '${user.currentStreak}', accentColor: AppColors.primary),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Text(l10n.profileLanguage, style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: AppSpacing.sm),
-              SegmentedButton<String>(
-                segments: [
-                  ButtonSegment(value: 'ar', label: Text(l10n.profileLanguageArabic)),
-                  ButtonSegment(value: 'en', label: Text(l10n.profileLanguageEnglish)),
-                ],
-                selected: {user.locale},
-                onSelectionChanged: (selection) {
-                  final selected = selection.first;
-                  if (selected != user.locale) {
-                    ref.read(profileControllerProvider.notifier).updateLocale(selected);
-                  }
-                },
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Text(l10n.profileOwnedCategories, style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: AppSpacing.sm),
-              categoriesAsync.when(
-                data: (categories) => Wrap(
-                  spacing: AppSpacing.sm,
-                  children: categories.map((c) => Chip(label: Text(c.name))).toList(),
+              Center(
+                child: Text(
+                  l10n.profileMemberSince(Formatters.joinDate(user.createdAt, locale: locale)),
+                  style: theme.textTheme.bodySmall,
                 ),
-                loading: () => const SkeletonListTile(),
-                error: (_, _) => const SizedBox.shrink(),
+              ),
+
+              const SizedBox(height: AppSpacing.lg),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                child: _StatsGrid(user: user, locale: locale, l10n: l10n),
+              ),
+
+              const SizedBox(height: AppSpacing.lg),
+              _Section(title: l10n.profileLanguage),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                child: SegmentedButton<String>(
+                  segments: [
+                    ButtonSegment(value: 'en', label: Text(l10n.profileLanguageEnglish)),
+                    ButtonSegment(value: 'ar', label: Text(l10n.profileLanguageArabic)),
+                  ],
+                  selected: {user.locale},
+                  showSelectedIcon: false,
+                  onSelectionChanged: (selection) {
+                    final selected = selection.first;
+                    if (selected != user.locale) {
+                      ref.read(profileControllerProvider.notifier).updateLocale(selected);
+                    }
+                  },
+                ),
+              ),
+
+              const SizedBox(height: AppSpacing.lg),
+              _Section(title: l10n.profileOwnedCategories),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  0,
+                  AppSpacing.md,
+                  AppSpacing.xxl,
+                ),
+                child: categoriesAsync.when(
+                  data: (categories) => categories.isEmpty
+                      ? Text(l10n.homeTurfNoCategories, style: theme.textTheme.bodyMedium)
+                      : Wrap(
+                          spacing: AppSpacing.sm,
+                          runSpacing: AppSpacing.sm,
+                          children: categories
+                              .map(
+                                (c) => Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.md,
+                                    vertical: AppSpacing.sm,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceRaised,
+                                    borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+                                  ),
+                                  child: Text(c.name, style: theme.textTheme.labelMedium),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                  loading: () => const SkeletonListTile(),
+                  error: (_, _) => const SizedBox.shrink(),
+                ),
               ),
             ],
           );
         },
-        loading: () => const SkeletonList(),
-        error: (_, _) => Center(child: Text(l10n.commonError)),
       ),
     );
   }
 }
 
-/// "Level 5" + a thin XP progress bar toward the next one, shown under the
-/// avatar. See `LevelCalculator` for how wins/losses turn into a level.
-class _LevelProgress extends StatelessWidget {
-  const _LevelProgress({required this.wins, required this.losses});
+/// Wins gets a double-width hero cell; everything else is a supporting
+/// square. See [StatEmphasis].
+class _StatsGrid extends StatelessWidget {
+  const _StatsGrid({required this.user, required this.locale, required this.l10n});
 
-  final int wins;
-  final int losses;
+  final UserModel user;
+  final String locale;
+  final AppLocalizations l10n;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final playerLevel = LevelCalculator.calculate(wins: wins, losses: losses);
-    final xpRemaining = playerLevel.xpSpanForLevel - playerLevel.xpIntoLevel;
-
     return Column(
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          l10n.profileLevel(playerLevel.level),
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.gold),
-        ),
-        const SizedBox(height: AppSpacing.xs),
         SizedBox(
-          width: 160,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-            child: LinearProgressIndicator(
-              value: playerLevel.progress.clamp(0, 1),
-              minHeight: 6,
-              backgroundColor: AppColors.surfaceBorder,
+          height: 108,
+          child: Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: StatTile(
+                  label: l10n.profileWins,
+                  value: '${user.wins}',
+                  accentColor: AppColors.success,
+                  emphasis: StatEmphasis.hero,
+                  icon: Icons.military_tech_rounded,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: StatTile(
+                  label: l10n.profileCurrentStreak,
+                  value: '${user.currentStreak}',
+                  accentColor: AppColors.gold,
+                  icon: Icons.local_fire_department_rounded,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        SizedBox(
+          height: 86,
+          child: Row(
+            children: [
+              Expanded(
+                child: StatTile(
+                  label: l10n.profileEloRating,
+                  value: Formatters.elo(user.elo, locale: locale),
+                  accentColor: AppColors.primary,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: StatTile(
+                  label: l10n.profileLosses,
+                  value: '${user.losses}',
+                  accentColor: AppColors.error,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: StatTile(
+                  label: l10n.profileBestStreak,
+                  value: '${user.bestStreak}',
+                  accentColor: AppColors.playerOne,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The avatar with its XP progress drawn as a ring around it, so level
+/// progress lives on the player's own portrait rather than in a separate bar
+/// somewhere below it.
+class _LevelRingAvatar extends StatelessWidget {
+  const _LevelRingAvatar({
+    required this.displayName,
+    required this.photoUrl,
+    required this.progress,
+    required this.size,
+  });
+
+  final String displayName;
+  final String? photoUrl;
+  final double progress;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = displayName.trim();
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          SizedBox.expand(
+            child: CircularProgressIndicator(
+              value: progress.clamp(0, 1),
+              strokeWidth: 4,
+              strokeCap: StrokeCap.round,
+              backgroundColor: AppColors.arenaRaised,
               valueColor: const AlwaysStoppedAnimation(AppColors.gold),
             ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(l10n.profileXpToNext(xpRemaining), style: Theme.of(context).textTheme.labelSmall),
-      ],
+          Container(
+            width: size - 14,
+            height: size - 14,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.arenaDark,
+              image: photoUrl != null
+                  ? DecorationImage(image: NetworkImage(photoUrl!), fit: BoxFit.cover)
+                  : null,
+            ),
+            child: photoUrl != null
+                ? null
+                : Text(
+                    name.isEmpty ? '?' : name.characters.first.toUpperCase(),
+                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                      color: AppColors.gold,
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Section extends StatelessWidget {
+  const _Section({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.sm),
+      child: Text(title.toUpperCase(), style: Theme.of(context).textTheme.labelSmall),
     );
   }
 }

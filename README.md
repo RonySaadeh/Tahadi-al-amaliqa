@@ -7,8 +7,40 @@ record against each named friend. Players can also own up to 3 "home turf"
 categories with their own questions, and earn a scoring bonus when someone
 duels them there.
 
-Arabic is the primary/default language (hence the name) with full English
-support and RTL layout throughout.
+English is the primary/default language; Arabic is fully supported with RTL
+layout throughout and is reachable from the profile's language toggle.
+
+## Design system — "the arena"
+
+The visual identity is built on one idea: the light surfaces are where you
+*browse*, and dark "arena" fields punched out of them are where you
+*compete*. The pieces that carry it:
+
+- `core/theme/app_colors.dart` — the light palette plus the arena tokens
+  (`arenaDark`, `arenaDeep`, `arenaRaised`, `clashYellow`) and the outcome
+  gradients.
+- `core/theme/app_typography.dart` — a two-voice type system: **Titan One**
+  for display (logo, scores, ratings, verdicts) and **Outfit** for
+  everything else, collapsing onto **Tajawal** in Arabic since neither Latin
+  face has Arabic coverage. This is why the theme is built per-locale.
+- `core/widgets/slab_button.dart` — the physical press: a slab on a hard
+  zero-blur edge that travels into the page when tapped.
+- `core/widgets/arena_panel.dart` — `ArenaPanel` (full-bleed dark region
+  with a diagonal lower edge) and `ClashBackdrop` (the tilted two-color
+  seam behind the live duel).
+- `core/widgets/giants_logo.dart` — the monogram and wordmark lockups.
+- `core/utils/rank_tier.dart` — turns a raw ELO number into a name a player
+  can want (Novice Clay → Colossus Mythic).
+
+Two rules worth keeping if you extend this: **avoid `Card`** — separate
+surfaces with tint, space or a hairline instead — and let hero elements
+overlap the boundaries they sit on rather than stacking in a column. Fonts
+are bundled under `assets/fonts/` rather than fetched at runtime, so the
+identity can't silently degrade to Roboto on a bad connection.
+
+`test/design_system_test.dart` renders every one of these at a 390x844
+viewport; run it after layout changes, since overflow is the failure mode
+this style invites and the analyzer can't see it.
 
 ## Stack
 
@@ -32,7 +64,7 @@ lib/
     repositories/  # translate Firestore <-> models; the only thing features call
   features/        # one folder per feature — see the README.md inside each
   routing/         # go_router setup + the bottom-nav shell
-  l10n/            # Arabic (default) + English translations
+  l10n/            # English (default) + Arabic translations
 
 functions/
   src/

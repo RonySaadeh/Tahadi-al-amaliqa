@@ -1,6 +1,8 @@
 {
   "@@locale": "en",
   "appTitle": "Challenge of the Giants",
+  "brandLineOne": "Challenge of the",
+  "brandLineTwo": "Giants",
 
   "navHome": "Home",
   "navDuel": "Duel",
@@ -14,8 +16,8 @@
 
   "appOfflineMessage": "You're offline — waiting to reconnect...",
 
-  "authWelcomeTitle": "Ready to duel?",
-  "authWelcomeSubtitle": "Face your friends in live trivia duels",
+  "authWelcomeTitle": "Enter the Arena",
+  "authWelcomeSubtitle": "Prove your mind against real rivals",
   "authEmail": "Email",
   "authPassword": "Password",
   "authDisplayName": "Display name",
@@ -41,11 +43,22 @@
   "@homeGreeting": {
     "placeholders": {"name": {"type": "String"}}
   },
-  "homeEloLabel": "Your rating",
-  "homeChallengeFriend": "Challenge a friend",
+  "homeEloLabel": "Current rating",
+  "homeChallengeFriend": "Challenge",
   "homeQuickMatch": "Quick match",
   "homeRecentDuels": "Recent duels",
   "homeNoRecentDuels": "No duels yet. Start your first challenge!",
+  "homeTierProgress": "{elo} to {tier}",
+  "@homeTierProgress": {
+    "placeholders": {"elo": {"type": "int"}, "tier": {"type": "String"}}
+  },
+  "homeTierMaxed": "Peak tier reached",
+
+  "rankNoviceClay": "Novice Clay",
+  "rankBronzeSpartan": "Bronze Spartan",
+  "rankSilverGladiator": "Silver Gladiator",
+  "rankGoldTitan": "Gold Titan",
+  "rankColossusMythic": "Colossus Mythic",
 
   "duelLobbyTitle": "Lobby",
   "duelSelectCategory": "Select category",
@@ -68,10 +81,14 @@
   "duelReconnectingMessage": "Reconnect before the timer runs out, or your opponent wins automatically.",
   "duelReconnectTimeUpTitle": "Time's up",
   "duelReconnectTimeUpMessage": "You were disconnected too long — this duel has been forfeited.",
-  "duelOpponentReconnecting": "Opponent lost connection — {seconds}s until you win automatically",
-  "@duelOpponentReconnecting": {
-    "placeholders": {"seconds": {"type": "int"}}
+  "duelOpponentDisconnectedTitle": "Opponent disconnected",
+  "duelOpponentDisconnectedMessage": "Waiting for {name} to reconnect...",
+  "@duelOpponentDisconnectedMessage": {
+    "placeholders": {"name": {"type": "String"}}
   },
+  "duelOpponentForfeitCountdown": "You win automatically when the timer ends",
+  "duelOpponentTimeUpTitle": "Opponent didn't return",
+  "duelOpponentTimeUpMessage": "Awarding you the win...",
   "duelCorrect": "Correct!",
   "duelIncorrect": "Incorrect",
   "duelTimeUp": "Time's up",
@@ -79,9 +96,12 @@
   "@duelPointsEarned": {
     "placeholders": {"points": {"type": "int"}}
   },
-  "duelYouWin": "You Win!",
-  "duelYouLose": "You Lose",
-  "duelDraw": "Draw",
+  "duelYouWin": "Titanic Win!",
+  "duelYouLose": "Fallen This Round",
+  "duelDraw": "Dead Even",
+  "duelResultBadgeWin": "Victory unlocked",
+  "duelResultBadgeLoss": "Arena claimed",
+  "duelResultBadgeDraw": "No clear giant",
   "duelVs": "vs {name}",
   "@duelVs": {
     "placeholders": {"name": {"type": "String"}}
