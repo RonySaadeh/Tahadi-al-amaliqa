@@ -8,6 +8,7 @@
   "navDuel": "Duel",
   "navLeaderboard": "Leaderboard",
   "navHomeTurf": "Home Turf",
+  "navFriends": "Friends",
   "navProfile": "Profile",
 
   "splashChecking": "Checking your connection...",
@@ -189,6 +190,43 @@
   "playerProfileHeadToHeadTitle": "Your record",
   "playerProfileNeverPlayed": "You haven't dueled yet",
 
+  "friendsTitle": "Friends",
+  "friendsSearchHint": "Search for players",
+  "friendsSearchNoResults": "No players found",
+  "friendsSendRequest": "Add Friend",
+  "friendsRequestSent": "Request Sent",
+  "friendsRequestReceivedHint": "Check your requests",
+  "friendsChallenge": "Challenge",
+  "friendsRequestsTitle": "Friend Requests",
+  "friendsMyFriendsTitle": "Friends",
+  "friendsNoFriends": "You haven't added any friends yet — search for players above to get started.",
+  "friendsRequestBody": "{name} wants to add you as a friend.",
+  "@friendsRequestBody": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "friendsOnline": "Online",
+  "friendsLastSeenUnknown": "Offline",
+  "friendsLastSeenMinutes": "Last seen {minutes} minutes ago",
+  "@friendsLastSeenMinutes": {
+    "placeholders": {"minutes": {"type": "int"}}
+  },
+  "friendsLastSeenHours": "Last seen {hours} hours ago",
+  "@friendsLastSeenHours": {
+    "placeholders": {"hours": {"type": "int"}}
+  },
+  "friendsLastSeenDays": "Last seen {days} days ago",
+  "@friendsLastSeenDays": {
+    "placeholders": {"days": {"type": "int"}}
+  },
+  "friendsLastSeenLongAgo": "Last seen a while ago",
+
+  "notificationsTitle": "Notifications",
+  "notificationsEmpty": "No notifications yet",
+  "notificationsChallengeBody": "{name} challenged you to a Trivia Game.",
+  "@notificationsChallengeBody": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+
   "commonLoading": "Loading...",
   "commonRetry": "Retry",
   "commonCancel": "Cancel",
@@ -196,6 +234,8 @@
   "commonSettings": "Settings",
   "commonDelete": "Delete",
   "commonConfirm": "Confirm",
+  "commonAccept": "Accept",
+  "commonDecline": "Decline",
   "commonError": "Something went wrong",
   "commonSeconds": "s"
 }

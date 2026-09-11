@@ -9,16 +9,22 @@ import '../../../core/utils/rank_tier.dart';
 import '../../../core/widgets/branded_loading_indicator.dart';
 import '../../../core/widgets/rank_badge.dart';
 import '../../../core/widgets/responsive_center.dart';
+import '../../../core/widgets/slab_button.dart';
 import '../../../data/models/leaderboard_entry_model.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../duel/widgets/challenge_category_sheet.dart';
+import '../../friends/friends_controller.dart';
+import '../../friends/widgets/friend_request_card.dart';
 import '../../leaderboard/leaderboard_controller.dart';
 import '../widgets/stat_tile.dart';
 
 /// A read-only view of another player's profile — reached from a past duel
-/// (`RecentDuelTile`, `DuelResultScreen`) rather than from the bottom nav,
-/// so unlike `ProfileScreen` there's no edit name, sign out, or language
-/// toggle here. Its one addition `ProfileScreen` doesn't have is the
-/// head-to-head record against whoever's viewing it.
+/// (`RecentDuelTile`, `DuelResultScreen`), a friends-list row, or a search
+/// result — rather than from the bottom nav, so unlike `ProfileScreen`
+/// there's no edit name, sign out, or language toggle here. What it adds
+/// instead: the head-to-head record against whoever's viewing it, and
+/// (unless it's your own profile) a friend-request/Challenge action that
+/// reflects however the two of you currently relate.
 class PlayerProfileScreen extends ConsumerWidget {
   const PlayerProfileScreen({super.key, required this.uid});
 
@@ -109,6 +115,8 @@ class PlayerProfileScreen extends ConsumerWidget {
 
                 if (myUid != null && myUid != uid) ...[
                   const SizedBox(height: AppSpacing.lg),
+                  _FriendAction(myUid: myUid, otherUid: uid, otherDisplayName: user.displayName),
+                  const SizedBox(height: AppSpacing.lg),
                   _HeadToHeadCard(myUid: myUid, opponentUid: uid, l10n: l10n),
                 ],
               ],
@@ -117,6 +125,55 @@ class PlayerProfileScreen extends ConsumerWidget {
         },
       ),
     );
+  }
+}
+
+/// However [myUid] and [otherUid] currently relate — no request yet, one
+/// pending either direction, or already friends — decides which single
+/// action makes sense here: send a request, show it's already sent, let the
+/// viewer accept/decline one they received, or jump straight to a
+/// Challenge once you're friends.
+class _FriendAction extends ConsumerWidget {
+  const _FriendAction({required this.myUid, required this.otherUid, required this.otherDisplayName});
+
+  final String myUid;
+  final String otherUid;
+  final String otherDisplayName;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final myFriendships = ref.watch(myFriendshipsProvider).value ?? const [];
+    final relation = friendRelationWith(myFriendships, myUid, otherUid);
+
+    return switch (relation) {
+      FriendRelation.none => SlabButton(
+        label: l10n.friendsSendRequest,
+        icon: Icons.person_add_alt_1_rounded,
+        onPressed: () => ref.read(friendsControllerProvider.notifier).sendRequest(otherUid),
+      ),
+      FriendRelation.requestSent => SlabButton(
+        label: l10n.friendsRequestSent,
+        background: AppColors.surfaceRaised,
+        foreground: AppColors.textSecondary,
+        depthColor: AppColors.surfaceBorder,
+        onPressed: null,
+      ),
+      FriendRelation.requestReceived => FriendRequestCard(
+        fromDisplayName: otherDisplayName,
+        onAccept: () => ref
+            .read(friendsControllerProvider.notifier)
+            .respondToRequest(otherUserId: otherUid, accept: true),
+        onDecline: () => ref
+            .read(friendsControllerProvider.notifier)
+            .respondToRequest(otherUserId: otherUid, accept: false),
+      ),
+      FriendRelation.friends => SlabButton(
+        label: l10n.friendsChallenge,
+        icon: Icons.bolt_rounded,
+        onPressed: () => showChallengeCategorySheet(context, toUserId: otherUid),
+      ),
+    };
   }
 }
 

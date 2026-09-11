@@ -9,6 +9,7 @@
   "navDuel": "التحدي",
   "navLeaderboard": "الترتيب",
   "navHomeTurf": "أرضي",
+  "navFriends": "الأصدقاء",
   "navProfile": "حسابي",
 
   "splashChecking": "جارٍ التحقق من الاتصال...",
@@ -191,6 +192,43 @@
   "playerProfileHeadToHeadTitle": "سجلك",
   "playerProfileNeverPlayed": "لم تبارزه بعد",
 
+  "friendsTitle": "الأصدقاء",
+  "friendsSearchHint": "ابحث عن لاعبين",
+  "friendsSearchNoResults": "لم يتم العثور على لاعبين",
+  "friendsSendRequest": "إضافة صديق",
+  "friendsRequestSent": "تم إرسال الطلب",
+  "friendsRequestReceivedHint": "تحقق من طلباتك",
+  "friendsChallenge": "تحدَّ",
+  "friendsRequestsTitle": "طلبات الصداقة",
+  "friendsMyFriendsTitle": "الأصدقاء",
+  "friendsNoFriends": "لم تُضِف أي أصدقاء بعد — ابحث عن لاعبين أعلاه للبدء.",
+  "friendsRequestBody": "{name} يريد إضافتك كصديق.",
+  "@friendsRequestBody": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "friendsOnline": "متصل الآن",
+  "friendsLastSeenUnknown": "غير متصل",
+  "friendsLastSeenMinutes": "آخر ظهور قبل {minutes} دقيقة",
+  "@friendsLastSeenMinutes": {
+    "placeholders": {"minutes": {"type": "int"}}
+  },
+  "friendsLastSeenHours": "آخر ظهور قبل {hours} ساعة",
+  "@friendsLastSeenHours": {
+    "placeholders": {"hours": {"type": "int"}}
+  },
+  "friendsLastSeenDays": "آخر ظهور قبل {days} يوم",
+  "@friendsLastSeenDays": {
+    "placeholders": {"days": {"type": "int"}}
+  },
+  "friendsLastSeenLongAgo": "آخر ظهور منذ فترة",
+
+  "notificationsTitle": "الإشعارات",
+  "notificationsEmpty": "لا توجد إشعارات بعد",
+  "notificationsChallengeBody": "{name} تحداك في لعبة تحدي معلومات.",
+  "@notificationsChallengeBody": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+
   "commonLoading": "جارِ التحميل...",
   "commonRetry": "إعادة المحاولة",
   "commonCancel": "إلغاء",
@@ -198,6 +236,8 @@
   "commonSettings": "الإعدادات",
   "commonDelete": "حذف",
   "commonConfirm": "تأكيد",
+  "commonAccept": "قبول",
+  "commonDecline": "رفض",
   "commonError": "حدث خطأ ما",
   "commonSeconds": "ث"
 }

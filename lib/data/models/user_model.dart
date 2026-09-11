@@ -25,6 +25,7 @@ class UserModel extends Equatable {
     required this.createdAt,
     this.locale = 'en',
     this.categoryWins = const {},
+    this.lastActiveAt,
   });
 
   final String uid;
@@ -44,6 +45,13 @@ class UserModel extends Equatable {
   /// `updatePlayerAfterDuel` alongside the global `wins` counter. Absent for
   /// any category this player hasn't won a duel in yet — see [winsInCategory].
   final Map<String, int> categoryWins;
+
+  /// Stamped by the client itself via `FriendsRepository.updatePresence`,
+  /// not a Cloud Function — see the narrow presence-only path in
+  /// `firestore.rules`. Null until this player's first heartbeat. "Online"
+  /// is derived from this (recent enough), not stored as its own flag — see
+  /// `core/utils/presence.dart`.
+  final DateTime? lastActiveAt;
 
   int get totalDuels => wins + losses;
 
@@ -67,6 +75,7 @@ class UserModel extends Equatable {
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       locale: data['locale'] as String? ?? 'en',
       categoryWins: _parseCategoryWins(data['categoryStats']),
+      lastActiveAt: (data['lastActiveAt'] as Timestamp?)?.toDate(),
     );
   }
 
@@ -119,6 +128,7 @@ class UserModel extends Equatable {
     List<String>? ownedCategoryIds,
     String? locale,
     Map<String, int>? categoryWins,
+    DateTime? lastActiveAt,
   }) {
     return UserModel(
       uid: uid,
@@ -134,6 +144,7 @@ class UserModel extends Equatable {
       createdAt: createdAt,
       locale: locale ?? this.locale,
       categoryWins: categoryWins ?? this.categoryWins,
+      lastActiveAt: lastActiveAt ?? this.lastActiveAt,
     );
   }
 
@@ -152,5 +163,6 @@ class UserModel extends Equatable {
     createdAt,
     locale,
     categoryWins,
+    lastActiveAt,
   ];
 }

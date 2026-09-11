@@ -83,6 +83,17 @@ class CloudFunctionsService {
     return (result.data as Map)['categoryId'] as String;
   }
 
+  Future<void> sendFriendRequest({required String toUserId}) async {
+    await _functions.httpsCallable('sendFriendRequest').call({'toUserId': toUserId});
+  }
+
+  Future<void> respondToFriendRequest({required String otherUserId, required bool accept}) async {
+    await _functions.httpsCallable('respondToFriendRequest').call({
+      'otherUserId': otherUserId,
+      'accept': accept,
+    });
+  }
+
   Future<void> addHomeTurfQuestion({
     required String categoryId,
     required String questionText,

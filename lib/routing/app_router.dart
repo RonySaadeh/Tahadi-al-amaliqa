@@ -8,10 +8,12 @@ import '../features/duel/screens/duel_intro_screen.dart';
 import '../features/duel/screens/duel_lobby_screen.dart';
 import '../features/duel/screens/duel_result_screen.dart';
 import '../features/duel/screens/live_duel_screen.dart';
+import '../features/friends/screens/friends_screen.dart';
 import '../features/home/screens/home_screen.dart';
 import '../features/home_turf/screens/category_detail_screen.dart';
 import '../features/home_turf/screens/home_turf_screen.dart';
 import '../features/leaderboard/screens/leaderboard_screen.dart';
+import '../features/notifications/screens/notifications_screen.dart';
 import '../features/profile/screens/player_profile_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
 import '../features/splash/screens/splash_screen.dart';
@@ -31,6 +33,8 @@ class AppRoutes {
   static const String homeTurfCategory = '/home-turf/:categoryId';
   static const String profile = '/profile';
   static const String playerProfile = '/players/:uid';
+  static const String friends = '/friends';
+  static const String notifications = '/notifications';
   static const String duelIntro = '/duel/:duelId/intro';
   static const String liveDuel = '/duel/:duelId/live';
   static const String duelResult = '/duel/:duelId/result';
@@ -125,6 +129,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.playerProfile,
             builder: (context, state) => PlayerProfileScreen(uid: state.pathParameters['uid']!),
+          ),
+          GoRoute(path: AppRoutes.friends, builder: (context, state) => const FriendsScreen()),
+          GoRoute(
+            path: AppRoutes.notifications,
+            builder: (context, state) => const NotificationsScreen(),
           ),
         ],
       ),

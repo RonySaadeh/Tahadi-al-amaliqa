@@ -11,7 +11,7 @@ import '../core/widgets/branded_loading_indicator.dart';
 import '../l10n/app_localizations.dart';
 import 'app_router.dart';
 
-/// The nav scaffold wrapping the 5 main tabs. Full-screen flows (live duel,
+/// The nav scaffold wrapping the 6 main tabs. Full-screen flows (live duel,
 /// results) deliberately live outside this shell — see `app_router.dart`.
 ///
 /// The nav itself is width-adaptive: a bottom bar on a phone, a side
@@ -36,6 +36,7 @@ class AppShell extends ConsumerWidget {
     AppRoutes.duelLobby,
     AppRoutes.leaderboard,
     AppRoutes.homeTurf,
+    AppRoutes.friends,
     AppRoutes.profile,
   ];
 
@@ -50,6 +51,10 @@ class AppShell extends ConsumerWidget {
     final location = GoRouterState.of(context).matchedLocation;
     final currentIndex = _indexForLocation(location);
 
+    // Keeps the signed-in player's presence heartbeat alive for as long as
+    // they're anywhere in the main app shell — see `presenceControllerProvider`.
+    ref.watch(presenceControllerProvider);
+
     final connectivityAsync = ref.watch(connectivityStatusProvider);
     final isOffline =
         connectivityAsync.hasValue && connectivityAsync.value == false;
@@ -61,6 +66,7 @@ class AppShell extends ConsumerWidget {
       (icon: Icons.bolt_rounded, label: l10n.navDuel),
       (icon: Icons.leaderboard_rounded, label: l10n.navLeaderboard),
       (icon: Icons.flag_rounded, label: l10n.navHomeTurf),
+      (icon: Icons.people_alt_rounded, label: l10n.navFriends),
       (icon: Icons.person_rounded, label: l10n.navProfile),
     ];
 

@@ -1,6 +1,6 @@
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { db, FieldValue } from "../lib/admin";
-import { DuelInviteStatus } from "../lib/types";
+import { DuelInviteStatus, NotificationDoc } from "../lib/types";
 import { createDuelForPlayers } from "./createDuel";
 
 /** Player A challenging a specific friend (as opposed to the open-lobby
@@ -36,15 +36,30 @@ export const sendDuelChallenge = onCall(async (request) => {
   const categoryName: string =
     senderLocale === "en" && category.nameEn ? category.nameEn : (category.name ?? "");
 
-  await db.collection("duelInvites").add({
+  const inviteRef = db.collection("duelInvites").doc();
+  const fromDisplayName: string = fromUserSnap.data()?.displayName ?? "";
+  const batch = db.batch();
+  batch.set(inviteRef, {
     fromUserId: uid,
-    fromDisplayName: fromUserSnap.data()?.displayName ?? "",
+    fromDisplayName,
     toUserId,
     categoryId,
     categoryName,
     status: "pending" satisfies DuelInviteStatus,
     createdAt: FieldValue.serverTimestamp(),
   });
+  // Same notification inbox `sendFriendRequest` writes to — see
+  // `social/friends.ts` and `firestore.rules`.
+  batch.set(db.collection("notifications").doc(), {
+    userId: toUserId,
+    type: "duel_challenge",
+    fromUserId: uid,
+    fromDisplayName,
+    relatedId: inviteRef.id,
+    read: false,
+    createdAt: FieldValue.serverTimestamp(),
+  } satisfies NotificationDoc);
+  await batch.commit();
 
   return { success: true };
 });

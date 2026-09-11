@@ -9,6 +9,8 @@ export type RoundStatus = "active" | "resolved";
 export type QuestionDifficulty = "easy" | "medium" | "hard";
 export type QuestionSource = "api" | "llm" | "user";
 export type DuelInviteStatus = "pending" | "accepted" | "declined" | "expired";
+export type FriendshipStatus = "pending" | "accepted" | "declined";
+export type NotificationType = "friend_request" | "duel_challenge";
 
 export interface QuestionDoc {
   categoryId: string;
@@ -79,4 +81,43 @@ export interface UserDoc {
   ownedCategoryIds: string[];
   createdAt: FirebaseFirestore.FieldValue | FirebaseFirestore.Timestamp;
   locale: string;
+  /** Stamped by the client itself (see `firestore.rules`'s narrow
+   * presence-only update path), not a Cloud Function — a lightweight
+   * heartbeat, not a trust-sensitive field. Absent until a client's first
+   * heartbeat. "Online" is derived from this (recent enough), not stored as
+   * its own boolean, since Firestore has no `onDisconnect` to keep a boolean
+   * honest. */
+  lastActiveAt?: FirebaseFirestore.FieldValue | FirebaseFirestore.Timestamp | null;
+}
+
+/** One doc per unordered pair of users, id = sorted `${uidA}_${uidB}` (see
+ * `friendshipId` in `social/friends.ts`) — the same trick
+ * `leaderboardPairings` uses, so a duplicate request or duplicate friendship
+ * between the same two people is structurally impossible: there is only
+ * ever one document for that pair. */
+export interface FriendshipDoc {
+  uidA: string;
+  uidB: string;
+  fromUserId: string;
+  fromDisplayName: string;
+  toUserId: string;
+  status: FriendshipStatus;
+  createdAt: FirebaseFirestore.FieldValue | FirebaseFirestore.Timestamp;
+  respondedAt: FirebaseFirestore.FieldValue | FirebaseFirestore.Timestamp | null;
+}
+
+/** A user's in-app inbox entry. Created only by Cloud Functions as a side
+ * effect of the real action (`sendFriendRequest`, `sendDuelChallenge`);
+ * `read` is the one field a client may update directly — see
+ * `firestore.rules`. */
+export interface NotificationDoc {
+  userId: string;
+  type: NotificationType;
+  fromUserId: string;
+  fromDisplayName: string;
+  /** The `friendships` or `duelInvites` doc id this notification is about,
+   * so its Accept/Decline buttons can act on the real thing directly. */
+  relatedId: string;
+  read: boolean;
+  createdAt: FirebaseFirestore.FieldValue | FirebaseFirestore.Timestamp;
 }

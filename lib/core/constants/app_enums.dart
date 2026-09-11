@@ -70,3 +70,29 @@ enum DuelInviteStatus {
     );
   }
 }
+
+enum FriendshipStatus {
+  pending,
+  accepted,
+  declined;
+
+  static FriendshipStatus fromString(String value) {
+    return FriendshipStatus.values.firstWhere(
+      (e) => e.name == value,
+      orElse: () => FriendshipStatus.pending,
+    );
+  }
+}
+
+enum NotificationType {
+  friendRequest,
+  duelChallenge;
+
+  static NotificationType fromString(String value) {
+    return switch (value) {
+      'friend_request' => NotificationType.friendRequest,
+      'duel_challenge' => NotificationType.duelChallenge,
+      _ => NotificationType.friendRequest,
+    };
+  }
+}

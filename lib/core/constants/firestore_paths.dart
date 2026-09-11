@@ -17,6 +17,8 @@ class FirestorePaths {
   static const String duelInvites = 'duelInvites';
   static const String openLobbies = 'openLobbies';
   static const String leaderboardPairings = 'leaderboardPairings';
+  static const String friendships = 'friendships';
+  static const String notifications = 'notifications';
 
   static String duelRounds(String duelId) => '$duels/$duelId/$rounds';
 
