@@ -52,23 +52,17 @@ class DuelRepository {
 
   /// Recent duels involving [uid], most recent first. Used on the home
   /// screen's "recent duels" list and the profile screen's history.
+  ///
+  /// A single `array-contains` query against `participantIds`
+  /// (`== [player1Id, player2Id]`, written by `createDuelForPlayers`) rather
+  /// than separate `player1Id`/`player2Id` queries merged client-side:
+  /// Firestore refuses a `list` query against a rule that ORs two different
+  /// `resource.data` fields when the query only filters one of them (it
+  /// can't prove every possible result satisfies the untested field) — see
+  /// the read rule on `duels` in `firestore.rules`.
   Stream<List<DuelModel>> watchRecentDuelsFor(String uid, {int limit = 10}) {
     return _firestore.duels
-        .where('player1Id', isEqualTo: uid)
-        .orderBy('createdAt', descending: true)
-        .limit(limit)
-        .snapshots()
-        .map((snap) => snap.docs.map(DuelModel.fromFirestore).toList());
-    // NOTE: this only covers duels where the user is player1. Firestore
-    // can't OR two different-field equality clauses in one query without a
-    // composite index + array trick. The pragmatic fix used by
-    // `duel_controller.dart` is to merge this with a second query on
-    // `player2Id` client-side. See that controller for the merge logic.
-  }
-
-  Stream<List<DuelModel>> watchRecentDuelsAsPlayerTwo(String uid, {int limit = 10}) {
-    return _firestore.duels
-        .where('player2Id', isEqualTo: uid)
+        .where('participantIds', arrayContains: uid)
         .orderBy('createdAt', descending: true)
         .limit(limit)
         .snapshots()

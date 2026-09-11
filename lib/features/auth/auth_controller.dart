@@ -72,6 +72,7 @@ class AuthController extends Notifier<AsyncValue<void>> {
     await userRepository.createInitialProfile(
       UserModel(
         uid: user.uid,
+        playerId: UserModel.generatePlayerId(),
         displayName: user.displayName ?? fallbackDisplayName ?? user.email?.split('@').first ?? 'Player',
         email: user.email ?? '',
         photoUrl: user.photoURL,

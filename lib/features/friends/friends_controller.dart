@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/app_enums.dart';
@@ -7,19 +5,15 @@ import '../../core/providers/core_providers.dart';
 import '../../data/models/friendship_model.dart';
 import '../../data/models/user_model.dart';
 
-/// Every friendship/request doc touching the signed-in player, merged from
-/// the two possible directions (Firestore can't OR two different-field
-/// equality clauses in one query — same reasoning as
-/// `duel_controller.dart`'s recent-duels merge) and kept live. Everything
-/// else below just filters this one stream, so the friends list, incoming
-/// requests, and "have I already asked this person" all agree with each
-/// other by construction.
+/// Every friendship/request doc touching the signed-in player, kept live.
+/// Everything else below just filters this one stream, so the friends list,
+/// incoming requests, and "have I already asked this person" all agree with
+/// each other by construction.
 final myFriendshipsProvider = StreamProvider<List<FriendshipModel>>((ref) {
   final myUid = ref.watch(currentUserIdProvider);
   if (myUid == null) return const Stream.empty();
 
-  final repo = ref.watch(friendsRepositoryProvider);
-  return _mergeFriendships(repo.watchFriendshipsSentBy(myUid), repo.watchFriendshipsReceivedBy(myUid));
+  return ref.watch(friendsRepositoryProvider).watchMyFriendships(myUid);
 });
 
 /// Accepted friendships only, newest-accepted first.
@@ -105,39 +99,3 @@ class FriendsController extends Notifier<AsyncValue<void>> {
 final friendsControllerProvider = NotifierProvider<FriendsController, AsyncValue<void>>(
   FriendsController.new,
 );
-
-Stream<List<FriendshipModel>> _mergeFriendships(
-  Stream<List<FriendshipModel>> a,
-  Stream<List<FriendshipModel>> b,
-) {
-  late final StreamController<List<FriendshipModel>> controller;
-  List<FriendshipModel> latestA = const [];
-  List<FriendshipModel> latestB = const [];
-  StreamSubscription<List<FriendshipModel>>? subA;
-  StreamSubscription<List<FriendshipModel>>? subB;
-
-  void emitMerged() {
-    final merged = {for (final f in [...latestA, ...latestB]) f.id: f}.values.toList()
-      ..sort((x, y) => y.createdAt.compareTo(x.createdAt));
-    controller.add(merged);
-  }
-
-  controller = StreamController<List<FriendshipModel>>.broadcast(
-    onListen: () {
-      subA = a.listen((value) {
-        latestA = value;
-        emitMerged();
-      });
-      subB = b.listen((value) {
-        latestB = value;
-        emitMerged();
-      });
-    },
-    onCancel: () {
-      subA?.cancel();
-      subB?.cancel();
-    },
-  );
-
-  return controller.stream;
-}

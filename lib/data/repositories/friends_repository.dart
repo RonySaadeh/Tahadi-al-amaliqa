@@ -17,42 +17,60 @@ class FriendsRepository {
   final FirestoreService _firestore;
   final CloudFunctionsService _cloudFunctions;
 
-  /// Every friendship/request [uid] originally sent. Merge with
-  /// [watchFriendshipsReceivedBy] (see `friends_controller.dart`) for the
-  /// complete picture — Firestore can't OR two different-field equality
-  /// clauses in one query, same reasoning as `DuelRepository`'s recent-duels
-  /// split.
-  Stream<List<FriendshipModel>> watchFriendshipsSentBy(String uid) {
-    return _firestore.friendships
-        .where('fromUserId', isEqualTo: uid)
-        .snapshots()
-        .map((snap) => snap.docs.map(FriendshipModel.fromFirestore).toList());
+  /// Every friendship/request touching [uid], newest first. A single
+  /// `array-contains` query against `participantIds` (`== [uidA, uidB]`,
+  /// written by `sendFriendRequest`) rather than two separate
+  /// `fromUserId`/`toUserId` queries merged client-side: Firestore refuses a
+  /// `list` query against a rule that ORs two different `resource.data`
+  /// fields when the query only filters one of them (it can't prove every
+  /// possible result satisfies the untested field) — see the read rule on
+  /// `friendships` in `firestore.rules`.
+  Stream<List<FriendshipModel>> watchMyFriendships(String uid) {
+    return _firestore.friendships.where('participantIds', arrayContains: uid).snapshots().map((snap) {
+      final list = snap.docs.map(FriendshipModel.fromFirestore).toList();
+      list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return list;
+    });
   }
 
-  Stream<List<FriendshipModel>> watchFriendshipsReceivedBy(String uid) {
-    return _firestore.friendships
-        .where('toUserId', isEqualTo: uid)
-        .snapshots()
-        .map((snap) => snap.docs.map(FriendshipModel.fromFirestore).toList());
-  }
-
-  /// Prefix search on `displayName` — the only "browse users" query
-  /// Firestore's native indexing supports without a full-text search
-  /// service (there's none set up in this app). Case-sensitive: matches
-  /// only names that start with [query] exactly as typed. Excludes [myUid]
-  /// so you never find yourself in your own search.
+  /// Finds players by exact Player ID or by a case-insensitive name prefix,
+  /// merging both into one deduped result list (excluding [myUid]).
+  ///
+  /// Three queries run in parallel:
+  /// - `playerId` exact match, normalized the same way [UserModel] generates
+  ///   codes (dashes/spaces stripped, uppercased) — lets one player find
+  ///   another by the code on their profile without knowing their name.
+  /// - `displayNameLower` prefix match — case-insensitive, but only finds
+  ///   accounts created (or renamed) after this field was introduced.
+  /// - `displayName` prefix match — the original field, case-sensitive, kept
+  ///   as a fallback so older accounts without `displayNameLower` are still
+  ///   findable by a correctly-cased name.
   Future<List<UserModel>> searchUsers({required String query, required String myUid}) async {
     final trimmed = query.trim();
     if (trimmed.isEmpty) return [];
 
-    final snap = await _firestore.users
-        .orderBy('displayName')
-        .startAt([trimmed])
-        .endAt(['$trimmed'])
-        .limit(20)
-        .get();
+    final normalizedId = trimmed.toUpperCase().replaceAll(RegExp(r'[\s-]'), '');
+    final lowerName = trimmed.toLowerCase();
 
-    return snap.docs.map(UserModel.fromFirestore).where((u) => u.uid != myUid).toList();
+    final snapshots = await Future.wait([
+      _firestore.users.where('playerId', isEqualTo: normalizedId).limit(1).get(),
+      _firestore.users
+          .orderBy('displayNameLower')
+          .startAt([lowerName])
+          .endAt(['$lowerName\uf8ff'])
+          .limit(20)
+          .get(),
+      _firestore.users.orderBy('displayName').startAt([trimmed]).endAt(['$trimmed\uf8ff']).limit(20).get(),
+    ]);
+
+    final byUid = <String, UserModel>{};
+    for (final snap in snapshots) {
+      for (final doc in snap.docs) {
+        final user = UserModel.fromFirestore(doc);
+        if (user.uid != myUid) byUid[user.uid] = user;
+      }
+    }
+    return byUid.values.toList();
   }
 
   Future<void> sendFriendRequest({required String toUserId}) {

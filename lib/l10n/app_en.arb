@@ -184,6 +184,8 @@
   },
   "profileOwnedCategories": "Owned categories",
   "profileEditName": "Edit name",
+  "profilePlayerIdLabel": "Player ID",
+  "profilePlayerIdCopied": "Player ID copied",
   "profileLanguage": "Language",
   "profileLanguageArabic": "العربية",
   "profileLanguageEnglish": "English",
@@ -191,7 +193,7 @@
   "playerProfileNeverPlayed": "You haven't dueled yet",
 
   "friendsTitle": "Friends",
-  "friendsSearchHint": "Search for players",
+  "friendsSearchHint": "Search by name or Player ID",
   "friendsSearchNoResults": "No players found",
   "friendsSendRequest": "Add Friend",
   "friendsRequestSent": "Request Sent",

@@ -36,13 +36,21 @@ service cloud.firestore {
         && request.resource.data.losses == 0
         && request.resource.data.currentStreak == 0
         && request.resource.data.bestStreak == 0
-        && request.resource.data.ownedCategoryIds.size() == 0;
+        && request.resource.data.ownedCategoryIds.size() == 0
+        // `displayNameLower` backs the case-insensitive prefix search in
+        // `FriendsRepository.searchUsers` — kept honest here so a client
+        // can't index itself under a name it doesn't actually have.
+        && request.resource.data.displayNameLower == request.resource.data.displayName.lower();
 
       allow update: if isSignedIn()
         && request.auth.uid == uid
         && (
           request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['displayName', 'photoUrl', 'locale'])
+            .hasOnly(['displayName', 'displayNameLower', 'photoUrl', 'locale'])
+          && (
+            !request.resource.data.diff(resource.data).affectedKeys().hasAny(['displayName', 'displayNameLower'])
+            || request.resource.data.displayNameLower == request.resource.data.displayName.lower()
+          )
           // Presence heartbeat: its own narrow path, separate from the
           // profile-edit path above, and only ever the server's own clock —
           // `== request.time` stops a client from writing an arbitrary
@@ -50,6 +58,17 @@ service cloud.firestore {
           || (
             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastActiveAt'])
             && request.resource.data.lastActiveAt == request.time
+          )
+          // One-time self-heal for an account created before `playerId`
+          // existed (see `UserModel.legacyBackfillFields`): only writable
+          // while `playerId` is still absent, so this path closes itself
+          // after the first successful write.
+          || (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['playerId', 'displayNameLower'])
+            && !('playerId' in resource.data)
+            && request.resource.data.playerId is string
+            && request.resource.data.playerId.size() > 0
+            && request.resource.data.displayNameLower == resource.data.displayName.lower()
           )
         );
 
@@ -95,8 +114,15 @@ service cloud.firestore {
     // otherwise a player could peek at Firestore and read their opponent's
     // submitted answer before submitting their own.
     match /duels/{duelId} {
-      allow read: if isSignedIn()
-        && (request.auth.uid == resource.data.player1Id || request.auth.uid == resource.data.player2Id);
+      // Checks `participantIds` (== `[player1Id, player2Id]`) rather than
+      // ORing `player1Id`/`player2Id` directly: Firestore refuses a `list`
+      // query against a rule that ORs two different `resource.data` fields
+      // when the query itself only filters one of them — it can't prove
+      // every possible result satisfies the untested field. A single array
+      // membership check against a query that filters the *same* field
+      // (`array-contains`) is provably safe, so this is what
+      // `watchRecentDuelsFor` in `duel_repository.dart` queries against.
+      allow read: if isSignedIn() && request.auth.uid in resource.data.participantIds;
       allow write: if false;
 
       match /rounds/{roundNumber} {
@@ -143,8 +169,11 @@ service cloud.firestore {
     // people in the pair can read it. Written only by
     // `sendFriendRequest`/`respondToFriendRequest`.
     match /friendships/{pairingId} {
-      allow read: if isSignedIn()
-        && (request.auth.uid == resource.data.fromUserId || request.auth.uid == resource.data.toUserId);
+      // Same `participantIds` array-membership trick as `duels` above, and
+      // for the same reason — this used to OR `fromUserId`/`toUserId`
+      // directly, which Firestore silently refuses for a `list` query that
+      // only filters one of those two fields.
+      allow read: if isSignedIn() && request.auth.uid in resource.data.participantIds;
       allow write: if false;
     }
 
