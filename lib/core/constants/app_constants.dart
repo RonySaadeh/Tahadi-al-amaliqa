@@ -26,9 +26,10 @@ class AppConstants {
   static const int eloKFactor = 32;
 
   /// Minimum time the splash screen stays up on a cold start, even if auth
-  /// and connectivity resolve instantly — long enough to read as a
-  /// deliberate branded loading moment, short enough to never feel slow.
-  static const int splashMinDurationMs = 900;
+  /// and connectivity resolve instantly — long enough for the logo entrance
+  /// animation to actually finish and read as a deliberate branded moment,
+  /// short enough to never feel slow.
+  static const int splashMinDurationMs = 2200;
 
   /// How often a client in an active duel pings the `heartbeat` callable —
   /// mirrors `functions/src/lib/constants.ts`.

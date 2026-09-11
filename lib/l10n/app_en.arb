@@ -11,8 +11,7 @@
   "navProfile": "Profile",
 
   "splashChecking": "Checking your connection...",
-  "splashNoConnectionTitle": "No internet connection",
-  "splashNoConnectionMessage": "You need an internet connection to sign in. Check your wifi or mobile data and try again.",
+  "splashOffline": "No Internet Connection, Retrying...",
 
   "appOfflineMessage": "You're offline — waiting to reconnect...",
 

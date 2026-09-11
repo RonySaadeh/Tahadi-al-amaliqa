@@ -67,8 +67,9 @@ final currentUserIdProvider = Provider<String?>((ref) {
 /// Whether the device currently has real internet access (not just a radio
 /// connected to something — see `ConnectivityService`). Emits an immediate
 /// initial check, then live updates as the network changes. Used by the
-/// router to hold signed-out users on the splash screen instead of showing
-/// a login form that has nothing to talk to.
+/// router to hold every cold start on the splash screen — signed in or not
+/// — until the device is actually online, instead of letting a
+/// disconnected device through to a login form or an app it can't talk to.
 final connectivityStatusProvider = StreamProvider<bool>((ref) async* {
   final service = ref.watch(connectivityServiceProvider);
   yield await service.checkConnection();

@@ -61,26 +61,23 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final minDurationElapsed = ref.read(splashMinDurationElapsedProvider).value == true;
       if (isGoingToSplash && !minDurationElapsed) return null;
 
-      // Signed-in sessions never wait on a connectivity check here — this
-      // gate exists to stop a *signed-out* user from being shown a login
-      // form with no internet to submit it to, not to re-litigate an
-      // already-authenticated session every time the radio blips. Once
-      // inside the app, Firestore's own offline cache carries a real
-      // session through a momentary drop, and `AppShell` shows its own
-      // "reconnecting" loading screen for that case — see
-      // `app_shell.dart`.
+      // Every cold start — signed in or not — is held on the splash screen
+      // until the device has real internet access. This only gates *entry*
+      // to the app: a session that already made it past this check and is
+      // now inside the app relies on Firestore's own offline cache to ride
+      // out a momentary drop, with `AppShell` showing its own "reconnecting"
+      // loading screen for that case instead of bouncing back to splash —
+      // see `app_shell.dart`.
+      final isConnected = ref.read(connectivityStatusProvider).value;
+      if (isConnected != true) {
+        return isGoingToSplash ? null : AppRoutes.splash;
+      }
+
       if (isSignedIn) {
         if (minDurationElapsed && (isGoingToSplash || isGoingToWelcome)) return AppRoutes.home;
         return null;
       }
 
-      // Signed out: hold on the splash screen until we know the device has
-      // real internet access, instead of ever showing the welcome/login
-      // form when it has nothing to reach.
-      final isConnected = ref.read(connectivityStatusProvider).value;
-      if (isConnected != true) {
-        return isGoingToSplash ? null : AppRoutes.splash;
-      }
       if (!isGoingToWelcome) return AppRoutes.welcome;
       return null;
     },
