@@ -131,5 +131,12 @@ class DuelModel extends Equatable {
     createdAt,
     startedAt,
     completedAt,
+    // Load-bearing: a heartbeat is often the *only* field that changes
+    // between two snapshots of an active duel. Leaving these out made those
+    // snapshots compare equal, so `duelStreamProvider` deduplicated them
+    // away and `DuelPresenceController` read a permanently frozen
+    // `lastSeenAt` — making both players look disconnected to each other.
+    player1LastSeenAt,
+    player2LastSeenAt,
   ];
 }

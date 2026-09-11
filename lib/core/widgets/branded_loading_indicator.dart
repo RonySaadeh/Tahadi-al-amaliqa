@@ -6,13 +6,17 @@ import '../theme/app_spacing.dart';
 
 /// The app's replacement for a bare `CircularProgressIndicator`: a pulsing
 /// gold trophy glyph with an optional message underneath. Used for
-/// matchmaking ("Searching for a match..."), question generation, and any
-/// other spinner moment so it still feels like this app instead of a
-/// generic form.
+/// matchmaking, question generation, and any other spinner moment so it
+/// still feels like this app instead of a generic form.
+///
+/// Set [onDark] when placing it on an arena field — the message color has to
+/// flip, and a dark-on-dark caption is the single easiest way to lose a
+/// loading state entirely.
 class BrandedLoadingIndicator extends StatelessWidget {
-  const BrandedLoadingIndicator({super.key, this.message});
+  const BrandedLoadingIndicator({super.key, this.message, this.onDark = false});
 
   final String? message;
+  final bool onDark;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +38,13 @@ class BrandedLoadingIndicator extends StatelessWidget {
             ),
         if (message != null) ...[
           const SizedBox(height: AppSpacing.md),
-          Text(message!, style: Theme.of(context).textTheme.bodyMedium, textAlign: TextAlign.center),
+          Text(
+            message!,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: onDark ? AppColors.onArenaMuted : AppColors.textSecondary,
+            ),
+          ),
         ],
       ],
     );

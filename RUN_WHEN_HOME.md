@@ -60,6 +60,9 @@ flutter run
   → run `flutter pub get` (generates localizations) and `flutterfire
   configure` (generates firebase_options.dart) — see above.
 - Cloud Function changes not showing up → `cd functions && npm run build`
-  then redeploy (`firebase deploy --only functions`) or restart the
-  emulator.
+  then redeploy (`FUNCTIONS_DISCOVERY_TIMEOUT=120 firebase deploy --only
+  functions`) or restart the emulator. Run `firebase functions:list`
+  afterwards and confirm all 10 are there — a deploy that fails discovery
+  leaves the previous ones live, so the app carries on against a backend
+  quietly missing your newest functions. See SETUP.md § 7.
 - Anything else → `SETUP.md` → Troubleshooting.

@@ -36,7 +36,9 @@ dependencies:
   intl: ^0.20.2
 
   # --- Design system / UI polish ---
-  google_fonts: ^6.3.2 # Cairo (Arabic+Latin) for the whole app
+  # NOTE: no google_fonts. Titan One / Outfit / Tajawal are bundled as real
+  # assets under `fonts:` below so the brand type can never fall back to
+  # Roboto because a runtime font fetch failed.
   flutter_animate: ^4.5.2 # declarative micro-interaction animations (reveals, shakes, popups)
   shimmer: ^3.0.0 # branded skeleton loading states
   confetti: ^0.8.0 # duel-won celebration
@@ -62,3 +64,30 @@ flutter:
 
   assets:
     - assets/images/
+
+  # Bundled rather than fetched at runtime by google_fonts. The brand rests
+  # on Titan One specifically — a failed font fetch on a cold, flaky first
+  # launch would silently drop the whole identity back to Roboto, and it
+  # would look like a broken app rather than a slow one. See AppTypography.
+  fonts:
+    - family: Titan One
+      fonts:
+        - asset: assets/fonts/TitanOne-Regular.ttf
+    # Outfit ships only as a variable font. Flutter picks the file but does
+    # not map `fontWeight` onto the `wght` axis on its own, so AppTypography
+    # passes an explicit FontVariation alongside every weight it sets.
+    - family: Outfit
+      fonts:
+        - asset: assets/fonts/Outfit-Variable.ttf
+    - family: Tajawal
+      fonts:
+        - asset: assets/fonts/Tajawal-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Tajawal-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Tajawal-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Tajawal-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/Tajawal-Black.ttf
+          weight: 900

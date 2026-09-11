@@ -46,7 +46,8 @@ class AppShell extends ConsumerWidget {
     final currentIndex = _indexForLocation(location);
 
     final connectivityAsync = ref.watch(connectivityStatusProvider);
-    final isOffline = connectivityAsync.hasValue && connectivityAsync.value == false;
+    final isOffline =
+        connectivityAsync.hasValue && connectivityAsync.value == false;
 
     return Scaffold(
       body: isOffline ? _OfflineLoading(l10n: l10n) : child,
@@ -54,11 +55,26 @@ class AppShell extends ConsumerWidget {
         currentIndex: currentIndex,
         onTap: (index) => context.go(_tabs[index]),
         items: [
-          BottomNavigationBarItem(icon: const Icon(Icons.home_rounded), label: l10n.navHome),
-          BottomNavigationBarItem(icon: const Icon(Icons.bolt_rounded), label: l10n.navDuel),
-          BottomNavigationBarItem(icon: const Icon(Icons.leaderboard_rounded), label: l10n.navLeaderboard),
-          BottomNavigationBarItem(icon: const Icon(Icons.flag_rounded), label: l10n.navHomeTurf),
-          BottomNavigationBarItem(icon: const Icon(Icons.person_rounded), label: l10n.navProfile),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.home_rounded),
+            label: l10n.navHome,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.bolt_rounded),
+            label: l10n.navDuel,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.leaderboard_rounded),
+            label: l10n.navLeaderboard,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.flag_rounded),
+            label: l10n.navHomeTurf,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.person_rounded),
+            label: l10n.navProfile,
+          ),
         ],
       ),
     );
@@ -87,7 +103,11 @@ class _OfflineLoading extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.wifi_off_rounded, size: 56, color: AppColors.warning),
+                const Icon(
+                  Icons.wifi_off_rounded,
+                  size: 56,
+                  color: AppColors.warning,
+                ),
                 const SizedBox(height: AppSpacing.lg),
                 BrandedLoadingIndicator(message: l10n.appOfflineMessage),
               ],

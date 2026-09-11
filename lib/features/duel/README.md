@@ -86,22 +86,41 @@ providers are not tied to the widget tree).
 
 ## Losing connection mid-duel
 
-Two players, two very different experiences of the same disconnect:
+Two players, two very different experiences of the same disconnect —
+and `DuelPresenceController` is the *single* place that decides which of
+the two any given device is having. Its `DuelPresenceState` can report a
+self-drop or an opponent-drop but never both, and self always wins:
 
-- **The player who lost their connection** sees this from
-  `LiveDuelScreen`'s own `connectivityStatusProvider` watch — no server
-  round-trip needed, since it's their own device that knows it's offline.
-  `SelfReconnectOverlay` blocks the screen with a local 35-second countdown
-  (`AppConstants.duelReconnectGraceSeconds`) and a manual retry button. It's
-  purely cosmetic bookkeeping on this side — see below for what actually
-  ends the duel.
-- **The still-connected opponent** has no direct way to observe the other
-  player's radio state, so `DuelPresenceController` pings the `heartbeat`
-  callable every `AppConstants.duelHeartbeatIntervalSeconds` while the duel
-  is active, and watches the *opponent's* last heartbeat (mirrored onto the
-  duel doc as `player{1,2}LastSeenAt`). Once it's stale past the same
-  35-second grace period, `OpponentReconnectBanner` shows a countdown and
-  `DuelPresenceController` calls `forfeitDuel` — awarding itself the win.
+- **The player who lost their connection** gets `SelfDisconnectDialog` — a
+  modal pop-up with the 35-second countdown
+  (`AppConstants.duelReconnectGraceSeconds`) and a retry button. This side
+  is cosmetic bookkeeping; see below for what actually ends the duel.
+- **The still-connected opponent** gets `OpponentDisconnectDialog` — a
+  modal pop-up naming the missing player and counting down to the automatic
+  win. `DuelPresenceController` pings the `heartbeat` callable every
+  `AppConstants.duelHeartbeatIntervalSeconds` and watches the *opponent's*
+  last heartbeat (mirrored onto the duel doc as `player{1,2}LastSeenAt`);
+  once it's stale past the grace period it calls `forfeitDuel`.
+
+Three things that look like details but are the whole correctness story:
+
+1. **A device decides it is connected by whether its own `heartbeat` calls
+   land**, not by what `connectivity_plus` reports. A radio can be happily
+   attached to a router that reaches nothing, and it is the server-side
+   heartbeat that the opponent's forfeit gets judged against anyway.
+2. **A device that can't see the world never accuses its opponent.** If our
+   own heartbeats aren't landing, the opponent's heartbeat stops arriving
+   for exactly that reason — so the self branch returns early and the
+   opponent branch is never evaluated. Without this guard, a wobble on one
+   side shows *both* players "your opponent disconnected".
+3. **Staleness compares two readings of the same device's clock** — when we
+   locally last *observed* the opponent's heartbeat advance, never our local
+   clock against a server-stamped timestamp. Phone clocks run minutes off
+   routinely, and comparing across the two made healthy duels look dead.
+   This is also why `DuelModel.props` must include the `lastSeenAt` fields:
+   a heartbeat is frequently the only field that changes between snapshots,
+   and leaving them out of `Equatable` made `duelStreamProvider` dedupe the
+   updates away, freezing presence for both players.
 
 Consistent with "this feature never decides who's right" above: `heartbeat`
 and `forfeitDuel` are both Cloud Functions (`functions/src/scoring/presence.ts`),

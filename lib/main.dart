@@ -49,25 +49,30 @@ class TahadiApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(goRouterProvider);
 
-    // Arabic is the primary/default locale; English is fully supported.
-    // Reflects the signed-in player's stored `locale` preference (see
-    // `features/profile`) once their user doc has loaded — defaults to
-    // Arabic before that, and for a signed-out user. `AppLocalizations` is
-    // generated from lib/l10n/app_*.arb — see l10n.yaml. Flutter
-    // automatically flips the whole widget tree to RTL for Arabic via the
-    // `Directionality` inherited from `Locale`, so individual screens don't
-    // need manual RTL handling.
+    // English is the primary/default locale; Arabic is fully supported and
+    // reachable from the profile's language toggle. Reflects the signed-in
+    // player's stored `locale` preference (see `features/profile`) once
+    // their user doc has loaded — defaults to English before that, and for
+    // a signed-out user. `AppLocalizations` is generated from
+    // lib/l10n/app_*.arb — see l10n.yaml. Flutter automatically flips the
+    // whole widget tree to RTL for Arabic via the `Directionality`
+    // inherited from `Locale`, so individual screens don't need manual RTL
+    // handling.
     final preferredLocale = ref.watch(currentUserProvider).value?.locale;
-    final locale = preferredLocale == 'en'
-        ? const Locale('en')
-        : const Locale('ar');
+    final isArabic = preferredLocale == 'ar';
+    final locale = isArabic ? const Locale('ar') : const Locale('en');
+
+    // Titan One and Outfit have no Arabic glyphs, so the type system swaps
+    // to Tajawal wholesale rather than falling back per-glyph — which means
+    // the theme itself is locale-dependent. See `AppTypography`.
+    final theme = AppTheme.light(isArabic: isArabic);
 
     return MaterialApp.router(
-      title: 'تحدي العمالقة',
+      title: 'Challenge of the Giants',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.dark,
+      theme: theme,
+      darkTheme: theme,
+      themeMode: ThemeMode.light,
       routerConfig: router,
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,

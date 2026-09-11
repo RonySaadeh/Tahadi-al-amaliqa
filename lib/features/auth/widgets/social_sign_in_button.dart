@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_spacing.dart';
 
 /// A pill-shaped outlined button for Google/Apple sign-in, matching the
-/// dark "arena" theme instead of the providers' default light buttons.
+/// app's own button styling instead of the providers' default look.
 class SocialSignInButton extends StatelessWidget {
   const SocialSignInButton({
     super.key,
