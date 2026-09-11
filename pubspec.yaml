@@ -57,6 +57,33 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.3 # generates the launcher icon — see `flutter_launcher_icons:` below
+
+# Generates the app's launcher icon (what shows on the home screen/app
+# drawer after installing the APK — replacing Flutter's default icon) from
+# `assets/images/app_icon.png`, the same violet/gold "G" monogram used
+# in-app (see `GiantsMonogram` in `lib/core/widgets/giants_logo.dart`).
+# `adaptive_icon_foreground`/`adaptive_icon_background` are for Android's
+# adaptive icon system specifically: modern Android launchers mask every
+# icon into a circle/squircle/rounded-square shape of the *launcher's*
+# choosing, so a flat full-bleed image gets its corners clipped
+# unpredictably. Splitting the mark into a padded foreground layer plus a
+# solid background color keeps the badge fully inside that mask regardless
+# of shape, instead of getting cropped in half.
+#
+# This only edits `assets/images/`; it does NOT touch the generated
+# `android`/`ios` folders in this repo (they're gitignored — see
+# `RUN_WHEN_HOME.md`). After `flutter create .` generates those locally,
+# run `flutter pub get && dart run flutter_launcher_icons` once before
+# building the APK to actually generate the icon files from this config.
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/app_icon.png"
+  adaptive_icon_background: "#140E2A"
+  adaptive_icon_foreground: "assets/images/app_icon_foreground.png"
+  min_sdk_android: 21
+  remove_alpha_ios: true
 
 flutter:
   uses-material-design: true
