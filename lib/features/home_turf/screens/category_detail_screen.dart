@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/branded_loading_indicator.dart';
+import '../../../core/widgets/responsive_center.dart';
 import '../../../core/widgets/skeleton_loader.dart';
 import '../../../l10n/app_localizations.dart';
 import '../home_turf_controller.dart';
@@ -132,10 +133,12 @@ class CategoryDetailScreen extends ConsumerWidget {
                 if (questions.isEmpty) {
                   return Center(child: Text(l10n.homeTurfNoCategories));
                 }
-                return ListView.builder(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  itemCount: questions.length,
-                  itemBuilder: (context, index) => QuestionTile(question: questions[index]),
+                return ResponsiveCenter(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    itemCount: questions.length,
+                    itemBuilder: (context, index) => QuestionTile(question: questions[index]),
+                  ),
                 );
               },
               loading: () => const SkeletonList(),

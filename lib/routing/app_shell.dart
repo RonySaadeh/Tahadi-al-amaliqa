@@ -4,15 +4,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/providers/core_providers.dart';
+import '../core/theme/app_breakpoints.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_spacing.dart';
 import '../core/widgets/branded_loading_indicator.dart';
 import '../l10n/app_localizations.dart';
 import 'app_router.dart';
 
-/// The bottom-nav scaffold wrapping the 5 main tabs. Full-screen flows
-/// (live duel, results) deliberately live outside this shell — see
-/// `app_router.dart`.
+/// The nav scaffold wrapping the 5 main tabs. Full-screen flows (live duel,
+/// results) deliberately live outside this shell — see `app_router.dart`.
+///
+/// The nav itself is width-adaptive: a bottom bar on a phone, a side
+/// `NavigationRail` once there's tablet/desktop-web width to spare (see
+/// `AppBreakpoints`) — a bottom bar stretched across a wide browser window
+/// or tablet in landscape reads as a mobile page that never got adapted.
 ///
 /// Also owns the "you're offline" loading screen for an already-signed-in
 /// session: the router deliberately never bounces a signed-in user back to
@@ -49,32 +54,46 @@ class AppShell extends ConsumerWidget {
     final isOffline =
         connectivityAsync.hasValue && connectivityAsync.value == false;
 
+    final body = isOffline ? _OfflineLoading(l10n: l10n) : child;
+
+    final destinations = [
+      (icon: Icons.home_rounded, label: l10n.navHome),
+      (icon: Icons.bolt_rounded, label: l10n.navDuel),
+      (icon: Icons.leaderboard_rounded, label: l10n.navLeaderboard),
+      (icon: Icons.flag_rounded, label: l10n.navHomeTurf),
+      (icon: Icons.person_rounded, label: l10n.navProfile),
+    ];
+
+    if (!context.isCompactWidth) {
+      final extended = context.isExpandedWidth;
+      return Scaffold(
+        body: Row(
+          children: [
+            NavigationRail(
+              selectedIndex: currentIndex,
+              onDestinationSelected: (index) => context.go(_tabs[index]),
+              extended: extended,
+              labelType: extended ? NavigationRailLabelType.none : NavigationRailLabelType.all,
+              destinations: [
+                for (final d in destinations)
+                  NavigationRailDestination(icon: Icon(d.icon), label: Text(d.label)),
+              ],
+            ),
+            const VerticalDivider(width: 1),
+            Expanded(child: body),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
-      body: isOffline ? _OfflineLoading(l10n: l10n) : child,
+      body: body,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: (index) => context.go(_tabs[index]),
         items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.home_rounded),
-            label: l10n.navHome,
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.bolt_rounded),
-            label: l10n.navDuel,
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.leaderboard_rounded),
-            label: l10n.navLeaderboard,
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.flag_rounded),
-            label: l10n.navHomeTurf,
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.person_rounded),
-            label: l10n.navProfile,
-          ),
+          for (final d in destinations)
+            BottomNavigationBarItem(icon: Icon(d.icon), label: d.label),
         ],
       ),
     );

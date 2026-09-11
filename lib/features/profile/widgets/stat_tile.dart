@@ -52,6 +52,8 @@ class StatTile extends StatelessWidget {
           Text(
             value,
             textDirection: TextDirection.ltr,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: theme.textTheme.displaySmall?.copyWith(
               fontSize: isHero ? 34 : 20,
               color: accentColor,
@@ -61,6 +63,8 @@ class StatTile extends StatelessWidget {
           Text(
             label.toUpperCase(),
             textAlign: isHero ? TextAlign.start : TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: theme.textTheme.labelSmall?.copyWith(fontSize: 9),
           ),
         ],

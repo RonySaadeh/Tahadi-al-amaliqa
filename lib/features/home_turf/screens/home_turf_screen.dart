@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/validators.dart';
+import '../../../core/widgets/responsive_center.dart';
 import '../../../core/widgets/skeleton_loader.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../routing/app_router.dart';
@@ -73,30 +74,32 @@ class HomeTurfScreen extends ConsumerWidget {
       body: categoriesAsync.when(
         data: (categories) {
           final canCreate = canCreateAnotherCategory(categories.length);
-          return ListView(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            children: [
-              if (categories.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
-                  child: Text(l10n.homeTurfNoCategories, textAlign: TextAlign.center),
-                )
-              else
-                for (final category in categories)
+          return ResponsiveCenter(
+            child: ListView(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              children: [
+                if (categories.isEmpty)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                    child: CategoryCard(
-                      category: category,
-                      onTap: () => context.push(AppRoutes.homeTurfCategoryPath(category.id)),
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+                    child: Text(l10n.homeTurfNoCategories, textAlign: TextAlign.center),
+                  )
+                else
+                  for (final category in categories)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: CategoryCard(
+                        category: category,
+                        onTap: () => context.push(AppRoutes.homeTurfCategoryPath(category.id)),
+                      ),
                     ),
-                  ),
-              const SizedBox(height: AppSpacing.md),
-              ElevatedButton.icon(
-                onPressed: canCreate ? () => _showCreateCategoryDialog(context, ref) : null,
-                icon: const Icon(Icons.add_rounded),
-                label: Text(canCreate ? l10n.homeTurfCreateCategory : l10n.homeTurfMaxReached),
-              ),
-            ],
+                const SizedBox(height: AppSpacing.md),
+                ElevatedButton.icon(
+                  onPressed: canCreate ? () => _showCreateCategoryDialog(context, ref) : null,
+                  icon: const Icon(Icons.add_rounded),
+                  label: Text(canCreate ? l10n.homeTurfCreateCategory : l10n.homeTurfMaxReached),
+                ),
+              ],
+            ),
           );
         },
         loading: () => const SkeletonList(),

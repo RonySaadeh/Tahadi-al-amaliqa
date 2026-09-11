@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/core_providers.dart';
+import '../../../core/theme/app_breakpoints.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/arena_panel.dart';
@@ -126,25 +127,32 @@ class LeaderboardScreen extends ConsumerWidget {
                 ),
               ),
               if (rest.isNotEmpty)
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.sm,
-                    AppSpacing.md,
-                    AppSpacing.sm,
-                    AppSpacing.xl,
-                  ),
-                  sliver: SliverList.builder(
-                    itemCount: rest.length,
-                    itemBuilder: (context, index) {
-                      final entry = rest[index];
-                      return LeaderboardRow(
-                        // +4: the podium already consumed ranks 1-3.
-                        rank: index + 4,
-                        entry: entry,
-                        isMe: entry.uid == myUid,
-                        onTap: () => _showHeadToHead(context, ref, entry),
-                      );
-                    },
+                // Constrains and centers just the ranked list's cross axis —
+                // the podium above stays a full-bleed arena field, but a
+                // plain row list stretched edge-to-edge on a tablet/wide
+                // browser window reads as an unfinished mobile layout.
+                SliverConstrainedCrossAxis(
+                  maxExtent: AppBreakpoints.contentMaxWidth,
+                  sliver: SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.sm,
+                      AppSpacing.md,
+                      AppSpacing.sm,
+                      AppSpacing.xl,
+                    ),
+                    sliver: SliverList.builder(
+                      itemCount: rest.length,
+                      itemBuilder: (context, index) {
+                        final entry = rest[index];
+                        return LeaderboardRow(
+                          // +4: the podium already consumed ranks 1-3.
+                          rank: index + 4,
+                          entry: entry,
+                          isMe: entry.uid == myUid,
+                          onTap: () => _showHeadToHead(context, ref, entry),
+                        );
+                      },
+                    ),
                   ),
                 ),
             ],

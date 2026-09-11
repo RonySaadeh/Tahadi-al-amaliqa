@@ -9,6 +9,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/arena_panel.dart';
 import '../../../core/widgets/branded_loading_indicator.dart';
+import '../../../core/widgets/responsive_center.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../routing/app_router.dart';
 import '../live_duel_controller.dart';
@@ -99,7 +100,9 @@ class LiveDuelScreen extends ConsumerWidget {
                     final myAnswerIndex = round.playerAnswers[myUid];
                     final opponentId = duel.opponentIdFor(myUid);
 
-                    return Column(
+                    return ResponsiveCenter(
+                      maxWidth: 560,
+                      child: Column(
                       children: [
                         Padding(
                           padding: const EdgeInsets.fromLTRB(
@@ -214,6 +217,7 @@ class LiveDuelScreen extends ConsumerWidget {
                           homeTurfLabel: duel.isHomeTurfDuel ? l10n.duelHomeTurfBonus : null,
                         ),
                       ],
+                      ),
                     );
                   },
                 );

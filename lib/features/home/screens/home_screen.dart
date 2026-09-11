@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/widgets/responsive_center.dart';
 import '../../../core/widgets/skeleton_loader.dart';
 import '../../../core/widgets/slab_button.dart';
 import '../../../l10n/app_localizations.dart';
@@ -65,28 +66,30 @@ class HomeScreen extends ConsumerWidget {
               offset: const Offset(0, -_overlap),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: SlabButton(
-                        label: l10n.homeQuickMatch,
-                        icon: Icons.bolt_rounded,
-                        gradient: AppColors.primaryGradient,
-                        background: AppColors.primary,
-                        onPressed: () => context.go(AppRoutes.duelLobby),
+                child: ResponsiveCenter(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: SlabButton(
+                          label: l10n.homeQuickMatch,
+                          icon: Icons.bolt_rounded,
+                          gradient: AppColors.primaryGradient,
+                          background: AppColors.primary,
+                          onPressed: () => context.go(AppRoutes.duelLobby),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: SlabButton(
-                        label: l10n.homeChallengeFriend,
-                        icon: Icons.people_alt_rounded,
-                        background: AppColors.gold,
-                        foreground: AppColors.onBrand,
-                        onPressed: () => context.go(AppRoutes.duelLobby),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: SlabButton(
+                          label: l10n.homeChallengeFriend,
+                          icon: Icons.people_alt_rounded,
+                          background: AppColors.gold,
+                          foreground: AppColors.onBrand,
+                          onPressed: () => context.go(AppRoutes.duelLobby),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -100,27 +103,29 @@ class HomeScreen extends ConsumerWidget {
                   AppSpacing.md,
                   AppSpacing.md,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.homeRecentDuels.toUpperCase(),
-                      style: theme.textTheme.labelSmall,
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    recentDuelsAsync.when(
-                      data: (duels) {
-                        if (duels.isEmpty || myUid == null) {
-                          return _EmptyDuels(message: l10n.homeNoRecentDuels);
-                        }
-                        return Column(
-                          children: duels.map((d) => RecentDuelTile(duel: d, myUid: myUid)).toList(),
-                        );
-                      },
-                      loading: () => const SkeletonList(itemCount: 3),
-                      error: (_, _) => const SizedBox.shrink(),
-                    ),
-                  ],
+                child: ResponsiveCenter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.homeRecentDuels.toUpperCase(),
+                        style: theme.textTheme.labelSmall,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      recentDuelsAsync.when(
+                        data: (duels) {
+                          if (duels.isEmpty || myUid == null) {
+                            return _EmptyDuels(message: l10n.homeNoRecentDuels);
+                          }
+                          return Column(
+                            children: duels.map((d) => RecentDuelTile(duel: d, myUid: myUid)).toList(),
+                          );
+                        },
+                        loading: () => const SkeletonList(itemCount: 3),
+                        error: (_, _) => const SizedBox.shrink(),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
