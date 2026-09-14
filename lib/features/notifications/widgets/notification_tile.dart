@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_enums.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../data/models/notification_model.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../routing/app_router.dart';
 import '../../duel/duel_controller.dart';
 import '../../friends/friends_controller.dart';
 import '../notifications_controller.dart';
@@ -27,9 +29,15 @@ class NotificationTile extends ConsumerWidget {
               .read(friendsControllerProvider.notifier)
               .respondToRequest(otherUserId: notification.fromUserId, accept: accept);
         case NotificationType.duelChallenge:
-          await ref
+          final duelId = await ref
               .read(duelControllerProvider.notifier)
               .respondToChallenge(inviteId: notification.relatedId, accept: accept);
+          // Accepting from the Notifications tab used to be a dead end —
+          // this is the same navigation `HomeScreen`'s inline invite card
+          // already does for the same accept action.
+          if (duelId != null && context.mounted) {
+            context.push(AppRoutes.duelIntroPath(duelId));
+          }
         case NotificationType.announcement:
           break; // No response action — see the early return in build() below.
       }

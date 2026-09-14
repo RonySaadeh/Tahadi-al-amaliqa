@@ -61,7 +61,7 @@ export const sendDuelChallenge = onCall(async (request) => {
   } satisfies NotificationDoc);
   await batch.commit();
 
-  return { success: true };
+  return { success: true, inviteId: inviteRef.id };
 });
 
 /** The invited player accepting or declining. Accepting is what actually
@@ -97,6 +97,11 @@ export const respondToDuelChallenge = onCall(async (request) => {
   }
 
   const duelId = await createDuelForPlayers(invite.fromUserId, invite.toUserId, invite.categoryId);
-  await inviteRef.update({ status: "accepted" satisfies DuelInviteStatus });
+  // Stamped onto the invite (not just returned) so the *sender* — who has
+  // no return value to read, since they aren't the one calling this
+  // function — can watch their own sent invite and pick up the duelId the
+  // same way `openLobbies.duelId` lets a quick-matched player notice a
+  // match. See `sentInviteStreamProvider` on the client.
+  await inviteRef.update({ status: "accepted" satisfies DuelInviteStatus, duelId });
   return { success: true, duelId };
 });
