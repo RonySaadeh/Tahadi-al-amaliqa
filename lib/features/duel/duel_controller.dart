@@ -39,10 +39,10 @@ class DuelController extends Notifier<AsyncValue<void>> {
 
   /// Joins the quick-match queue. If someone was already waiting, this
   /// returns a `duelId` immediately. Otherwise it returns a `lobbyId` and
-  /// also records it in [queuedLobbyIdProvider], so `duel_lobby_screen.dart`
-  /// can show a "searching" state and — via [openLobbyStreamProvider] —
-  /// notice the moment a *later* caller's `joinOpenLobby` matches into this
-  /// same entry and stamps a `duelId` onto it.
+  /// also records it in [queuedLobbyIdProvider], so `HomeScreen` can show a
+  /// "searching" state and — via [openLobbyStreamProvider] — notice the
+  /// moment a *later* caller's `joinOpenLobby` matches into this same entry
+  /// and stamps a `duelId` onto it.
   Future<Map<String, dynamic>> joinQuickMatch({String? categoryId}) async {
     state = const AsyncValue.loading();
     Map<String, dynamic> result = {};
@@ -98,8 +98,8 @@ final openLobbyStreamProvider = StreamProvider.family<OpenLobbyModel?, String>((
 /// The category currently picked from the lobby's catalog, or null for "any
 /// category". Held as its own provider (rather than local widget state) for
 /// the same reason as [queuedLobbyIdProvider]: go_router's `ShellRoute`
-/// disposes/recreates `DuelLobbyScreen` on every bottom-nav tab switch, so
-/// local State would forget the pick the instant you glanced at another tab.
+/// disposes/recreates `HomeScreen` on every bottom-nav tab switch, so local
+/// State would forget the pick the instant you glanced at another tab.
 class SelectedCategoryIdController extends Notifier<String?> {
   @override
   String? build() => null;
@@ -132,13 +132,19 @@ final opponentCandidatesProvider = StreamProvider<List<LeaderboardEntryModel>>((
 
 final incomingInvitesProvider = StreamProvider<List<DuelInviteModel>>((ref) {
   final myUid = ref.watch(currentUserIdProvider);
-  if (myUid == null) return const Stream.empty();
+  // Empty list, not `Stream.empty()` — see the note on recentDuelsProvider.
+  if (myUid == null) return Stream.value(const <DuelInviteModel>[]);
   return ref.watch(duelRepositoryProvider).watchIncomingInvites(myUid);
 });
 
 final recentDuelsProvider = StreamProvider<List<DuelModel>>((ref) {
   final myUid = ref.watch(currentUserIdProvider);
-  if (myUid == null) return const Stream.empty();
+  // Signed out (and, briefly, every cold start before auth resolves)
+  // emits an empty list rather than `Stream.empty()`. A stream that
+  // closes without emitting leaves a StreamProvider in `AsyncLoading`
+  // forever, so the UI shows a skeleton where it should show its empty
+  // state. See test/signed_out_streams_test.dart.
+  if (myUid == null) return Stream.value(const <DuelModel>[]);
 
   return ref.watch(duelRepositoryProvider).watchRecentDuelsFor(myUid);
 });

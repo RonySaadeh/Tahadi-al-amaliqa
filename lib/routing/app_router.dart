@@ -10,13 +10,10 @@ import '../features/app_control/screens/force_update_screen.dart';
 import '../features/app_control/screens/maintenance_screen.dart';
 import '../features/auth/screens/welcome_screen.dart';
 import '../features/duel/screens/duel_intro_screen.dart';
-import '../features/duel/screens/duel_lobby_screen.dart';
 import '../features/duel/screens/duel_result_screen.dart';
 import '../features/duel/screens/live_duel_screen.dart';
 import '../features/friends/screens/friends_screen.dart';
 import '../features/home/screens/home_screen.dart';
-import '../features/home_turf/screens/category_detail_screen.dart';
-import '../features/home_turf/screens/home_turf_screen.dart';
 import '../features/leaderboard/screens/leaderboard_screen.dart';
 import '../features/notifications/screens/notifications_screen.dart';
 import '../features/profile/screens/player_profile_screen.dart';
@@ -32,10 +29,7 @@ class AppRoutes {
   static const String splash = '/splash';
   static const String welcome = '/welcome';
   static const String home = '/home';
-  static const String duelLobby = '/duel';
   static const String leaderboard = '/leaderboard';
-  static const String homeTurf = '/home-turf';
-  static const String homeTurfCategory = '/home-turf/:categoryId';
   static const String profile = '/profile';
   static const String playerProfile = '/players/:uid';
   static const String friends = '/friends';
@@ -47,7 +41,6 @@ class AppRoutes {
   static const String liveDuel = '/duel/:duelId/live';
   static const String duelResult = '/duel/:duelId/result';
 
-  static String homeTurfCategoryPath(String categoryId) => '/home-turf/$categoryId';
   static String playerProfilePath(String uid) => '/players/$uid';
   static String duelIntroPath(String duelId) => '/duel/$duelId/intro';
   static String liveDuelPath(String duelId) => '/duel/$duelId/live';
@@ -152,14 +145,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state, child) => AppShell(child: child),
         routes: [
           GoRoute(path: AppRoutes.home, builder: (context, state) => const HomeScreen()),
-          GoRoute(path: AppRoutes.duelLobby, builder: (context, state) => const DuelLobbyScreen()),
           GoRoute(path: AppRoutes.leaderboard, builder: (context, state) => const LeaderboardScreen()),
-          GoRoute(path: AppRoutes.homeTurf, builder: (context, state) => const HomeTurfScreen()),
-          GoRoute(
-            path: AppRoutes.homeTurfCategory,
-            builder: (context, state) =>
-                CategoryDetailScreen(categoryId: state.pathParameters['categoryId']!),
-          ),
           GoRoute(path: AppRoutes.profile, builder: (context, state) => const ProfileScreen()),
           GoRoute(
             path: AppRoutes.playerProfile,

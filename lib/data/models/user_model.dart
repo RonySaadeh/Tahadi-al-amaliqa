@@ -24,7 +24,6 @@ class UserModel extends Equatable {
     this.losses = 0,
     this.currentStreak = 0,
     this.bestStreak = 0,
-    this.ownedCategoryIds = const [],
     required this.createdAt,
     this.locale = 'en',
     this.categoryWins = const {},
@@ -48,7 +47,6 @@ class UserModel extends Equatable {
   final int losses;
   final int currentStreak;
   final int bestStreak;
-  final List<String> ownedCategoryIds;
   final DateTime createdAt;
   final String locale;
 
@@ -73,8 +71,6 @@ class UserModel extends Equatable {
   final bool isAdmin;
 
   int get totalDuels => wins + losses;
-
-  bool get canCreateHomeTurf => ownedCategoryIds.length < AppConstants.maxHomeTurfCategories;
 
   int winsInCategory(String categoryId) => categoryWins[categoryId] ?? 0;
 
@@ -107,7 +103,6 @@ class UserModel extends Equatable {
       losses: (data['losses'] as num?)?.toInt() ?? 0,
       currentStreak: (data['currentStreak'] as num?)?.toInt() ?? 0,
       bestStreak: (data['bestStreak'] as num?)?.toInt() ?? 0,
-      ownedCategoryIds: List<String>.from(data['ownedCategoryIds'] as List? ?? const []),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       locale: data['locale'] as String? ?? 'en',
       categoryWins: _parseCategoryWins(data['categoryStats']),
@@ -140,7 +135,6 @@ class UserModel extends Equatable {
     'losses': 0,
     'currentStreak': 0,
     'bestStreak': 0,
-    'ownedCategoryIds': <String>[],
     'createdAt': FieldValue.serverTimestamp(),
     'locale': locale,
   };
@@ -175,7 +169,6 @@ class UserModel extends Equatable {
     int? losses,
     int? currentStreak,
     int? bestStreak,
-    List<String>? ownedCategoryIds,
     String? locale,
     Map<String, int>? categoryWins,
     DateTime? lastActiveAt,
@@ -191,7 +184,6 @@ class UserModel extends Equatable {
       losses: losses ?? this.losses,
       currentStreak: currentStreak ?? this.currentStreak,
       bestStreak: bestStreak ?? this.bestStreak,
-      ownedCategoryIds: ownedCategoryIds ?? this.ownedCategoryIds,
       createdAt: createdAt,
       locale: locale ?? this.locale,
       categoryWins: categoryWins ?? this.categoryWins,
@@ -212,7 +204,6 @@ class UserModel extends Equatable {
     losses,
     currentStreak,
     bestStreak,
-    ownedCategoryIds,
     createdAt,
     locale,
     categoryWins,

@@ -1,11 +1,6 @@
 import { HttpsError } from "firebase-functions/v2/https";
 import { db, FieldValue, Timestamp } from "../lib/admin";
-import {
-  BASE_POINTS_CORRECT,
-  HOME_TURF_MULTIPLIER,
-  MAX_SPEED_BONUS,
-  ROUND_TIME_LIMIT_SECONDS,
-} from "../lib/constants";
+import { BASE_POINTS_CORRECT, MAX_SPEED_BONUS, ROUND_TIME_LIMIT_SECONDS } from "../lib/constants";
 import { DuelDoc, QuestionDoc, RoundDoc } from "../lib/types";
 import { eloDelta } from "./eloCalculator";
 
@@ -193,9 +188,6 @@ async function resolveRoundNow(
         const speedFraction = Math.max(0, 1 - latencyMs / timeLimitMs);
         points = BASE_POINTS_CORRECT + Math.round(MAX_SPEED_BONUS * speedFraction);
       }
-      if (duel.isHomeTurfDuel && answer.uid === duel.homeTurfOwnerId) {
-        points = Math.round(points * HOME_TURF_MULTIPLIER);
-      }
       pointsAwarded[answer.uid] = points;
     }
 
@@ -329,13 +321,12 @@ async function getCorrectAnswerIndex(questionId: string): Promise<number> {
 
 /** Picks a random question for `categoryId` in `language`, avoiding
  * `excludeIds` when possible (falls back to allowing a repeat if the
- * category is too small — expected for a brand-new home-turf category).
+ * category is too small to avoid one).
  *
  * Falls back to ignoring the language filter entirely if the category has
- * no questions in that language yet (e.g. an Arabic-only home-turf category
- * being played by an English-preferring guest, or vice versa) — a duel with
- * mixed-language rounds is a smaller problem than a duel that can't start
- * or can't find a second question at all. */
+ * no questions in that language yet — a duel with mixed-language rounds is
+ * a smaller problem than a duel that can't start or can't find a second
+ * question at all. */
 export async function pickNextQuestion(
   categoryId: string,
   language: string,

@@ -47,7 +47,7 @@ enum QuestionDifficulty {
 enum QuestionSource {
   api, // bundled/seeded question bank
   llm, // hand-written/LLM-assisted starter pool (see functions/src/seed)
-  user; // hand-written by a home-turf category owner
+  user; // reserved for a future player-authored source
 
   static QuestionSource fromString(String value) {
     return QuestionSource.values.firstWhere(

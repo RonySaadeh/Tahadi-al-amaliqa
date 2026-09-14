@@ -40,8 +40,6 @@ export interface DuelDoc {
   categoryId: string;
   categoryName: string;
   language: string; // 'ar' | 'en' — fixed for the whole duel so both rounds match
-  isHomeTurfDuel: boolean;
-  homeTurfOwnerId: string | null;
   status: DuelStatus;
   player1Score: number;
   player2Score: number;
@@ -86,7 +84,6 @@ export interface UserDoc {
   losses: number;
   currentStreak: number;
   bestStreak: number;
-  ownedCategoryIds: string[];
   createdAt: FirebaseFirestore.FieldValue | FirebaseFirestore.Timestamp;
   locale: string;
   /** Stamped by the client itself (see `firestore.rules`'s narrow

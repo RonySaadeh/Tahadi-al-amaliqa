@@ -6,9 +6,7 @@
   "@appTitle": {"description": "App name shown on splash and app switcher"},
 
   "navHome": "الرئيسية",
-  "navDuel": "التحدي",
   "navLeaderboard": "الترتيب",
-  "navHomeTurf": "أرضي",
   "navFriends": "الأصدقاء",
   "navProfile": "حسابي",
 
@@ -62,10 +60,8 @@
   "homeRecentDuels": "آخر المبارزات",
   "homeNoRecentDuels": "لا توجد مبارزات بعد. ابدأ أول تحدٍ لك!",
 
-  "duelLobbyTitle": "غرفة الانتظار",
   "duelSelectCategory": "اختر الفئة",
   "duelAnyCategory": "أي فئة",
-  "duelHomeTurfCategoriesSection": "فئات أرض الديار",
   "duelSelectOpponent": "اختر الخصم",
   "duelWaitingForOpponent": "بانتظار الخصم...",
   "duelSearchingMatch": "جارِ البحث عن مباراة...",
@@ -118,8 +114,6 @@
     "placeholders": {"level": {"type": "int"}}
   },
   "duelPlayAgain": "العب مرة أخرى",
-  "duelBackHome": "العودة للرئيسية",
-  "duelHomeTurfBonus": "مضاعفة أرض الديار مفعّلة",
   "duelCancel": "إلغاء",
   "duelNoOpponentsAvailable": "لا يوجد لاعبون آخرون بعد — ادعُ صديقًا لإنشاء حساب أولًا",
   "duelOpponentLeft": "غادر الخصم المبارزة",
@@ -145,26 +139,6 @@
   },
   "leaderboardEmpty": "لا يوجد بيانات كافية بعد",
 
-  "homeTurfTitle": "أرضي",
-  "homeTurfMyCategories": "فئاتي",
-  "homeTurfCreateCategory": "فئة جديدة",
-  "homeTurfCategoryName": "اسم الفئة",
-  "homeTurfCategoryDescription": "وصف مختصر",
-  "homeTurfMaxReached": "وصلت للحد الأقصى (3 فئات)",
-  "homeTurfAddQuestion": "أضف سؤالًا",
-  "homeTurfQuestionText": "نص السؤال",
-  "homeTurfOption": "الخيار {index}",
-  "@homeTurfOption": {
-    "placeholders": {"index": {"type": "int"}}
-  },
-  "homeTurfCorrectAnswer": "الإجابة الصحيحة",
-  "homeTurfDifficulty": "الصعوبة",
-  "homeTurfDifficultyEasy": "سهل",
-  "homeTurfDifficultyMedium": "متوسط",
-  "homeTurfDifficultyHard": "صعب",
-  "homeTurfSave": "حفظ",
-  "homeTurfNoCategories": "لم تنشئ أي فئة بعد",
-
   "profileTitle": "حسابي",
   "profileLevel": "المستوى {level}",
   "@profileLevel": {
@@ -184,7 +158,6 @@
   "@profileMemberSince": {
     "placeholders": {"date": {"type": "String"}}
   },
-  "profileOwnedCategories": "فئاتي المملوكة",
   "profileEditName": "تعديل الاسم",
   "profilePlayerIdLabel": "معرّف اللاعب",
   "profilePlayerIdCopied": "تم نسخ معرّف اللاعب",

@@ -1,7 +1,7 @@
 # Profile
 
 Your own stats dashboard: avatar, editable display name, win/loss/streak/
-ELO tiles, and the categories you own.
+ELO tiles.
 
 ## Where things live
 
@@ -16,10 +16,8 @@ ELO tiles, and the categories you own.
 
 - The profile data itself is `currentUserProvider`, defined in
   `features/home/home_controller.dart` — there's one stream of "my
-  profile" for the whole app, and both Home and Profile read from it.
-- The owned-categories list is `myCategoriesProvider`, defined in
-  `features/home_turf/home_turf_controller.dart` — again, one source, two
-  readers.
+  profile" for the whole app, and every feature that needs it reads from
+  that rather than duplicating it.
 
 If wins/losses/ELO/streak look wrong here, that's not a bug in this
 feature — those fields are only ever written by `resolveDuel` (see

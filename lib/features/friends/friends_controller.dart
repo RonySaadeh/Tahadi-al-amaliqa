@@ -11,7 +11,8 @@ import '../../data/models/user_model.dart';
 /// each other by construction.
 final myFriendshipsProvider = StreamProvider<List<FriendshipModel>>((ref) {
   final myUid = ref.watch(currentUserIdProvider);
-  if (myUid == null) return const Stream.empty();
+  // Empty list, not `Stream.empty()` — see the note in duel_controller.dart.
+  if (myUid == null) return Stream.value(const <FriendshipModel>[]);
 
   return ref.watch(friendsRepositoryProvider).watchMyFriendships(myUid);
 });

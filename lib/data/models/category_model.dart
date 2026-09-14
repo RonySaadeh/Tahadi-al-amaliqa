@@ -3,10 +3,11 @@ import 'package:equatable/equatable.dart';
 
 /// A trivia category/topic, stored at `categories/{categoryId}`.
 ///
-/// `ownerId` is null for global/seeded categories and set to a user's uid
-/// for "home turf" categories they created. All writes go through the
-/// `createHomeTurfCategory` Cloud Function (which also enforces the 3
-/// categories/user limit) — clients cannot write this collection directly.
+/// Client-read-only — every category is seeded server-side by the
+/// `functions/src/seed` admin scripts; clients cannot write this
+/// collection directly. `ownerId`/`ownerDisplayName` are always null in
+/// the current app; they're kept on the schema for forward compatibility
+/// rather than re-derived from nothing.
 class CategoryModel extends Equatable {
   const CategoryModel({
     required this.id,
@@ -26,10 +27,8 @@ class CategoryModel extends Equatable {
   /// Arabic display name — the primary/default locale, always present.
   final String name;
 
-  /// English display name — only ever set for the seeded global taxonomy
-  /// (see `functions/src/seed/categoryTaxonomy.ts`). Null for home-turf
-  /// categories, since those are user-typed in whichever language their
-  /// owner wrote them in and can't be auto-translated.
+  /// English display name — set for the seeded global taxonomy (see
+  /// `functions/src/seed/categoryTaxonomy.ts`).
   final String? nameEn;
 
   final String description;
@@ -38,14 +37,10 @@ class CategoryModel extends Equatable {
   final String? ownerDisplayName;
 
   /// Which [CategoryGroupModel] this belongs to in the category picker
-  /// (e.g. "Sports"). Null for home-turf categories — grouping only
-  /// applies to the seeded global taxonomy; see
-  /// `functions/src/seed/categoryTaxonomy.ts`.
+  /// (e.g. "Sports") — see `functions/src/seed/categoryTaxonomy.ts`.
   final String? groupId;
   final int questionCount;
   final DateTime createdAt;
-
-  bool get isHomeTurf => ownerId != null;
 
   /// Picks [nameEn] when `locale` is `'en'` and one was seeded, otherwise
   /// [name] — matches `users/{uid}.locale` ('ar'/'en'), see

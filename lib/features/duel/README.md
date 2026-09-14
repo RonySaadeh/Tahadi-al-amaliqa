@@ -3,11 +3,17 @@
 The whole real-time 1v1 gameplay loop: challenging a friend, quick-matching,
 playing rounds live, and seeing the result.
 
+There is no "Duel" tab or lobby screen in this folder anymore — the lobby
+(incoming challenges, category catalog, challenge/quick-match actions) was
+absorbed into `features/home/screens/home_screen.dart` as the app's single
+main tab. This feature still owns all of that *state*; only the screen that
+renders it moved. See `features/home/README.md` for why.
+
 ## Where things live
 
 - `duel_controller.dart` — lobby actions: send/accept/decline a challenge,
   join/cancel the open-lobby quick-match queue. Also exposes the stream
-  providers used by the lobby screen (`incomingInvitesProvider`,
+  providers `HomeScreen` renders (`incomingInvitesProvider`,
   `opponentCandidatesProvider`, `categoriesProvider`, `recentDuelsProvider`,
   `openLobbyStreamProvider`) and `queuedLobbyIdProvider`, which tracks
   whether we're currently waiting in the quick-match queue.
@@ -16,11 +22,8 @@ playing rounds live, and seeing the result.
   `selectedAnswerProvider` tracks the local player's tap before the server
   confirms it, and `duelPresenceProvider`/`DuelPresenceController` handle
   connection-loss detection (see below).
-- `screens/duel_lobby_screen.dart` — the "Duel" bottom-nav tab: incoming
-  challenges, the category catalog, challenge-a-friend sheet, quick match
-  button.
-- `widgets/category_catalog.dart` — the browsable category catalog shown
-  inline on the lobby screen (see "Category groups" below).
+- `widgets/category_catalog.dart` — the browsable category catalog, shown
+  inline on `HomeScreen` (see "Category groups" below).
 - `screens/live_duel_screen.dart` — the live round-by-round gameplay screen.
 - `screens/duel_result_screen.dart` — win/lose/draw + ELO change + confetti.
 - `widgets/` — duel-specific UI pieces (timer ring, VS scoreboard, answer
@@ -35,9 +38,8 @@ belong to a `categoryGroups/{groupId}` section (Sports, Movies & TV, ...) —
 feed `CategoryCatalog`, which groups them client-side by `groupId`, sorts
 groups by their `order` field, and renders each group as a horizontally
 scrollable row of chips rather than one long vertical list — a catalog to
-skim rather than a picklist to search. Home-turf categories have no group
-(`groupId: null`) and show up in a trailing "Home Turf" section instead.
-There's no in-app way to create a group — only the seed script does that.
+skim rather than a picklist to search. There's no in-app way to create a
+category or a group — only the `functions/src/seed` admin scripts do that.
 
 The selected category lives in `selectedCategoryIdProvider`
 (`duel_controller.dart`) rather than local widget state, for the same
@@ -68,21 +70,21 @@ reacting to whatever `currentRound` currently is.
 
 ## How quick-match auto-navigation works
 
-`duel_lobby_screen.dart`'s quick-match button navigates immediately if
-`joinQuickMatch` finds a waiting opponent right away. Otherwise the
-returned `lobbyId` is stored in `queuedLobbyIdProvider` and the screen
-switches to a "searching" state. From then on `openLobbyStreamProvider`
-keeps listening to `openLobbies/{lobbyId}` in real time; when some *other*
-player's `joinOpenLobby` call matches into that entry, the Cloud Function
-stamps a `duelId` onto it (see `functions/src/matchmaking/openLobby.ts`),
-and `ref.listen` in the lobby screen picks that up and navigates straight
-into the live duel — no polling, no manual refresh.
+`HomeScreen`'s quick-match button navigates immediately if `joinQuickMatch`
+finds a waiting opponent right away. Otherwise the returned `lobbyId` is
+stored in `queuedLobbyIdProvider` and the screen switches to a "searching"
+state. From then on `openLobbyStreamProvider` keeps listening to
+`openLobbies/{lobbyId}` in real time; when some *other* player's
+`joinOpenLobby` call matches into that entry, the Cloud Function stamps a
+`duelId` onto it (see `functions/src/matchmaking/openLobby.ts`), and
+`ref.listen` in `HomeScreen` picks that up and navigates straight into the
+live duel — no polling, no manual refresh.
 
 `queuedLobbyIdProvider` lives in `duel_controller.dart` rather than as
 local widget state specifically so it survives switching to another
 bottom-nav tab and back while still queued (go_router's `ShellRoute`
-disposes/recreates `DuelLobbyScreen` on tab switches, but Riverpod
-providers are not tied to the widget tree).
+disposes/recreates `HomeScreen` on tab switches, but Riverpod providers
+are not tied to the widget tree).
 
 ## Losing connection mid-duel
 

@@ -7,7 +7,6 @@
 export const STARTING_ELO = 1200;
 export const ROUNDS_PER_DUEL = 5;
 export const ROUND_TIME_LIMIT_SECONDS = 15;
-export const MAX_HOME_TURF_CATEGORIES = 3;
 
 /** How long the client holds every cold-matched duel on its "VS" intro
  * screen (see `DuelIntroScreen`) before it navigates into the live duel —
@@ -22,7 +21,6 @@ export const DUEL_INTRO_SECONDS = 10;
 
 export const BASE_POINTS_CORRECT = 100;
 export const MAX_SPEED_BONUS = 100;
-export const HOME_TURF_MULTIPLIER = 1.25;
 export const ELO_K_FACTOR = 32;
 
 /** Grace period added on top of the round time limit before the scheduled
