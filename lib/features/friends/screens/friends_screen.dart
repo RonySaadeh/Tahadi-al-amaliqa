@@ -19,8 +19,8 @@ import '../widgets/friend_request_card.dart';
 import '../widgets/friend_row.dart';
 
 /// Search for players, send/accept/decline friend requests, and see your
-/// friends list with who's online right now. One plain scrolling page —
-/// same `AppBar` treatment as `HomeTurfScreen`, no extra chrome.
+/// friends list with who's online right now. One plain scrolling page,
+/// no extra chrome.
 class FriendsScreen extends ConsumerStatefulWidget {
   const FriendsScreen({super.key});
 

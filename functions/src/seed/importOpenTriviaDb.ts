@@ -1,20 +1,12 @@
 /**
  * One-off admin script: imports questions from the free Open Trivia
  * Database (https://opentdb.com) into a set of global (ownerId: null)
- * Firestore categories, so the app has something playable before anyone's
- * written a home-turf category by hand.
+ * Firestore categories, so the app has something playable.
  *
  * This is a SCRIPT, not a deployed Cloud Function — it's meant to be run
  * once (or re-run occasionally to top up) by whoever administers the
  * Firebase project, not triggered by players. See the "Running this" note
  * at the bottom of the file.
- *
- * Why a separate file from `homeTurf.ts`'s `addHomeTurfQuestion`: that
- * function is scoped to a category's own owner. This script has no owner
- * (categories it creates have `ownerId: null`) and pulls from an existing
- * question source rather than ones written by a player. Both end up
- * writing the same `QuestionDoc` shape (see `lib/types.ts`), just tagged
- * with a different `source`.
  */
 import { db, FieldValue } from "../lib/admin";
 import { QuestionDifficulty } from "../lib/types";

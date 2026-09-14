@@ -32,22 +32,39 @@ class SplashScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.arenaDark,
+      // `StackFit.expand` is load-bearing, not decoration. Scaffold hands
+      // its body *loose* constraints, and a Stack sizes itself to its
+      // largest non-positioned child — here the Column, whose width is just
+      // its longest line of text. Without this the whole screen collapses
+      // to text width, every `Positioned.fill` below fills that narrow box
+      // instead of the display, and the rest of the screen is bare
+      // `backgroundColor`. See test/splash_screen_test.dart.
       body: Stack(
+        fit: StackFit.expand,
         children: [
           const Positioned.fill(
             child: DecoratedBox(decoration: BoxDecoration(gradient: AppColors.arenaGradient)),
           ),
           // A single soft violet bloom behind the mark, so the dark field
           // has a light source instead of reading as flat paint.
-          Positioned(
-            top: -80,
-            left: -60,
-            child: Container(
-              width: 320,
-              height: 320,
+          //
+          // It has to be a *radial gradient* that lands on fully transparent
+          // at its edge, not a flat-colored circle: a flat circle keeps a
+          // hard rim, and since the bloom is deliberately larger than the
+          // screen, that rim gets clipped by the screen edge and reads as a
+          // giant half-disc of violet sitting on the splash rather than as
+          // light. Fading to transparent means there's no edge to clip.
+          Positioned.fill(
+            child: DecoratedBox(
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primary.withValues(alpha: 0.18),
+                gradient: RadialGradient(
+                  center: const Alignment(-0.35, -0.55),
+                  radius: 0.9,
+                  colors: [
+                    AppColors.primary.withValues(alpha: 0.26),
+                    AppColors.primary.withValues(alpha: 0.0),
+                  ],
+                ),
               ),
             ),
           ),

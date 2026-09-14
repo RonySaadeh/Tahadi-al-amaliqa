@@ -5,9 +5,7 @@
   "brandLineTwo": "Giants",
 
   "navHome": "Home",
-  "navDuel": "Duel",
   "navLeaderboard": "Leaderboard",
-  "navHomeTurf": "Home Turf",
   "navFriends": "Friends",
   "navProfile": "Profile",
 
@@ -60,10 +58,8 @@
   "rankGoldTitan": "Gold Titan",
   "rankColossusMythic": "Colossus Mythic",
 
-  "duelLobbyTitle": "Lobby",
   "duelSelectCategory": "Select category",
   "duelAnyCategory": "Any category",
-  "duelHomeTurfCategoriesSection": "Home Turf Categories",
   "duelSelectOpponent": "Select opponent",
   "duelWaitingForOpponent": "Waiting for opponent...",
   "duelSearchingMatch": "Searching for a match...",
@@ -116,8 +112,6 @@
     "placeholders": {"level": {"type": "int"}}
   },
   "duelPlayAgain": "Play Again",
-  "duelBackHome": "Back Home",
-  "duelHomeTurfBonus": "Home turf bonus active",
   "duelCancel": "Cancel",
   "duelNoOpponentsAvailable": "No other players yet — invite a friend to sign up first",
   "duelOpponentLeft": "Opponent left the duel",
@@ -143,26 +137,6 @@
   },
   "leaderboardEmpty": "Not enough data yet",
 
-  "homeTurfTitle": "Home Turf",
-  "homeTurfMyCategories": "My categories",
-  "homeTurfCreateCategory": "New category",
-  "homeTurfCategoryName": "Category name",
-  "homeTurfCategoryDescription": "Short description",
-  "homeTurfMaxReached": "You've reached the limit (3 categories)",
-  "homeTurfAddQuestion": "Add question",
-  "homeTurfQuestionText": "Question text",
-  "homeTurfOption": "Option {index}",
-  "@homeTurfOption": {
-    "placeholders": {"index": {"type": "int"}}
-  },
-  "homeTurfCorrectAnswer": "Correct answer",
-  "homeTurfDifficulty": "Difficulty",
-  "homeTurfDifficultyEasy": "Easy",
-  "homeTurfDifficultyMedium": "Medium",
-  "homeTurfDifficultyHard": "Hard",
-  "homeTurfSave": "Save",
-  "homeTurfNoCategories": "You haven't created a category yet",
-
   "profileTitle": "Profile",
   "profileLevel": "Level {level}",
   "@profileLevel": {
@@ -182,7 +156,6 @@
   "@profileMemberSince": {
     "placeholders": {"date": {"type": "String"}}
   },
-  "profileOwnedCategories": "Owned categories",
   "profileEditName": "Edit name",
   "profilePlayerIdLabel": "Player ID",
   "profilePlayerIdCopied": "Player ID copied",

@@ -16,7 +16,6 @@ import '../../../data/models/user_model.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/auth_controller.dart';
 import '../../home/home_controller.dart';
-import '../../home_turf/home_turf_controller.dart';
 import '../profile_controller.dart';
 import '../widgets/profile_settings_drawer.dart';
 import '../widgets/stat_tile.dart';
@@ -78,7 +77,6 @@ class ProfileScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final userAsync = ref.watch(currentUserProvider);
-    final categoriesAsync = ref.watch(myCategoriesProvider);
     final locale = Localizations.localeOf(context).languageCode;
 
     // Accounts created before Player ID existed have an empty one — repair
@@ -171,46 +169,13 @@ class ProfileScreen extends ConsumerWidget {
 
               const SizedBox(height: AppSpacing.lg),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                child: ResponsiveCenter(child: _StatsGrid(user: user, locale: locale, l10n: l10n)),
-              ),
-
-              const SizedBox(height: AppSpacing.lg),
-              _Section(title: l10n.profileOwnedCategories),
-              Padding(
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.md,
                   0,
                   AppSpacing.md,
                   AppSpacing.xxl,
                 ),
-                child: ResponsiveCenter(
-                  child: categoriesAsync.when(
-                    data: (categories) => categories.isEmpty
-                        ? Text(l10n.homeTurfNoCategories, style: theme.textTheme.bodyMedium)
-                        : Wrap(
-                            spacing: AppSpacing.sm,
-                            runSpacing: AppSpacing.sm,
-                            children: categories
-                                .map(
-                                  (c) => Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: AppSpacing.md,
-                                      vertical: AppSpacing.sm,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.surfaceRaised,
-                                      borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
-                                    ),
-                                    child: Text(c.name, style: theme.textTheme.labelMedium),
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                    loading: () => const SkeletonListTile(),
-                    error: (_, _) => const SizedBox.shrink(),
-                  ),
-                ),
+                child: ResponsiveCenter(child: _StatsGrid(user: user, locale: locale, l10n: l10n)),
               ),
             ],
           ),
@@ -399,20 +364,6 @@ class _PlayerIdChip extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _Section extends StatelessWidget {
-  const _Section({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0, AppSpacing.md, AppSpacing.sm),
-      child: Text(title.toUpperCase(), style: Theme.of(context).textTheme.labelSmall),
     );
   }
 }

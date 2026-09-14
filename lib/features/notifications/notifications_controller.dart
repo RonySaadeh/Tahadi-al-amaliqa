@@ -5,7 +5,8 @@ import '../../data/models/notification_model.dart';
 
 final notificationsProvider = StreamProvider<List<NotificationModel>>((ref) {
   final myUid = ref.watch(currentUserIdProvider);
-  if (myUid == null) return const Stream.empty();
+  // Empty list, not `Stream.empty()` — see the note in duel_controller.dart.
+  if (myUid == null) return Stream.value(const <NotificationModel>[]);
   return ref.watch(notificationsRepositoryProvider).watchNotifications(myUid);
 });
 

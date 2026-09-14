@@ -201,19 +201,15 @@ class _DuelResultScreenState extends ConsumerState<DuelResultScreen> {
 
                       const Spacer(),
 
+                      // A single button, not "Play Again" + "Back Home": the
+                      // duel lobby and the home tab are the same screen now
+                      // (see `HomeScreen`), so those used to be two buttons
+                      // to the same place.
                       SlabButton(
                         label: l10n.duelPlayAgain,
                         icon: Icons.replay_rounded,
                         background: AppColors.gold,
                         foreground: AppColors.onBrand,
-                        onPressed: () => context.go(AppRoutes.duelLobby),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      SlabButton(
-                        label: l10n.duelBackHome,
-                        background: Colors.white.withValues(alpha: 0.12),
-                        depthColor: Colors.black.withValues(alpha: 0.35),
-                        fontSize: 13,
                         onPressed: () => context.go(AppRoutes.home),
                       ),
                       const SizedBox(height: AppSpacing.lg),

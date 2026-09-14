@@ -43,10 +43,7 @@ final duelRepositoryProvider = Provider<DuelRepository>(
   ),
 );
 final questionRepositoryProvider = Provider<QuestionRepository>(
-  (ref) => QuestionRepository(
-    firestoreService: ref.watch(firestoreServiceProvider),
-    cloudFunctions: ref.watch(cloudFunctionsServiceProvider),
-  ),
+  (ref) => QuestionRepository(firestoreService: ref.watch(firestoreServiceProvider)),
 );
 final leaderboardRepositoryProvider = Provider<LeaderboardRepository>(
   (ref) => LeaderboardRepository(firestoreService: ref.watch(firestoreServiceProvider)),

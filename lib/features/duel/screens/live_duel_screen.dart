@@ -275,7 +275,6 @@ class _LiveDuelScreenState extends ConsumerState<LiveDuelScreen> {
                           waitingLabel: hasAnswered && !isResolved
                               ? l10n.duelWaitingOpponentAnswer
                               : null,
-                          homeTurfLabel: duel.isHomeTurfDuel ? l10n.duelHomeTurfBonus : null,
                         ),
                       ],
                       ),
@@ -347,10 +346,9 @@ class _RoundChip extends StatelessWidget {
 /// Fixed-height so the answer slabs above don't jump when a transient status
 /// line appears or disappears between rounds.
 class _ArenaFooter extends StatelessWidget {
-  const _ArenaFooter({required this.waitingLabel, required this.homeTurfLabel});
+  const _ArenaFooter({required this.waitingLabel});
 
   final String? waitingLabel;
-  final String? homeTurfLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -376,11 +374,6 @@ class _ArenaFooter extends StatelessWidget {
                     style: theme.textTheme.bodySmall?.copyWith(color: AppColors.onArenaMuted),
                   ),
                 ],
-              )
-            : homeTurfLabel != null
-            ? Text(
-                homeTurfLabel!.toUpperCase(),
-                style: theme.textTheme.labelSmall?.copyWith(color: AppColors.gold),
               )
             : const SizedBox.shrink(),
       ),

@@ -12,7 +12,6 @@ import '../../../l10n/app_localizations.dart';
 /// as a horizontally-scrollable row of chips rather than a single long
 /// vertical list — with ~60 seeded categories across ~10 groups, this reads
 /// like a catalog you skim instead of a picklist you search through.
-/// Home-turf categories (`groupId: null`) get their own trailing section.
 class CategoryCatalog extends StatelessWidget {
   const CategoryCatalog({
     super.key,
@@ -38,23 +37,18 @@ class CategoryCatalog extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     final byGroup = <String, List<CategoryModel>>{};
-    final ungrouped = <CategoryModel>[];
     for (final category in categories) {
-      if (category.groupId == null) {
-        ungrouped.add(category);
-      } else {
-        (byGroup[category.groupId!] ??= []).add(category);
-      }
+      if (category.groupId == null) continue;
+      (byGroup[category.groupId!] ??= []).add(category);
     }
     for (final list in byGroup.values) {
       list.sort((a, b) => a.displayName(locale).compareTo(b.displayName(locale)));
     }
-    ungrouped.sort((a, b) => a.displayName(locale).compareTo(b.displayName(locale)));
 
     final sortedGroups = [...groups]..sort((a, b) => a.order.compareTo(b.order));
     final visibleGroups = sortedGroups.where((g) => (byGroup[g.id]?.isNotEmpty ?? false)).toList();
 
-    if (visibleGroups.isEmpty && ungrouped.isEmpty) {
+    if (visibleGroups.isEmpty) {
       return Text(l10n.commonError);
     }
 
@@ -66,15 +60,6 @@ class CategoryCatalog extends StatelessWidget {
             icon: categoryGroupIcon(group.iconKey),
             title: group.displayName(locale),
             categories: byGroup[group.id]!,
-            selectedCategoryId: selectedCategoryId,
-            onSelect: onSelect,
-            locale: locale,
-          ),
-        if (ungrouped.isNotEmpty)
-          _CatalogSection(
-            icon: Icons.flag_rounded,
-            title: l10n.duelHomeTurfCategoriesSection,
-            categories: ungrouped,
             selectedCategoryId: selectedCategoryId,
             onSelect: onSelect,
             locale: locale,

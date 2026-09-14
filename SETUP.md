@@ -134,9 +134,9 @@ firebase functions:list     # should list all 10
 
 ## 7.5. Seed some starter categories (optional, but you need this to actually play)
 
-The app ships with zero categories out of the box — `categories` only gets
-written to by players creating their own home-turf ones. To have something
-playable immediately, `functions/src/seed/importOpenTriviaDb.ts` imports
+The app ships with zero categories out of the box — `categories` is written
+only by admin seed scripts, never by players. To have something playable
+immediately, `functions/src/seed/importOpenTriviaDb.ts` imports
 free English trivia questions from [Open Trivia DB](https://opentdb.com)
 into 11 starter categories (General Knowledge, Film, Music, Television,
 Video Games, Science & Nature, Sports, Geography, History, Animals, Anime

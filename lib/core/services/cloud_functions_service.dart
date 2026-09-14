@@ -75,14 +75,6 @@ class CloudFunctionsService {
     await _functions.httpsCallable('forfeitDuel').call({'duelId': duelId});
   }
 
-  Future<String> createHomeTurfCategory({required String name, required String description}) async {
-    final result = await _functions.httpsCallable('createHomeTurfCategory').call({
-      'name': name,
-      'description': description,
-    });
-    return (result.data as Map)['categoryId'] as String;
-  }
-
   Future<void> sendFriendRequest({required String toUserId}) async {
     await _functions.httpsCallable('sendFriendRequest').call({'toUserId': toUserId});
   }
@@ -91,22 +83,6 @@ class CloudFunctionsService {
     await _functions.httpsCallable('respondToFriendRequest').call({
       'otherUserId': otherUserId,
       'accept': accept,
-    });
-  }
-
-  Future<void> addHomeTurfQuestion({
-    required String categoryId,
-    required String questionText,
-    required List<String> options,
-    required int correctAnswerIndex,
-    required String difficulty,
-  }) async {
-    await _functions.httpsCallable('addHomeTurfQuestion').call({
-      'categoryId': categoryId,
-      'questionText': questionText,
-      'options': options,
-      'correctAnswerIndex': correctAnswerIndex,
-      'difficulty': difficulty,
     });
   }
 }

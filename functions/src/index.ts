@@ -8,8 +8,6 @@ export { submitAnswer } from "./scoring/submitAnswer";
 export { expireStaleRounds } from "./scoring/expireStaleRounds";
 export { heartbeat, forfeitDuel } from "./scoring/presence";
 
-export { createHomeTurfCategory, addHomeTurfQuestion } from "./questions/homeTurf";
-
 export { sendDuelChallenge, respondToDuelChallenge } from "./matchmaking/duelChallenges";
 export { joinOpenLobby, leaveOpenLobby } from "./matchmaking/openLobby";
 

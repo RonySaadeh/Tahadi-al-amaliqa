@@ -69,7 +69,6 @@ lib/
 functions/
   src/
     scoring/       # resolveDuel.ts is the ONLY place points/ELO are computed
-    questions/     # home-turf category/question CRUD
     matchmaking/   # challenge flow + quick-match open lobby
 ```
 
