@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 /// Whether the device actually has working internet access — not just a
 /// wifi/cellular radio connected to *something*. `connectivity_plus` alone
@@ -10,6 +11,14 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 /// incorrectly read as "connected". Every check here follows up a positive
 /// radio reading with a real DNS lookup to confirm the network actually
 /// reaches the internet.
+///
+/// `dart:io`'s `InternetAddress.lookup` has no web implementation — it
+/// throws `UnsupportedError` there, which isn't an `Exception`, so it isn't
+/// caught below and used to leave the splash screen stuck forever on web
+/// (the router waits on this stream to emit before it will navigate
+/// anywhere). Browsers can't do a raw DNS lookup without going through an
+/// actual network request anyway, so on web this just trusts the radio-level
+/// reading from `connectivity_plus` instead of trying to verify it.
 class ConnectivityService {
   ConnectivityService({Connectivity? connectivity}) : _connectivity = connectivity ?? Connectivity();
 
@@ -28,6 +37,7 @@ class ConnectivityService {
 
   Future<bool> _resolve(List<ConnectivityResult> results) async {
     if (results.every((r) => r == ConnectivityResult.none)) return false;
+    if (kIsWeb) return true;
     return _hasRealInternet();
   }
 
