@@ -7,8 +7,11 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/avatar_system.dart';
+import '../../../core/utils/rank_tier.dart';
 import '../../../core/widgets/arena_panel.dart';
 import '../../../core/widgets/branded_loading_indicator.dart';
+import '../../../core/widgets/modular_avatar.dart';
 import '../../../core/widgets/responsive_center.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../routing/app_router.dart';
@@ -92,9 +95,12 @@ class _DuelIntroScreenState extends ConsumerState<DuelIntroScreen> {
                 final myName = myUid == duel.player1Id ? duel.player1DisplayName : duel.player2DisplayName;
                 final opponentName = duel.opponentDisplayNameFor(myUid);
                 final opponentId = duel.opponentIdFor(myUid);
-                final myWins = ref.watch(currentUserProvider).value?.winsInCategory(duel.categoryId) ?? 0;
-                final opponentWins =
-                    ref.watch(userByIdProvider(opponentId)).value?.winsInCategory(duel.categoryId) ?? 0;
+                final myUser = ref.watch(currentUserProvider).value;
+                final opponentUser = ref.watch(userByIdProvider(opponentId)).value;
+                final myWins = myUser?.winsInCategory(duel.categoryId) ?? 0;
+                final opponentWins = opponentUser?.winsInCategory(duel.categoryId) ?? 0;
+                final myTier = RankTier.forElo(myUser?.elo ?? 0);
+                final opponentTier = RankTier.forElo(opponentUser?.elo ?? 0);
 
                 return ResponsiveCenter(
                   maxWidth: 560,
@@ -117,6 +123,7 @@ class _DuelIntroScreenState extends ConsumerState<DuelIntroScreen> {
                                 name: myName,
                                 categoryWins: myWins,
                                 color: AppColors.playerOne,
+                                tier: myTier,
                                 winsLabel: l10n.duelIntroCategoryWinsLabel,
                               ),
                             ),
@@ -129,6 +136,7 @@ class _DuelIntroScreenState extends ConsumerState<DuelIntroScreen> {
                                 name: opponentName,
                                 categoryWins: opponentWins,
                                 color: AppColors.playerTwo,
+                                tier: opponentTier,
                                 winsLabel: l10n.duelIntroCategoryWinsLabel,
                               ),
                             ),
@@ -165,35 +173,39 @@ class _DuelistCard extends StatelessWidget {
     required this.name,
     required this.categoryWins,
     required this.color,
+    required this.tier,
     required this.winsLabel,
   });
 
   final String name;
   final int categoryWins;
   final Color color;
+  final RankTier tier;
   final String winsLabel;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final trimmed = name.trim();
-    final initial = trimmed.isEmpty ? '?' : trimmed.characters.first.toUpperCase();
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 64,
-          height: 64,
+          width: 68,
+          height: 68,
           alignment: Alignment.center,
+          padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: color.withValues(alpha: 0.18),
             border: Border.all(color: color, width: 2.5),
           ),
-          child: Text(
-            initial,
-            style: theme.textTheme.displaySmall?.copyWith(color: color),
+          child: ClipOval(
+            child: ModularAvatarWidget(
+              archetype: AvatarArchetype.strategist,
+              frame: tier.avatarFrame,
+              size: 60,
+            ),
           ),
         ),
         const SizedBox(height: AppSpacing.sm),

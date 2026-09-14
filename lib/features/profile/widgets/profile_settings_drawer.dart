@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/avatar_system.dart';
 import '../../../core/utils/rank_tier.dart';
+import '../../../core/widgets/modular_avatar.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// The Profile tab's settings surface — a standard slide-out drawer instead
@@ -15,7 +17,6 @@ class ProfileSettingsDrawer extends StatelessWidget {
   const ProfileSettingsDrawer({
     super.key,
     required this.displayName,
-    required this.photoUrl,
     required this.tier,
     required this.locale,
     required this.onEditName,
@@ -26,7 +27,6 @@ class ProfileSettingsDrawer extends StatelessWidget {
   });
 
   final String displayName;
-  final String? photoUrl;
   final RankTier tier;
   final String locale;
   final VoidCallback onEditName;
@@ -62,24 +62,12 @@ class ProfileSettingsDrawer extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: tier.color.withValues(alpha: 0.18),
-                      border: Border.all(color: tier.color, width: 2),
-                      image: photoUrl != null
-                          ? DecorationImage(image: NetworkImage(photoUrl!), fit: BoxFit.cover)
-                          : null,
+                  ClipOval(
+                    child: ModularAvatarWidget(
+                      archetype: AvatarArchetype.strategist,
+                      frame: tier.avatarFrame,
+                      size: 56,
                     ),
-                    child: photoUrl != null
-                        ? null
-                        : Text(
-                            name.isEmpty ? '?' : name.characters.first.toUpperCase(),
-                            style: theme.textTheme.titleLarge?.copyWith(color: tier.color),
-                          ),
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(

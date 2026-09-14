@@ -7,6 +7,9 @@ import 'package:go_router/go_router.dart';
 import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/avatar_system.dart';
+import '../../../core/utils/rank_tier.dart';
+import '../../../core/widgets/modular_avatar.dart';
 import '../../../core/widgets/responsive_center.dart';
 import '../../../core/widgets/skeleton_loader.dart';
 import '../../../core/widgets/slab_button.dart';
@@ -144,30 +147,17 @@ class _SearchResultRow extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final name = user.displayName.trim();
+    final tier = RankTier.forElo(user.elo);
 
     return ListTile(
       contentPadding: EdgeInsets.zero,
       onTap: () => context.push(AppRoutes.playerProfilePath(user.uid)),
-      leading: Container(
-        width: 44,
-        height: 44,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.primary.withValues(alpha: 0.16),
-          image: user.photoUrl != null
-              ? DecorationImage(image: NetworkImage(user.photoUrl!), fit: BoxFit.cover)
-              : null,
+      leading: ClipOval(
+        child: ModularAvatarWidget(
+          archetype: AvatarArchetype.strategist,
+          frame: tier.avatarFrame,
+          size: 44,
         ),
-        child: user.photoUrl != null
-            ? null
-            : Text(
-                name.isEmpty ? '?' : name.characters.first.toUpperCase(),
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
       ),
       title: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),
       trailing: switch (relation) {

@@ -28,11 +28,15 @@ class CloudFunctionsService {
     await _functions.httpsCallable('leaveOpenLobby').call({'lobbyId': lobbyId});
   }
 
-  Future<void> sendDuelChallenge({required String toUserId, required String categoryId}) async {
-    await _functions.httpsCallable('sendDuelChallenge').call({
+  Future<Map<String, dynamic>> sendDuelChallenge({
+    required String toUserId,
+    required String categoryId,
+  }) async {
+    final result = await _functions.httpsCallable('sendDuelChallenge').call({
       'toUserId': toUserId,
       'categoryId': categoryId,
     });
+    return Map<String, dynamic>.from(result.data as Map);
   }
 
   Future<Map<String, dynamic>> respondToDuelChallenge({

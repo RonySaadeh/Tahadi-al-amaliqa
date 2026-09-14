@@ -85,8 +85,19 @@ class DuelRepository {
     });
   }
 
-  Future<void> sendChallenge({required String toUserId, required String categoryId}) {
+  Future<Map<String, dynamic>> sendChallenge({required String toUserId, required String categoryId}) {
     return _cloudFunctions.sendDuelChallenge(toUserId: toUserId, categoryId: categoryId);
+  }
+
+  /// Watches a single sent challenge so the *sender* can notice the moment
+  /// the recipient accepts and `duelId` gets stamped onto it — the sender's
+  /// side of the same "watch a doc for a duelId" trick [watchOpenLobby]
+  /// uses for quick-match.
+  Stream<DuelInviteModel?> watchInvite(String inviteId) {
+    return _firestore.duelInvites.doc(inviteId).snapshots().map((doc) {
+      if (!doc.exists) return null;
+      return DuelInviteModel.fromFirestore(doc);
+    });
   }
 
   Future<Map<String, dynamic>> respondToChallenge({required String inviteId, required bool accept}) {

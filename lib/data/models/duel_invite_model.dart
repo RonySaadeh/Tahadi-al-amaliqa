@@ -17,6 +17,7 @@ class DuelInviteModel extends Equatable {
     required this.categoryName,
     required this.status,
     required this.createdAt,
+    this.duelId,
   });
 
   final String id;
@@ -27,6 +28,12 @@ class DuelInviteModel extends Equatable {
   final String categoryName;
   final DuelInviteStatus status;
   final DateTime createdAt;
+
+  /// Set by `respondToDuelChallenge` the moment the invite is accepted —
+  /// this is how the *sender* (who never calls that function themselves)
+  /// learns a duel now exists to navigate into. See
+  /// `sentInviteStreamProvider`.
+  final String? duelId;
 
   factory DuelInviteModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? <String, dynamic>{};
@@ -39,6 +46,7 @@ class DuelInviteModel extends Equatable {
       categoryName: data['categoryName'] as String? ?? '',
       status: DuelInviteStatus.fromString(data['status'] as String? ?? 'pending'),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      duelId: data['duelId'] as String?,
     );
   }
 
@@ -52,5 +60,6 @@ class DuelInviteModel extends Equatable {
     categoryName,
     status,
     createdAt,
+    duelId,
   ];
 }

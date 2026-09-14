@@ -17,11 +17,28 @@ class DuelController extends Notifier<AsyncValue<void>> {
   @override
   AsyncValue<void> build() => const AsyncValue.data(null);
 
+  /// Sends the challenge and starts tracking it in [sentInviteIdProvider] so
+  /// `HomeScreen` can watch it via [sentInviteStreamProvider] and navigate
+  /// automatically the moment the recipient accepts — mirroring
+  /// [joinQuickMatch]/[queuedLobbyIdProvider] for quick-match.
   Future<void> sendChallenge({required String toUserId, required String categoryId}) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      await ref.read(duelRepositoryProvider).sendChallenge(toUserId: toUserId, categoryId: categoryId);
+      final result = await ref
+          .read(duelRepositoryProvider)
+          .sendChallenge(toUserId: toUserId, categoryId: categoryId);
+      final inviteId = result['inviteId'] as String?;
+      if (inviteId != null) {
+        ref.read(sentInviteIdProvider.notifier).set(inviteId);
+      }
     });
+  }
+
+  /// Called once [sentInviteStreamProvider] reports a `duelId` — stops
+  /// treating this invite as pending now that the duel itself is what
+  /// matters.
+  void clearSentInviteAfterMatch() {
+    ref.read(sentInviteIdProvider.notifier).set(null);
   }
 
   /// Returns the new duel's id if the invite was accepted, otherwise null.
@@ -93,6 +110,25 @@ final queuedLobbyIdProvider = NotifierProvider<QueuedLobbyIdController, String?>
 
 final openLobbyStreamProvider = StreamProvider.family<OpenLobbyModel?, String>((ref, lobbyId) {
   return ref.watch(duelRepositoryProvider).watchOpenLobby(lobbyId);
+});
+
+/// The invite id of a challenge we're currently waiting on a response to,
+/// or null. Held as its own provider (rather than local widget state) for
+/// the same reason as [queuedLobbyIdProvider]: it must survive switching
+/// away from the tab that sent the challenge and back.
+class SentInviteIdController extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void set(String? inviteId) => state = inviteId;
+}
+
+final sentInviteIdProvider = NotifierProvider<SentInviteIdController, String?>(
+  SentInviteIdController.new,
+);
+
+final sentInviteStreamProvider = StreamProvider.family<DuelInviteModel?, String>((ref, inviteId) {
+  return ref.watch(duelRepositoryProvider).watchInvite(inviteId);
 });
 
 /// The category currently picked from the lobby's catalog, or null for "any

@@ -135,12 +135,27 @@ class HomeScreen extends ConsumerWidget {
     final categoriesAsync = ref.watch(categoriesProvider);
     final selectedCategoryId = ref.watch(selectedCategoryIdProvider);
     final locale = ref.watch(currentUserProvider).value?.locale;
+    final sentInviteId = ref.watch(sentInviteIdProvider);
 
     if (queuedLobbyId != null) {
       ref.listen(openLobbyStreamProvider(queuedLobbyId), (previous, next) {
         final duelId = next.value?.duelId;
         if (duelId == null) return;
         ref.read(duelControllerProvider.notifier).clearQueueAfterMatch();
+        context.push(AppRoutes.duelIntroPath(duelId));
+      });
+    }
+
+    // The other half of accepting a challenge: whoever *sent* it never
+    // calls `respondToDuelChallenge` themselves, so they have no return
+    // value to read a `duelId` off of. This watches their own sent invite
+    // for the `duelId` `respondToDuelChallenge` stamps onto it and
+    // navigates them in the instant their friend accepts.
+    if (sentInviteId != null) {
+      ref.listen(sentInviteStreamProvider(sentInviteId), (previous, next) {
+        final duelId = next.value?.duelId;
+        if (duelId == null) return;
+        ref.read(duelControllerProvider.notifier).clearSentInviteAfterMatch();
         context.push(AppRoutes.duelIntroPath(duelId));
       });
     }

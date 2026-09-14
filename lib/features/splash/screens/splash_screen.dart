@@ -5,7 +5,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/mascot_assets.dart';
 import '../../../core/widgets/giants_logo.dart';
+import '../../../core/widgets/mascot_display.dart';
 import '../../../l10n/app_localizations.dart';
 
 /// The very first screen on every cold start (`initialLocation` in
@@ -72,9 +74,14 @@ class SplashScreen extends ConsumerWidget {
             child: Column(
               children: [
                 const Spacer(),
-                const GiantsLockup()
+                const MascotDisplay(mood: MascotMood.idle, size: 200)
                     .animate()
                     .fadeIn(duration: 500.ms)
+                    .scale(begin: const Offset(0.85, 0.85), curve: Curves.easeOutBack),
+                const SizedBox(height: AppSpacing.lg),
+                const GiantsWordmark()
+                    .animate()
+                    .fadeIn(delay: 100.ms, duration: 500.ms)
                     .scale(begin: const Offset(0.85, 0.85), curve: Curves.easeOutBack),
                 const Spacer(),
                 Padding(

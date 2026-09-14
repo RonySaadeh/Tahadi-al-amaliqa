@@ -5,11 +5,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/avatar_system.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/level_calculator.dart';
 import '../../../core/utils/rank_tier.dart';
 import '../../../core/utils/validators.dart';
 import '../../../core/widgets/arena_panel.dart';
+import '../../../core/widgets/modular_avatar.dart';
 import '../../../core/widgets/rank_badge.dart';
 import '../../../core/widgets/responsive_center.dart';
 import '../../../core/widgets/skeleton_loader.dart';
@@ -99,7 +101,6 @@ class ProfileScreen extends ConsumerWidget {
         return Scaffold(
           drawer: ProfileSettingsDrawer(
             displayName: user.displayName,
-            photoUrl: user.photoUrl,
             tier: tier,
             locale: user.locale,
             onEditName: () => _showEditNameDialog(context, ref, user.displayName),
@@ -139,8 +140,6 @@ class ProfileScreen extends ConsumerWidget {
                   Positioned(
                     bottom: -_avatarSize * 0.42,
                     child: _LevelRingAvatar(
-                      displayName: user.displayName,
-                      photoUrl: user.photoUrl,
                       progress: level.progress,
                       size: _avatarSize,
                     ),
@@ -268,23 +267,20 @@ class _StatsGrid extends StatelessWidget {
 /// The avatar with its XP progress drawn as a ring around it, so level
 /// progress lives on the player's own portrait rather than in a separate bar
 /// somewhere below it.
+///
+/// TODO: archetype/frame are hardcoded until avatar selection and frame-tier
+/// progression exist — swap these for real user fields once that lands.
 class _LevelRingAvatar extends StatelessWidget {
   const _LevelRingAvatar({
-    required this.displayName,
-    required this.photoUrl,
     required this.progress,
     required this.size,
   });
 
-  final String displayName;
-  final String? photoUrl;
   final double progress;
   final double size;
 
   @override
   Widget build(BuildContext context) {
-    final name = displayName.trim();
-
     return SizedBox(
       width: size,
       height: size,
@@ -300,25 +296,12 @@ class _LevelRingAvatar extends StatelessWidget {
               valueColor: const AlwaysStoppedAnimation(AppColors.gold),
             ),
           ),
-          Container(
-            width: size - 14,
-            height: size - 14,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.arenaDark,
-              image: photoUrl != null
-                  ? DecorationImage(image: NetworkImage(photoUrl!), fit: BoxFit.cover)
-                  : null,
+          ClipOval(
+            child: ModularAvatarWidget(
+              archetype: AvatarArchetype.strategist,
+              frame: AvatarFrame.bronze,
+              size: size - 14,
             ),
-            child: photoUrl != null
-                ? null
-                : Text(
-                    name.isEmpty ? '?' : name.characters.first.toUpperCase(),
-                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      color: AppColors.gold,
-                    ),
-                  ),
           ),
         ],
       ),

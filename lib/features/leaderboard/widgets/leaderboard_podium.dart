@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/avatar_system.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/leaderboard_entry_model.dart';
 
@@ -123,17 +124,18 @@ class _Plinth extends StatelessWidget {
                   ? [BoxShadow(color: color.withValues(alpha: 0.45), blurRadius: 24)]
                   : null,
             ),
-            child: entry.photoUrl != null
-                ? ClipOval(
-                    child: Image.network(
-                      entry.photoUrl!,
-                      width: avatarSize,
-                      height: avatarSize,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => _Initial(entry: entry, color: color),
-                    ),
-                  )
-                : _Initial(entry: entry, color: color),
+            // Archetype art only, no [AvatarFrame] layer — the podium ring
+            // already carries medal-color/rank ceremony here, and a second
+            // tier-colored frame on top of it would visually compete rather
+            // than reinforce it.
+            child: ClipOval(
+              child: Image.asset(
+                AvatarArchetype.strategist.assetPath,
+                width: avatarSize,
+                height: avatarSize,
+                fit: BoxFit.cover,
+              ),
+            ),
           ),
           const SizedBox(height: 6),
           Padding(
@@ -189,27 +191,6 @@ class _Plinth extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _Initial extends StatelessWidget {
-  const _Initial({required this.entry, required this.color});
-
-  final LeaderboardEntryModel entry;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    final name = entry.displayName.trim();
-    return Center(
-      child: Text(
-        name.isEmpty ? '?' : name.characters.first.toUpperCase(),
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          color: color,
-          fontWeight: FontWeight.w900,
-        ),
       ),
     );
   }
