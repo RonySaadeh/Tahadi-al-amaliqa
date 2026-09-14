@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../core/constants/app_constants.dart';
 import '../core/providers/core_providers.dart';
 import '../core/utils/version_compare.dart';
+import '../features/app_control/app_control_controller.dart';
 import '../features/app_control/screens/app_control_screen.dart';
 import '../features/app_control/screens/force_update_screen.dart';
 import '../features/app_control/screens/maintenance_screen.dart';
@@ -85,26 +86,39 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       }
 
       // App Control gating: maintenance mode and a force-required update
-      // both block the entire app, signed in or not — see `AppControlModel`
+      // both block the entire app for everyone else — see `AppControlModel`
       // and `features/app_control/`. Read as `.value` (fires again the
       // instant an admin toggles either flag, via `appControlProvider`'s
       // `ref.listen` in `_AppRefreshNotifier` below) and fails *open* — a
       // still-loading or errored snapshot never blocks the app, since this
       // is an operational switch, not a security boundary, and shouldn't be
       // able to lock everyone out over a slow first read.
+      //
+      // An admin is exempt from both gates. Without this, turning on
+      // maintenance mode from inside the app locks out the only account
+      // that could turn it back off — the App Control panel lives behind
+      // the very gate it controls. This can lag on a cold start until
+      // `currentUserProvider`'s Firestore read resolves; `_AppRefreshNotifier`
+      // also listens to `isAppAdminProvider` below so the redirect re-runs
+      // the instant that profile (and its `isAdmin` bit) arrives, instead of
+      // leaving an admin stuck on the gate screen from a stale first read.
+      final isAppAdmin = ref.read(isAppAdminProvider);
       final appControl = ref.read(appControlProvider).value;
       final isGoingToMaintenance = state.matchedLocation == AppRoutes.maintenance;
       final isGoingToUpdateRequired = state.matchedLocation == AppRoutes.updateRequired;
 
-      if (appControl?.maintenanceEnabled == true) {
-        return isGoingToMaintenance ? null : AppRoutes.maintenance;
+      if (!isAppAdmin) {
+        if (appControl?.maintenanceEnabled == true) {
+          return isGoingToMaintenance ? null : AppRoutes.maintenance;
+        }
+        if (appControl?.forceUpdateEnabled == true &&
+            isVersionBelow(AppConstants.appVersion, appControl!.minVersion)) {
+          return isGoingToUpdateRequired ? null : AppRoutes.updateRequired;
+        }
       }
-      if (appControl?.forceUpdateEnabled == true &&
-          isVersionBelow(AppConstants.appVersion, appControl!.minVersion)) {
-        return isGoingToUpdateRequired ? null : AppRoutes.updateRequired;
-      }
-      // Neither block applies (any more) — leave a gate screen the instant
-      // it clears, same as the destination it would have otherwise reached.
+      // Neither block applies (any more), or the caller is exempt — leave a
+      // gate screen the instant that's true, same as the destination it
+      // would have otherwise reached.
       if (isGoingToMaintenance || isGoingToUpdateRequired) {
         return isSignedIn ? AppRoutes.home : AppRoutes.welcome;
       }
@@ -167,10 +181,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 });
 
 /// Bridges Riverpod's `authStateChangesProvider`, `connectivityStatusProvider`,
-/// `splashMinDurationElapsedProvider`, and `appControlProvider` into the
-/// `Listenable` go_router's `refreshListenable` expects, so navigation
-/// re-evaluates the redirect the instant sign-in state, connectivity, the
-/// splash timer, or an admin's maintenance/force-update toggle changes.
+/// `splashMinDurationElapsedProvider`, `appControlProvider`, and
+/// `isAppAdminProvider` into the `Listenable` go_router's `refreshListenable`
+/// expects, so navigation re-evaluates the redirect the instant sign-in
+/// state, connectivity, the splash timer, an admin's maintenance/force-update
+/// toggle, or the signed-in player's own `isAdmin` bit (which can arrive
+/// after a cold start, once their profile finishes loading) changes.
 class _AppRefreshNotifier extends ChangeNotifier {
   _AppRefreshNotifier(this._ref) {
     _authSubscription = _ref.listen(authStateChangesProvider, (previous, next) {
@@ -185,6 +201,9 @@ class _AppRefreshNotifier extends ChangeNotifier {
     _appControlSubscription = _ref.listen(appControlProvider, (previous, next) {
       notifyListeners();
     });
+    _isAppAdminSubscription = _ref.listen(isAppAdminProvider, (previous, next) {
+      notifyListeners();
+    });
   }
 
   final Ref _ref;
@@ -192,6 +211,7 @@ class _AppRefreshNotifier extends ChangeNotifier {
   late final ProviderSubscription<AsyncValue<bool>> _connectivitySubscription;
   late final ProviderSubscription<AsyncValue<bool>> _splashMinDurationSubscription;
   late final ProviderSubscription<AsyncValue<dynamic>> _appControlSubscription;
+  late final ProviderSubscription<bool> _isAppAdminSubscription;
 
   @override
   void dispose() {
@@ -199,6 +219,7 @@ class _AppRefreshNotifier extends ChangeNotifier {
     _connectivitySubscription.close();
     _splashMinDurationSubscription.close();
     _appControlSubscription.close();
+    _isAppAdminSubscription.close();
     super.dispose();
   }
 }
