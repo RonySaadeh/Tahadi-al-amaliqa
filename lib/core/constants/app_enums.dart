@@ -86,12 +86,18 @@ enum FriendshipStatus {
 
 enum NotificationType {
   friendRequest,
-  duelChallenge;
+  duelChallenge,
+  // A one-off message from an admin's App Control panel, fanned out to
+  // every player's inbox in one shot — see `functions/src/admin/appControl.ts`
+  // and `lib/features/app_control/`. Unlike the other two, it carries its
+  // own `title`/`message` rather than being derived from a related doc.
+  announcement;
 
   static NotificationType fromString(String value) {
     return switch (value) {
       'friend_request' => NotificationType.friendRequest,
       'duel_challenge' => NotificationType.duelChallenge,
+      'announcement' => NotificationType.announcement,
       _ => NotificationType.friendRequest,
     };
   }

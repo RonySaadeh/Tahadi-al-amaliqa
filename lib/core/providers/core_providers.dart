@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/models/app_control_model.dart';
 import '../../data/models/user_model.dart';
+import '../../data/repositories/app_control_repository.dart';
 import '../../data/repositories/duel_repository.dart';
 import '../../data/repositories/friends_repository.dart';
 import '../../data/repositories/leaderboard_repository.dart';
@@ -60,6 +62,12 @@ final friendsRepositoryProvider = Provider<FriendsRepository>(
 final notificationsRepositoryProvider = Provider<NotificationsRepository>(
   (ref) => NotificationsRepository(firestoreService: ref.watch(firestoreServiceProvider)),
 );
+final appControlRepositoryProvider = Provider<AppControlRepository>(
+  (ref) => AppControlRepository(
+    firestoreService: ref.watch(firestoreServiceProvider),
+    cloudFunctions: ref.watch(cloudFunctionsServiceProvider),
+  ),
+);
 
 // --- Auth state ---
 
@@ -105,6 +113,20 @@ final connectivityStatusProvider = StreamProvider<bool>((ref) async* {
   final service = ref.watch(connectivityServiceProvider);
   yield await service.checkConnection();
   yield* service.onConnectivityChanged;
+});
+
+// --- App Control ---
+
+/// Live operator state (maintenance mode, force update, the limited-time
+/// event) from `appControl/status`. Watched by both the router's redirect
+/// (to gate the whole app behind maintenance/update-required screens — see
+/// `app_router.dart`) and `AppShell`'s event banner, so both react the
+/// instant an admin flips a toggle rather than needing a restart. Readable
+/// even signed out, since maintenance/force-update must be able to block a
+/// player before they've reached the sign-in screen — see the matching
+/// `allow read: if true` on this one document in `firestore.rules`.
+final appControlProvider = StreamProvider<AppControlModel>((ref) {
+  return ref.watch(appControlRepositoryProvider).watchAppControl();
 });
 
 // --- Presence ---

@@ -47,6 +47,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   equatable: ^2.0.7
   connectivity_plus: ^7.3.1
+  url_launcher: ^6.3.1 # opens the store link from the force-update screen
 
 # NOTE: models are hand-written (plain classes with fromJson/toFirestore/
 # copyWith) rather than generated with freezed/json_serializable. That's a

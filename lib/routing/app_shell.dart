@@ -8,6 +8,7 @@ import '../core/theme/app_breakpoints.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/app_spacing.dart';
 import '../core/widgets/branded_loading_indicator.dart';
+import '../features/app_control/widgets/event_banner.dart';
 import '../l10n/app_localizations.dart';
 import 'app_router.dart';
 
@@ -73,27 +74,39 @@ class AppShell extends ConsumerWidget {
     if (!context.isCompactWidth) {
       final extended = context.isExpandedWidth;
       return Scaffold(
-        body: Row(
+        body: Column(
           children: [
-            NavigationRail(
-              selectedIndex: currentIndex,
-              onDestinationSelected: (index) => context.go(_tabs[index]),
-              extended: extended,
-              labelType: extended ? NavigationRailLabelType.none : NavigationRailLabelType.all,
-              destinations: [
-                for (final d in destinations)
-                  NavigationRailDestination(icon: Icon(d.icon), label: Text(d.label)),
-              ],
+            const EventBanner(),
+            Expanded(
+              child: Row(
+                children: [
+                  NavigationRail(
+                    selectedIndex: currentIndex,
+                    onDestinationSelected: (index) => context.go(_tabs[index]),
+                    extended: extended,
+                    labelType: extended ? NavigationRailLabelType.none : NavigationRailLabelType.all,
+                    destinations: [
+                      for (final d in destinations)
+                        NavigationRailDestination(icon: Icon(d.icon), label: Text(d.label)),
+                    ],
+                  ),
+                  const VerticalDivider(width: 1),
+                  Expanded(child: body),
+                ],
+              ),
             ),
-            const VerticalDivider(width: 1),
-            Expanded(child: body),
           ],
         ),
       );
     }
 
     return Scaffold(
-      body: body,
+      body: Column(
+        children: [
+          const EventBanner(),
+          Expanded(child: body),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: (index) => context.go(_tabs[index]),

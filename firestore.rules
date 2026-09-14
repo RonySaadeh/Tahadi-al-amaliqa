@@ -191,5 +191,21 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
       allow create, delete: if false;
     }
+
+    // --- appControl/status ---
+    // The App Control panel's live singleton (maintenance mode, force
+    // update, the limited-time event) — see `functions/src/admin/appControl.ts`
+    // and `lib/data/models/app_control_model.dart`. Readable even signed
+    // out: maintenance/force-update have to be able to block a player
+    // before they've reached the sign-in screen (see the router redirect in
+    // `app_router.dart`), and this doc holds nothing sensitive. Writable
+    // only through the callables above, each of which checks the caller's
+    // own `users/{uid}.isAdmin` itself before writing — never directly by a
+    // client, admin or not, same as every other trust-sensitive collection
+    // in this file.
+    match /appControl/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
   }
 }

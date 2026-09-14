@@ -229,6 +229,46 @@
     "placeholders": {"name": {"type": "String"}}
   },
 
+  "appControlTitle": "App Control",
+  "appControlSubtitle": "Changes here apply instantly, for every player.",
+  "appControlMaintenanceSection": "Maintenance Mode",
+  "appControlMaintenanceHint": "Blocks every player behind a maintenance screen.",
+  "appControlMaintenanceMessageLabel": "Message shown to players",
+  "appControlUpdateSection": "Force Update",
+  "appControlUpdateHint": "Blocks players on an older version until they update.",
+  "appControlUpdateMinVersionLabel": "Minimum required version",
+  "appControlUpdateMinVersionHint": "e.g. 1.2.0",
+  "appControlUpdateMessageLabel": "Message shown to players",
+  "appControlUpdateUrlLabel": "Store / download link",
+  "appControlEventSection": "Limited-Time Event",
+  "appControlEventHint": "Shows a banner across the app while it's live.",
+  "appControlEventTitleLabel": "Event title",
+  "appControlEventDescriptionLabel": "Event description",
+  "appControlEventEndsAtLabel": "Ends at (optional)",
+  "appControlEventPickDate": "Pick date & time",
+  "appControlEventNoEndDate": "No end date set",
+  "appControlEventClearEndDate": "Clear",
+  "appControlNotificationSection": "Send Global Notification",
+  "appControlNotificationHint": "Delivers instantly to every player's inbox.",
+  "appControlNotificationTitleLabel": "Title",
+  "appControlNotificationMessageLabel": "Message",
+  "appControlNotificationSend": "Send to Everyone",
+  "appControlNotificationSent": "Sent to every player",
+  "appControlEnabledLabel": "Enabled",
+  "appControlSaved": "Saved",
+
+  "maintenanceTitle": "Down for Maintenance",
+  "maintenanceDefaultMessage": "We're making the arena better. Please check back shortly.",
+
+  "forceUpdateTitle": "Update Required",
+  "forceUpdateDefaultMessage": "A new version of the app is available. Please update to keep playing.",
+  "forceUpdateButton": "Update Now",
+
+  "eventBannerEndsAt": "Ends {date}",
+  "@eventBannerEndsAt": {
+    "placeholders": {"date": {"type": "String"}}
+  },
+
   "commonLoading": "Loading...",
   "commonRetry": "Retry",
   "commonCancel": "Cancel",

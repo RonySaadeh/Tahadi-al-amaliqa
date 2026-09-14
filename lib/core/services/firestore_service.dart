@@ -46,6 +46,10 @@ class FirestoreService {
   CollectionReference<Map<String, dynamic>> get notifications =>
       _db.collection(FirestorePaths.notifications);
 
+  DocumentReference<Map<String, dynamic>> get appControlStatus => _db
+      .collection(FirestorePaths.appControl)
+      .doc(FirestorePaths.appControlStatusDocId);
+
   CollectionReference<Map<String, dynamic>> duelRounds(String duelId) =>
       duels.doc(duelId).collection(FirestorePaths.rounds);
 

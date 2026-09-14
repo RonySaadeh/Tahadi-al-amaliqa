@@ -10,7 +10,7 @@ export type QuestionDifficulty = "easy" | "medium" | "hard";
 export type QuestionSource = "api" | "llm" | "user";
 export type DuelInviteStatus = "pending" | "accepted" | "declined" | "expired";
 export type FriendshipStatus = "pending" | "accepted" | "declined";
-export type NotificationType = "friend_request" | "duel_challenge";
+export type NotificationType = "friend_request" | "duel_challenge" | "announcement";
 
 export interface QuestionDoc {
   categoryId: string;
@@ -96,6 +96,13 @@ export interface UserDoc {
    * its own boolean, since Firestore has no `onDisconnect` to keep a boolean
    * honest. */
   lastActiveAt?: FirebaseFirestore.FieldValue | FirebaseFirestore.Timestamp | null;
+
+  /** Grants access to the App Control panel — see
+   * `functions/src/admin/appControl.ts` and `lib/data/models/user_model.dart`.
+   * Absent/false for every normal player. Never set by a client — there is
+   * no write path for it in `firestore.rules`'s `users/{uid}` update rule,
+   * so it can only be flipped by hand in the Firebase console. */
+  isAdmin?: boolean;
 }
 
 /** One doc per unordered pair of users, id = sorted `${uidA}_${uidB}` (see
@@ -129,8 +136,40 @@ export interface NotificationDoc {
   fromUserId: string;
   fromDisplayName: string;
   /** The `friendships` or `duelInvites` doc id this notification is about,
-   * so its Accept/Decline buttons can act on the real thing directly. */
+   * so its Accept/Decline buttons can act on the real thing directly. Empty
+   * for `"announcement"`, which isn't about any other document. */
   relatedId: string;
   read: boolean;
   createdAt: FirebaseFirestore.FieldValue | FirebaseFirestore.Timestamp;
+  /** Only set for `type: "announcement"` — the free-text title/body an
+   * admin wrote in the App Control panel. See `sendGlobalNotification`. */
+  title?: string;
+  message?: string;
+}
+
+/** The App Control panel's live singleton, stored at `appControl/status` —
+ * see `lib/data/models/app_control_model.dart` for the client's read side.
+ * Written only by the callables in `admin/appControl.ts`, each of which
+ * re-checks `UserDoc.isAdmin` itself; `firestore.rules` blocks every other
+ * write to this document (including from an admin's own client) the same
+ * way it blocks direct writes to `duels`/`questions`/etc. */
+export interface AppControlDoc {
+  maintenance: {
+    enabled: boolean;
+    message: string;
+  };
+  update: {
+    enabled: boolean;
+    minVersion: string;
+    message: string;
+    url: string;
+  };
+  event: {
+    active: boolean;
+    title: string;
+    description: string;
+    endsAt: FirebaseFirestore.Timestamp | null;
+  };
+  updatedAt: FirebaseFirestore.FieldValue | FirebaseFirestore.Timestamp;
+  updatedBy: string;
 }

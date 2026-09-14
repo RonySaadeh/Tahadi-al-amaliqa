@@ -18,6 +18,8 @@ class NotificationModel extends Equatable {
     required this.relatedId,
     required this.read,
     required this.createdAt,
+    this.title,
+    this.message,
   });
 
   final String id;
@@ -30,10 +32,18 @@ class NotificationModel extends Equatable {
   /// `duelInvites` doc id (for [NotificationType.duelChallenge]) this
   /// notification is about — so its Accept/Decline buttons can act on the
   /// real thing directly, through the same functions the rest of the app
-  /// already uses for that.
+  /// already uses for that. Empty for [NotificationType.announcement],
+  /// which isn't about any other document.
   final String relatedId;
   final bool read;
   final DateTime createdAt;
+
+  /// Only set for [NotificationType.announcement] — the free-text title and
+  /// body an admin wrote in the App Control panel and sent via
+  /// `sendGlobalNotification`. Null for every other type, whose display text
+  /// is built from [fromDisplayName] instead (see `NotificationTile`).
+  final String? title;
+  final String? message;
 
   factory NotificationModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? <String, dynamic>{};
@@ -46,9 +56,22 @@ class NotificationModel extends Equatable {
       relatedId: data['relatedId'] as String? ?? '',
       read: data['read'] as bool? ?? false,
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      title: data['title'] as String?,
+      message: data['message'] as String?,
     );
   }
 
   @override
-  List<Object?> get props => [id, userId, type, fromUserId, fromDisplayName, relatedId, read, createdAt];
+  List<Object?> get props => [
+    id,
+    userId,
+    type,
+    fromUserId,
+    fromDisplayName,
+    relatedId,
+    read,
+    createdAt,
+    title,
+    message,
+  ];
 }

@@ -109,4 +109,52 @@ class CloudFunctionsService {
       'difficulty': difficulty,
     });
   }
+
+  // --- App Control (admin-only; each callable re-checks `isAdmin` server
+  // side — see `functions/src/admin/appControl.ts`) ---
+
+  Future<void> setMaintenanceMode({required bool enabled, required String message}) async {
+    await _functions.httpsCallable('setMaintenanceMode').call({
+      'enabled': enabled,
+      'message': message,
+    });
+  }
+
+  Future<void> setForceUpdate({
+    required bool enabled,
+    required String minVersion,
+    required String message,
+    required String updateUrl,
+  }) async {
+    await _functions.httpsCallable('setForceUpdate').call({
+      'enabled': enabled,
+      'minVersion': minVersion,
+      'message': message,
+      'url': updateUrl,
+    });
+  }
+
+  Future<void> setLimitedEvent({
+    required bool active,
+    required String title,
+    required String description,
+    DateTime? endsAt,
+  }) async {
+    await _functions.httpsCallable('setLimitedEvent').call({
+      'active': active,
+      'title': title,
+      'description': description,
+      'endsAt': endsAt?.toIso8601String(),
+    });
+  }
+
+  /// Fans a one-off announcement out to every player's notification inbox
+  /// (see `NotificationType.announcement`) — not a persisted toggle the way
+  /// the other three are, so there's nothing to "turn off" afterward.
+  Future<void> sendGlobalNotification({required String title, required String message}) async {
+    await _functions.httpsCallable('sendGlobalNotification').call({
+      'title': title,
+      'message': message,
+    });
+  }
 }

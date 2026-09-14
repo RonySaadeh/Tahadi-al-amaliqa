@@ -21,6 +21,8 @@ class ProfileSettingsDrawer extends StatelessWidget {
     required this.onEditName,
     required this.onLocaleChanged,
     required this.onSignOut,
+    this.isAdmin = false,
+    this.onOpenAppControl,
   });
 
   final String displayName;
@@ -30,6 +32,12 @@ class ProfileSettingsDrawer extends StatelessWidget {
   final VoidCallback onEditName;
   final ValueChanged<String> onLocaleChanged;
   final VoidCallback onSignOut;
+
+  /// Shows the "App Control" entry below Language when true — gated on
+  /// `UserModel.isAdmin`, so most players never see it. See
+  /// `features/app_control/README.md`.
+  final bool isAdmin;
+  final VoidCallback? onOpenAppControl;
 
   @override
   Widget build(BuildContext context) {
@@ -124,6 +132,17 @@ class ProfileSettingsDrawer extends StatelessWidget {
                 ],
               ),
             ),
+            if (isAdmin && onOpenAppControl != null) ...[
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.admin_panel_settings_rounded, color: AppColors.primary),
+                title: Text(l10n.appControlTitle),
+                onTap: () {
+                  Scaffold.of(context).closeDrawer();
+                  onOpenAppControl!();
+                },
+              ),
+            ],
             const Spacer(),
             const Divider(height: 1),
             ListTile(

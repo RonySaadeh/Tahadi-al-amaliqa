@@ -14,3 +14,10 @@ export { sendDuelChallenge, respondToDuelChallenge } from "./matchmaking/duelCha
 export { joinOpenLobby, leaveOpenLobby } from "./matchmaking/openLobby";
 
 export { sendFriendRequest, respondToFriendRequest } from "./social/friends";
+
+export {
+  setMaintenanceMode,
+  setForceUpdate,
+  setLimitedEvent,
+  sendGlobalNotification,
+} from "./admin/appControl";

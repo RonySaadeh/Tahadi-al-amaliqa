@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -14,6 +15,7 @@ import '../../../core/widgets/responsive_center.dart';
 import '../../../core/widgets/skeleton_loader.dart';
 import '../../../data/models/user_model.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../routing/app_router.dart';
 import '../../auth/auth_controller.dart';
 import '../../home/home_controller.dart';
 import '../../home_turf/home_turf_controller.dart';
@@ -105,6 +107,8 @@ class ProfileScreen extends ConsumerWidget {
             onEditName: () => _showEditNameDialog(context, ref, user.displayName),
             onLocaleChanged: (value) => ref.read(profileControllerProvider.notifier).updateLocale(value),
             onSignOut: () => ref.read(authControllerProvider.notifier).signOut(),
+            isAdmin: user.isAdmin,
+            onOpenAppControl: () => context.push(AppRoutes.appControl),
           ),
           body: ListView(
             padding: EdgeInsets.zero,

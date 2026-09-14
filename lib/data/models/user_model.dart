@@ -29,6 +29,7 @@ class UserModel extends Equatable {
     this.locale = 'en',
     this.categoryWins = const {},
     this.lastActiveAt,
+    this.isAdmin = false,
   });
 
   final String uid;
@@ -62,6 +63,14 @@ class UserModel extends Equatable {
   /// is derived from this (recent enough), not stored as its own flag — see
   /// `core/utils/presence.dart`.
   final DateTime? lastActiveAt;
+
+  /// Grants access to the App Control panel (`features/app_control/`) —
+  /// maintenance mode, force update, the limited-time event banner, and
+  /// global notifications. Deliberately **not** in [editableFields]/
+  /// `firestore.rules`'s update allowlist: a player can never grant this to
+  /// themselves. It's flipped by hand on `users/{uid}` in the Firebase
+  /// console for whoever should have it — see `features/app_control/README.md`.
+  final bool isAdmin;
 
   int get totalDuels => wins + losses;
 
@@ -103,6 +112,7 @@ class UserModel extends Equatable {
       locale: data['locale'] as String? ?? 'en',
       categoryWins: _parseCategoryWins(data['categoryStats']),
       lastActiveAt: (data['lastActiveAt'] as Timestamp?)?.toDate(),
+      isAdmin: data['isAdmin'] as bool? ?? false,
     );
   }
 
@@ -186,6 +196,7 @@ class UserModel extends Equatable {
       locale: locale ?? this.locale,
       categoryWins: categoryWins ?? this.categoryWins,
       lastActiveAt: lastActiveAt ?? this.lastActiveAt,
+      isAdmin: isAdmin,
     );
   }
 
@@ -206,5 +217,6 @@ class UserModel extends Equatable {
     locale,
     categoryWins,
     lastActiveAt,
+    isAdmin,
   ];
 }

@@ -63,4 +63,12 @@ class AppConstants {
   /// next round the instant that single update lands — the result would be
   /// visible for barely a frame.
   static const int roundResultPauseMs = 2200;
+
+  /// This build's version, compared against `appControl/status.minVersion`
+  /// (see `AppControlModel` and `core/utils/version_compare.dart`) to decide
+  /// whether a force-update screen should block the app. Kept as a manually
+  /// mirrored constant, same as everything else in this file, rather than
+  /// read from `pubspec.yaml` at runtime — bump it alongside the `version:`
+  /// line in `pubspec.yaml` on every release.
+  static const String appVersion = '0.1.0';
 }

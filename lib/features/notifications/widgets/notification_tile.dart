@@ -30,6 +30,8 @@ class NotificationTile extends ConsumerWidget {
           await ref
               .read(duelControllerProvider.notifier)
               .respondToChallenge(inviteId: notification.relatedId, accept: accept);
+        case NotificationType.announcement:
+          break; // No response action — see the early return in build() below.
       }
     } catch (_) {
       if (context.mounted) {
@@ -46,9 +48,53 @@ class NotificationTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final unreadDot = !notification.read
+        ? Container(
+            width: 8,
+            height: 8,
+            margin: const EdgeInsets.only(top: 6, right: AppSpacing.sm),
+            decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.primary),
+          )
+        : null;
+
+    // An admin's broadcast is free-text and one-way — it carries its own
+    // title/message rather than the templated "{name} did X" body every
+    // other type gets, and there's nothing to Accept/Decline.
+    if (notification.type == NotificationType.announcement) {
+      return Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: notification.read ? null : AppColors.gold.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (unreadDot != null) unreadDot,
+            const Icon(Icons.campaign_rounded, size: 20, color: AppColors.gold),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    (notification.title?.trim().isNotEmpty ?? false) ? notification.title! : l10n.notificationsTitle,
+                    style: theme.textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(notification.message ?? '', style: theme.textTheme.bodyMedium),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     final body = switch (notification.type) {
       NotificationType.friendRequest => l10n.friendsRequestBody(notification.fromDisplayName),
       NotificationType.duelChallenge => l10n.notificationsChallengeBody(notification.fromDisplayName),
+      NotificationType.announcement => '', // handled above
     };
 
     return Container(
@@ -63,13 +109,7 @@ class NotificationTile extends ConsumerWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (!notification.read)
-                Container(
-                  width: 8,
-                  height: 8,
-                  margin: const EdgeInsets.only(top: 6, right: AppSpacing.sm),
-                  decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.primary),
-                ),
+              if (unreadDot != null) unreadDot,
               Expanded(child: Text(body, style: theme.textTheme.bodyMedium)),
             ],
           ),

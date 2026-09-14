@@ -231,6 +231,46 @@
     "placeholders": {"name": {"type": "String"}}
   },
 
+  "appControlTitle": "التحكم بالتطبيق",
+  "appControlSubtitle": "التغييرات هنا تُطبَّق فورًا على جميع اللاعبين.",
+  "appControlMaintenanceSection": "وضع الصيانة",
+  "appControlMaintenanceHint": "يمنع جميع اللاعبين خلف شاشة صيانة.",
+  "appControlMaintenanceMessageLabel": "الرسالة التي تظهر للاعبين",
+  "appControlUpdateSection": "تحديث إلزامي",
+  "appControlUpdateHint": "يمنع اللاعبين على إصدار أقدم حتى يحدّثوا التطبيق.",
+  "appControlUpdateMinVersionLabel": "الحد الأدنى للإصدار المطلوب",
+  "appControlUpdateMinVersionHint": "مثال: 1.2.0",
+  "appControlUpdateMessageLabel": "الرسالة التي تظهر للاعبين",
+  "appControlUpdateUrlLabel": "رابط المتجر / التحميل",
+  "appControlEventSection": "فعالية محدودة المدة",
+  "appControlEventHint": "يظهر شريط إعلان في كل أنحاء التطبيق طوال مدة تفعيلها.",
+  "appControlEventTitleLabel": "عنوان الفعالية",
+  "appControlEventDescriptionLabel": "وصف الفعالية",
+  "appControlEventEndsAtLabel": "تنتهي في (اختياري)",
+  "appControlEventPickDate": "اختر التاريخ والوقت",
+  "appControlEventNoEndDate": "لا يوجد موعد انتهاء محدد",
+  "appControlEventClearEndDate": "إزالة",
+  "appControlNotificationSection": "إرسال إشعار عام",
+  "appControlNotificationHint": "يصل فورًا إلى صندوق كل لاعب.",
+  "appControlNotificationTitleLabel": "العنوان",
+  "appControlNotificationMessageLabel": "الرسالة",
+  "appControlNotificationSend": "إرسال للجميع",
+  "appControlNotificationSent": "تم الإرسال لجميع اللاعبين",
+  "appControlEnabledLabel": "مفعّل",
+  "appControlSaved": "تم الحفظ",
+
+  "maintenanceTitle": "التطبيق تحت الصيانة",
+  "maintenanceDefaultMessage": "نعمل على تحسين الحلبة. يرجى المحاولة بعد قليل.",
+
+  "forceUpdateTitle": "تحديث مطلوب",
+  "forceUpdateDefaultMessage": "يتوفر إصدار جديد من التطبيق. يرجى التحديث للمتابعة.",
+  "forceUpdateButton": "حدّث الآن",
+
+  "eventBannerEndsAt": "ينتهي {date}",
+  "@eventBannerEndsAt": {
+    "placeholders": {"date": {"type": "String"}}
+  },
+
   "commonLoading": "جارِ التحميل...",
   "commonRetry": "إعادة المحاولة",
   "commonCancel": "إلغاء",

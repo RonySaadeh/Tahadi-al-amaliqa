@@ -19,6 +19,12 @@ class Formatters {
     return DateFormat.yMMMM(locale).format(date);
   }
 
+  /// Used for the limited-time event's end date/time — on the App Control
+  /// panel's date picker summary and the event banner's "Ends ..." label.
+  static String dateTime(DateTime date, {String? locale}) {
+    return DateFormat.yMMMd(locale).add_jm().format(date);
+  }
+
   static String record(int wins, int losses) => '$wins-$losses';
 
   /// mm:ss countdown display for the duel timer.

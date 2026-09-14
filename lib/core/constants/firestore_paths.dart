@@ -20,6 +20,12 @@ class FirestorePaths {
   static const String friendships = 'friendships';
   static const String notifications = 'notifications';
 
+  /// Singleton doc collection backing the App Control panel — see
+  /// `AppControlModel` and `lib/features/app_control/`. Always exactly one
+  /// document, at [appControlStatusDocId].
+  static const String appControl = 'appControl';
+  static const String appControlStatusDocId = 'status';
+
   static String duelRounds(String duelId) => '$duels/$duelId/$rounds';
 
   static String roundAnswers(String duelId, int roundNumber) =>
