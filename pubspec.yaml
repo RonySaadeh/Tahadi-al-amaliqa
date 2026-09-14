@@ -92,6 +92,9 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/Mascot/
+    - assets/Avatar/
+    - assets/Frame/
 
   # Bundled rather than fetched at runtime by google_fonts. The brand rests
   # on Titan One specifically — a failed font fetch on a cold, flaky first

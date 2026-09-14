@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/avatar_system.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/rank_tier.dart';
+import '../../../core/widgets/modular_avatar.dart';
 import '../../../data/models/leaderboard_entry_model.dart';
 
 /// One row of the leaderboard below the podium.
@@ -60,27 +62,12 @@ class LeaderboardRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.xs),
-            Container(
-              width: 34,
-              height: 34,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: tier.color.withValues(alpha: 0.16),
-                border: Border.all(color: tier.color.withValues(alpha: 0.55), width: 1.5),
-                image: entry.photoUrl != null
-                    ? DecorationImage(image: NetworkImage(entry.photoUrl!), fit: BoxFit.cover)
-                    : null,
+            ClipOval(
+              child: ModularAvatarWidget(
+                archetype: AvatarArchetype.strategist,
+                frame: tier.avatarFrame,
+                size: 34,
               ),
-              child: entry.photoUrl != null
-                  ? null
-                  : Text(
-                      name.isEmpty ? '?' : name.characters.first.toUpperCase(),
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: tier.color,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
             ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(

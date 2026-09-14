@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/avatar_system.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../core/utils/rank_tier.dart';
 import '../../../core/widgets/branded_loading_indicator.dart';
+import '../../../core/widgets/modular_avatar.dart';
 import '../../../core/widgets/rank_badge.dart';
 import '../../../core/widgets/responsive_center.dart';
 import '../../../core/widgets/slab_button.dart';
@@ -54,24 +56,12 @@ class PlayerProfileScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(AppSpacing.md),
               children: [
                 Center(
-                  child: Container(
-                    width: 88,
-                    height: 88,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: tier.color.withValues(alpha: 0.16),
-                      border: Border.all(color: tier.color, width: 2.5),
-                      image: user.photoUrl != null
-                          ? DecorationImage(image: NetworkImage(user.photoUrl!), fit: BoxFit.cover)
-                          : null,
+                  child: ClipOval(
+                    child: ModularAvatarWidget(
+                      archetype: AvatarArchetype.strategist,
+                      frame: tier.avatarFrame,
+                      size: 88,
                     ),
-                    child: user.photoUrl != null
-                        ? null
-                        : Text(
-                            name.isEmpty ? '?' : name.characters.first.toUpperCase(),
-                            style: theme.textTheme.displaySmall?.copyWith(color: tier.color),
-                          ),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
