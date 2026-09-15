@@ -91,8 +91,21 @@ export const respondToDuelChallenge = onCall(async (request) => {
     throw new HttpsError("failed-precondition", "This invite was already responded to.");
   }
 
+  // The inbox notification (with its Accept/Decline buttons) has done its
+  // job the moment this invite is responded to — `firestore.rules` blocks
+  // the client from deleting it itself, and left in place it would let the
+  // recipient "respond" to an already-resolved invite again from a stale
+  // notifications list.
+  const notificationsSnap = await db
+    .collection("notifications")
+    .where("relatedId", "==", inviteId)
+    .where("type", "==", "duel_challenge" satisfies NotificationDoc["type"])
+    .get();
+  const deleteNotifications = (): Promise<unknown[]> =>
+    Promise.all(notificationsSnap.docs.map((doc) => doc.ref.delete()));
+
   if (!accept) {
-    await inviteRef.update({ status: "declined" satisfies DuelInviteStatus });
+    await Promise.all([inviteRef.update({ status: "declined" satisfies DuelInviteStatus }), deleteNotifications()]);
     return { success: true };
   }
 
@@ -102,6 +115,9 @@ export const respondToDuelChallenge = onCall(async (request) => {
   // function — can watch their own sent invite and pick up the duelId the
   // same way `openLobbies.duelId` lets a quick-matched player notice a
   // match. See `sentInviteStreamProvider` on the client.
-  await inviteRef.update({ status: "accepted" satisfies DuelInviteStatus, duelId });
+  await Promise.all([
+    inviteRef.update({ status: "accepted" satisfies DuelInviteStatus, duelId }),
+    deleteNotifications(),
+  ]);
   return { success: true, duelId };
 });

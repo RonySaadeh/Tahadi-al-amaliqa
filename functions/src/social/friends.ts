@@ -107,10 +107,24 @@ export const respondToFriendRequest = onCall(async (request) => {
     throw new HttpsError("failed-precondition", "This friend request was already responded to.");
   }
 
-  await friendshipRef.update({
-    status: (accept ? "accepted" : "declined") satisfies FriendshipStatus,
-    respondedAt: FieldValue.serverTimestamp(),
-  });
+  // The inbox notification (with its Accept/Decline buttons) has done its
+  // job the moment this request is responded to — `firestore.rules` blocks
+  // the client from deleting it itself, and left in place it would let the
+  // recipient "respond" to an already-resolved request again from a stale
+  // notifications list.
+  const notificationsSnap = await db
+    .collection("notifications")
+    .where("relatedId", "==", friendshipRef.id)
+    .where("type", "==", "friend_request" satisfies NotificationDoc["type"])
+    .get();
+
+  await Promise.all([
+    friendshipRef.update({
+      status: (accept ? "accepted" : "declined") satisfies FriendshipStatus,
+      respondedAt: FieldValue.serverTimestamp(),
+    }),
+    ...notificationsSnap.docs.map((doc) => doc.ref.delete()),
+  ]);
 
   return { success: true };
 });

@@ -10,7 +10,6 @@ import '../../../l10n/app_localizations.dart';
 import '../../../routing/app_router.dart';
 import '../../duel/duel_controller.dart';
 import '../../friends/friends_controller.dart';
-import '../notifications_controller.dart';
 
 /// One entry in the notifications inbox — a friend request or a duel
 /// challenge, each with inline Accept/Decline that calls straight into the
@@ -47,9 +46,10 @@ class NotificationTile extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.commonError)));
       }
     }
-    if (!notification.read) {
-      await ref.read(notificationsControllerProvider).markRead(notification.id);
-    }
+    // No `markRead` call here: responding to a friend request or duel
+    // challenge now deletes this notification doc server-side (see
+    // `respondToFriendRequest`/`respondToDuelChallenge`), so marking it read
+    // afterward would just throw on a doc that's already gone.
   }
 
   @override
