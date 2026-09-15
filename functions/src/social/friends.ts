@@ -1,6 +1,8 @@
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { db, FieldValue } from "../lib/admin";
 import { FriendshipDoc, FriendshipStatus, NotificationDoc, UserDoc } from "../lib/types";
+import { sendPushToUser } from "../lib/push";
+import { pushCopyFor } from "../lib/pushCopy";
 
 /** Deterministic doc id for a friendship/request between two users,
  * independent of who sent it — same trick `leaderboardPairings` uses (see
@@ -32,7 +34,7 @@ export const sendFriendRequest = onCall(async (request) => {
 
   const friendshipRef = db.collection("friendships").doc(friendshipId(uid, toUserId));
 
-  await db.runTransaction(async (tx) => {
+  const { fromDisplayName, toUserLocale } = await db.runTransaction(async (tx) => {
     const [friendshipSnap, fromUserSnap, toUserSnap] = await Promise.all([
       tx.get(friendshipRef),
       tx.get(db.collection("users").doc(uid)),
@@ -72,6 +74,15 @@ export const sendFriendRequest = onCall(async (request) => {
       read: false,
       createdAt: FieldValue.serverTimestamp(),
     } satisfies NotificationDoc);
+
+    return { fromDisplayName, toUserLocale: (toUserSnap.data() as UserDoc).locale };
+  });
+
+  const copy = pushCopyFor(toUserLocale);
+  await sendPushToUser(toUserId, {
+    title: copy.friendRequestTitle,
+    body: copy.friendRequestBody(fromDisplayName),
+    data: { type: "friend_request", relatedId: friendshipRef.id },
   });
 
   return { success: true };
@@ -112,11 +123,18 @@ export const respondToFriendRequest = onCall(async (request) => {
   // the client from deleting it itself, and left in place it would let the
   // recipient "respond" to an already-resolved request again from a stale
   // notifications list.
-  const notificationsSnap = await db
-    .collection("notifications")
-    .where("relatedId", "==", friendshipRef.id)
-    .where("type", "==", "friend_request" satisfies NotificationDoc["type"])
-    .get();
+  const [notificationsSnap, accepterSnap, senderSnap] = await Promise.all([
+    db
+      .collection("notifications")
+      .where("relatedId", "==", friendshipRef.id)
+      .where("type", "==", "friend_request" satisfies NotificationDoc["type"])
+      .get(),
+    // Only needed on accept (for the "X accepted your request" push back to
+    // the original sender) — fetched unconditionally anyway since it's one
+    // extra doc read either way and keeps this simpler than branching.
+    db.collection("users").doc(uid).get(),
+    db.collection("users").doc(friendship.fromUserId).get(),
+  ]);
 
   await Promise.all([
     friendshipRef.update({
@@ -125,6 +143,31 @@ export const respondToFriendRequest = onCall(async (request) => {
     }),
     ...notificationsSnap.docs.map((doc) => doc.ref.delete()),
   ]);
+
+  // Only the sender hears back, and only on accept — a decline notification
+  // would just be an awkward "you got rejected" push for no actionable
+  // benefit, the same reason most social apps skip it.
+  if (accept) {
+    const accepterDisplayName = (accepterSnap.data() as UserDoc | undefined)?.displayName ?? "";
+    const senderLocale = (senderSnap.data() as UserDoc | undefined)?.locale;
+
+    await db.collection("notifications").add({
+      userId: friendship.fromUserId,
+      type: "friend_request_accepted",
+      fromUserId: uid,
+      fromDisplayName: accepterDisplayName,
+      relatedId: friendshipRef.id,
+      read: false,
+      createdAt: FieldValue.serverTimestamp(),
+    } satisfies NotificationDoc);
+
+    const copy = pushCopyFor(senderLocale);
+    await sendPushToUser(friendship.fromUserId, {
+      title: copy.friendRequestAcceptedTitle,
+      body: copy.friendRequestAcceptedBody(accepterDisplayName),
+      data: { type: "friend_request_accepted", relatedId: friendshipRef.id },
+    });
+  }
 
   return { success: true };
 });

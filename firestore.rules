@@ -58,6 +58,16 @@ service cloud.firestore {
             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastActiveAt'])
             && request.resource.data.lastActiveAt == request.time
           )
+          // Push notification device tokens: another narrow, presence-like
+          // path. The client only ever adds/removes its own current token
+          // via `arrayUnion`/`arrayRemove` (see `PushNotificationService`
+          // and `UserRepository.registerFcmToken`/`unregisterFcmToken`) —
+          // dead tokens FCM reports as no-longer-valid are pruned
+          // server-side instead, by `sendPushToUser` in `functions/src/lib/push.ts`.
+          || (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['fcmTokens'])
+            && request.resource.data.fcmTokens is list
+          )
           // One-time self-heal for an account created before `playerId`
           // existed (see `UserModel.legacyBackfillFields`): only writable
           // while `playerId` is still absent, so this path closes itself

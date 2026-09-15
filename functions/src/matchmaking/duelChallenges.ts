@@ -1,6 +1,8 @@
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { db, FieldValue } from "../lib/admin";
-import { DuelInviteStatus, NotificationDoc } from "../lib/types";
+import { DuelInviteStatus, NotificationDoc, UserDoc } from "../lib/types";
+import { sendPushToUser } from "../lib/push";
+import { pushCopyFor } from "../lib/pushCopy";
 import { createDuelForPlayers } from "./createDuel";
 
 /** Player A challenging a specific friend (as opposed to the open-lobby
@@ -21,10 +23,12 @@ export const sendDuelChallenge = onCall(async (request) => {
     throw new HttpsError("invalid-argument", "categoryId is required.");
   }
 
-  const [fromUserSnap, categorySnap] = await Promise.all([
+  const [fromUserSnap, toUserSnap, categorySnap] = await Promise.all([
     db.collection("users").doc(uid).get(),
+    db.collection("users").doc(toUserId).get(),
     db.collection("categories").doc(categoryId).get(),
   ]);
+  if (!toUserSnap.exists) throw new HttpsError("not-found", "User not found.");
   if (!categorySnap.exists) throw new HttpsError("not-found", "Category not found.");
 
   // Picked in the sender's language, since if this invite is accepted,
@@ -60,6 +64,13 @@ export const sendDuelChallenge = onCall(async (request) => {
     createdAt: FieldValue.serverTimestamp(),
   } satisfies NotificationDoc);
   await batch.commit();
+
+  const copy = pushCopyFor((toUserSnap.data() as UserDoc).locale);
+  await sendPushToUser(toUserId, {
+    title: copy.duelChallengeTitle,
+    body: copy.duelChallengeBody(fromDisplayName),
+    data: { type: "duel_challenge", relatedId: inviteRef.id },
+  });
 
   return { success: true, inviteId: inviteRef.id };
 });
@@ -105,6 +116,10 @@ export const respondToDuelChallenge = onCall(async (request) => {
     Promise.all(notificationsSnap.docs.map((doc) => doc.ref.delete()));
 
   if (!accept) {
+    // Only the challenger's own sent-invite stream needs to hear about a
+    // decline (see `sentInviteStreamProvider` on the client, which already
+    // watches `invite.status` directly) — same reasoning as
+    // `respondToFriendRequest` for skipping a push here too.
     await Promise.all([inviteRef.update({ status: "declined" satisfies DuelInviteStatus }), deleteNotifications()]);
     return { success: true };
   }
@@ -115,9 +130,36 @@ export const respondToDuelChallenge = onCall(async (request) => {
   // function — can watch their own sent invite and pick up the duelId the
   // same way `openLobbies.duelId` lets a quick-matched player notice a
   // match. See `sentInviteStreamProvider` on the client.
-  await Promise.all([
+  const [accepterSnap, challengerSnap] = await Promise.all([
+    db.collection("users").doc(uid).get(),
+    db.collection("users").doc(invite.fromUserId).get(),
     inviteRef.update({ status: "accepted" satisfies DuelInviteStatus, duelId }),
     deleteNotifications(),
   ]);
+
+  // The challenger is elsewhere in the app (their sent-invite stream picks
+  // up the duelId for an already-open session), so this is the one that
+  // actually needs to reach a backgrounded/closed device — the round timer
+  // starts the moment the duel exists, so it's time-sensitive.
+  const accepterDisplayName = (accepterSnap.data() as UserDoc | undefined)?.displayName ?? "";
+  const challengerLocale = (challengerSnap.data() as UserDoc | undefined)?.locale;
+
+  await db.collection("notifications").add({
+    userId: invite.fromUserId,
+    type: "duel_challenge_accepted",
+    fromUserId: uid,
+    fromDisplayName: accepterDisplayName,
+    relatedId: duelId,
+    read: false,
+    createdAt: FieldValue.serverTimestamp(),
+  } satisfies NotificationDoc);
+
+  const copy = pushCopyFor(challengerLocale);
+  await sendPushToUser(invite.fromUserId, {
+    title: copy.duelChallengeAcceptedTitle,
+    body: copy.duelChallengeAcceptedBody(accepterDisplayName),
+    data: { type: "duel_challenge_accepted", relatedId: duelId },
+  });
+
   return { success: true, duelId };
 });

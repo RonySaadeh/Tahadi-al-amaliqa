@@ -205,6 +205,14 @@
   "@notificationsChallengeBody": {
     "placeholders": {"name": {"type": "String"}}
   },
+  "notificationsFriendAcceptedBody": "{name} قبل طلب صداقتك.",
+  "@notificationsFriendAcceptedBody": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "notificationsChallengeAcceptedBody": "{name} قبل تحديك! اضغط للانضمام.",
+  "@notificationsChallengeAcceptedBody": {
+    "placeholders": {"name": {"type": "String"}}
+  },
 
   "appControlTitle": "التحكم بالتطبيق",
   "appControlSubtitle": "التغييرات هنا تُطبَّق فورًا على جميع اللاعبين.",

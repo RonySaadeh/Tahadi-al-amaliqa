@@ -203,6 +203,14 @@
   "@notificationsChallengeBody": {
     "placeholders": {"name": {"type": "String"}}
   },
+  "notificationsFriendAcceptedBody": "{name} accepted your friend request.",
+  "@notificationsFriendAcceptedBody": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "notificationsChallengeAcceptedBody": "{name} accepted your challenge! Tap to join.",
+  "@notificationsChallengeAcceptedBody": {
+    "placeholders": {"name": {"type": "String"}}
+  },
 
   "appControlTitle": "App Control",
   "appControlSubtitle": "Changes here apply instantly, for every player.",

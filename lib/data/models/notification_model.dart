@@ -28,12 +28,16 @@ class NotificationModel extends Equatable {
   final String fromUserId;
   final String fromDisplayName;
 
-  /// The `friendships` doc id (for [NotificationType.friendRequest]) or the
-  /// `duelInvites` doc id (for [NotificationType.duelChallenge]) this
-  /// notification is about — so its Accept/Decline buttons can act on the
-  /// real thing directly, through the same functions the rest of the app
-  /// already uses for that. Empty for [NotificationType.announcement],
-  /// which isn't about any other document.
+  /// The `friendships` doc id ([NotificationType.friendRequest]/
+  /// [NotificationType.friendRequestAccepted]), the `duelInvites` doc id
+  /// ([NotificationType.duelChallenge]), or the `duels` doc id
+  /// ([NotificationType.duelChallengeAccepted] — the duel this challenge
+  /// became) this notification is about. For [NotificationType.friendRequest]/
+  /// [NotificationType.duelChallenge] it's what the Accept/Decline buttons
+  /// act on directly; for the two `*Accepted` types there's nothing to
+  /// accept, but tapping a [NotificationType.duelChallengeAccepted] tile
+  /// still uses it to jump straight into the duel. Empty for
+  /// [NotificationType.announcement], which isn't about any other document.
   final String relatedId;
   final bool read;
   final DateTime createdAt;

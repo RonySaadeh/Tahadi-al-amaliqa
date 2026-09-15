@@ -17,6 +17,7 @@ import '../services/cloud_functions_service.dart';
 import '../services/connectivity_service.dart';
 import '../services/firebase_auth_service.dart';
 import '../services/firestore_service.dart';
+import '../services/push_notification_service.dart';
 
 /// Single place where every service/repository gets wired up.
 ///
@@ -33,6 +34,9 @@ final cloudFunctionsServiceProvider = Provider<CloudFunctionsService>(
   (ref) => CloudFunctionsService(),
 );
 final connectivityServiceProvider = Provider<ConnectivityService>((ref) => ConnectivityService());
+final pushNotificationServiceProvider = Provider<PushNotificationService>(
+  (ref) => PushNotificationService(),
+);
 
 // --- Repositories ---
 final userRepositoryProvider = Provider<UserRepository>(

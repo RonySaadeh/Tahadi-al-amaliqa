@@ -64,4 +64,24 @@ class UserRepository {
         .get();
     return snapshot.docs.map(UserModel.fromFirestore).toList();
   }
+
+  /// Registers this device's current FCM token so Cloud Functions can push
+  /// to it — see `PushNotificationService` and the matching narrow
+  /// `fcmTokens` update path in `firestore.rules`. `arrayUnion` makes this
+  /// safe to call on every app start/token refresh without needing to know
+  /// whether the token is already there.
+  Future<void> registerFcmToken(String uid, String token) {
+    return _firestore.users.doc(uid).update({
+      'fcmTokens': FieldValue.arrayUnion([token]),
+    });
+  }
+
+  /// Removes this device's token, e.g. on sign-out, so a shared or
+  /// re-signed-in device doesn't keep receiving the previous account's
+  /// pushes.
+  Future<void> unregisterFcmToken(String uid, String token) {
+    return _firestore.users.doc(uid).update({
+      'fcmTokens': FieldValue.arrayRemove([token]),
+    });
+  }
 }

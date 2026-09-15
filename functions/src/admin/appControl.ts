@@ -1,6 +1,7 @@
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { db, FieldValue, Timestamp } from "../lib/admin";
 import { AppControlDoc, NotificationDoc, UserDoc } from "../lib/types";
+import { GLOBAL_ANNOUNCEMENTS_TOPIC, sendPushToTopic } from "../lib/push";
 
 const appControlRef = db.collection("appControl").doc("status");
 
@@ -160,6 +161,17 @@ export const sendGlobalNotification = onCall(async (request) => {
     }
   }
   if (opsInBatch > 0) await batch.commit();
+
+  // One call regardless of `sent` — every device subscribes itself to this
+  // topic right after registering its FCM token (see
+  // `PushNotificationService.subscribeToGlobalTopic`), so there's no need to
+  // gather everyone's `fcmTokens` the way `sendPushToUser` does for a single
+  // recipient.
+  await sendPushToTopic(GLOBAL_ANNOUNCEMENTS_TOPIC, {
+    title: trimmedTitle,
+    body: trimmedMessage,
+    data: { type: "announcement" },
+  });
 
   return { success: true, sent };
 });

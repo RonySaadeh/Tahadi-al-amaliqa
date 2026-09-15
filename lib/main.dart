@@ -11,6 +11,7 @@ import 'features/home/home_controller.dart';
 import 'firebase_options.dart';
 import 'l10n/app_localizations.dart';
 import 'routing/app_router.dart';
+import 'routing/push_notifications_controller.dart';
 
 /// Run with `--dart-define=USE_FIREBASE_EMULATOR=true` to point the app at
 /// the local Firebase emulator suite instead of your real project — see
@@ -48,6 +49,11 @@ class TahadiApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(goRouterProvider);
+
+    // Alive for the app's whole lifetime, not just while the main tab shell
+    // is showing (see the provider's own doc comment) — registers this
+    // device for push notifications and reacts to a tapped one.
+    ref.watch(pushNotificationsControllerProvider);
 
     // English is the primary/default locale; Arabic is fully supported and
     // reachable from the profile's language toggle. Reflects the signed-in

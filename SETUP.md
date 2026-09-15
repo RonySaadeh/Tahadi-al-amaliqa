@@ -19,6 +19,7 @@ been a while, run `flutter pub outdated` and `npm outdated` (in
 | firebase_auth | ^6.5.7 | ” |
 | cloud_firestore | ^6.8.0 | ” |
 | cloud_functions | ^6.3.6 | ” |
+| firebase_messaging | ^16.7.0 | Push notifications — see section 9 below. |
 | flutter_riverpod | ^3.0.1 | Riverpod 3 is the current stable major; this project uses hand-written `Notifier`/`FamilyNotifier` classes rather than `riverpod_generator`, so there's no `build_runner` step to remember for state management. |
 | go_router | ^17.0.0 | Current stable, official Flutter-team router. |
 | firebase-admin (functions) | ^14.3.0 | Current Admin SDK for Node. |
@@ -204,8 +205,58 @@ real project:
 flutter run
 ```
 
+## 9. Push Notifications (FCM)
+
+All the code is already in place — client token registration
+(`PushNotificationService`/`push_notifications_controller.dart`) and
+server-side sending (`functions/src/lib/push.ts`, wired into
+`sendFriendRequest`, `respondToFriendRequest`, `sendDuelChallenge`,
+`respondToDuelChallenge`, and `sendGlobalNotification`). What's left is
+platform configuration, same category of step as Apple Sign-In (step 5) —
+Firebase's client SDKs need each platform's own push transport wired up,
+and that can't be committed to git (see `.gitignore`'s note on
+`android`/`ios`).
+
+**Android:** nothing extra beyond step 3 (`flutterfire configure`, which
+writes `google-services.json`) — the `firebase_messaging` plugin's own
+manifest merge handles the rest, including requesting the Android 13+
+notification permission at runtime (`PushNotificationService.
+requestPermissionAndGetToken`, called automatically once signed in). If you
+want a custom small-icon instead of the launcher icon in the notification
+shade, drop a white-on-transparent PNG at
+`android/app/src/main/res/drawable/ic_notification.png` and add
+`<meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/ic_notification" />`
+inside `<application>` in `AndroidManifest.xml` — optional, skip it and the
+launcher icon is used.
+
+**iOS:** requires a paid Apple Developer Program membership (same
+prerequisite as step 5) and two things Xcode/the portal have to do, which
+no committed file can stand in for:
+
+1. In Xcode (`ios/Runner.xcworkspace`) → Signing & Capabilities → **+
+   Capability** → add both **Push Notifications** and **Background Modes**
+   (check "Remote notifications" under it).
+2. Apple Developer portal → Certificates, Identifiers & Profiles → Keys →
+   create a new key with **Apple Push Notifications service (APNs)**
+   enabled, download the `.p8` file. Then Firebase console → Project
+   settings → Cloud Messaging → your iOS app → **Apple app configuration**
+   → upload that key (needs your Team ID and Key ID, both shown next to it
+   in the portal).
+
+Until that key is uploaded, iOS pushes silently fail to send (no error
+surfaces to the player) — Android and the in-app inbox both work
+regardless, so this is safe to leave for later.
+
+**Testing it:** sign in on two devices/simulators as two different
+accounts, friend each other or send a duel challenge, and background the
+receiving device — the push should arrive within a few seconds. For a
+broadcast, use the "Send Global Notification" section of the App Control
+panel (see `features/app_control/README.md` for how to become an admin).
+
 ## Troubleshooting
 
 - **"firebase_options.dart not found"** → you skipped `flutterfire
   configure` (step 3).
 - **Google Sign-In fails silently on Android** → missing SHA-1 (step 4).
+- **Push notifications never arrive on iOS, Android works fine** → the APNs
+  key hasn't been uploaded to Firebase console yet (step 9).

@@ -86,17 +86,26 @@ enum FriendshipStatus {
 
 enum NotificationType {
   friendRequest,
+  // Informational, no Accept/Decline — sent back to the original sender the
+  // moment the other player accepts. See `respondToFriendRequest`.
+  friendRequestAccepted,
   duelChallenge,
+  // Informational, tappable straight into the duel — sent back to the
+  // challenger the moment the other player accepts, since the round timer
+  // starts immediately. See `respondToDuelChallenge`.
+  duelChallengeAccepted,
   // A one-off message from an admin's App Control panel, fanned out to
   // every player's inbox in one shot — see `functions/src/admin/appControl.ts`
-  // and `lib/features/app_control/`. Unlike the other two, it carries its
-  // own `title`/`message` rather than being derived from a related doc.
+  // and `lib/features/app_control/`. Unlike the others, it carries its own
+  // `title`/`message` rather than being derived from a related doc.
   announcement;
 
   static NotificationType fromString(String value) {
     return switch (value) {
       'friend_request' => NotificationType.friendRequest,
+      'friend_request_accepted' => NotificationType.friendRequestAccepted,
       'duel_challenge' => NotificationType.duelChallenge,
+      'duel_challenge_accepted' => NotificationType.duelChallengeAccepted,
       'announcement' => NotificationType.announcement,
       _ => NotificationType.friendRequest,
     };

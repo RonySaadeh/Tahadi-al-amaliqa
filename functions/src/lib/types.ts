@@ -10,7 +10,12 @@ export type QuestionDifficulty = "easy" | "medium" | "hard";
 export type QuestionSource = "api" | "llm" | "user";
 export type DuelInviteStatus = "pending" | "accepted" | "declined" | "expired";
 export type FriendshipStatus = "pending" | "accepted" | "declined";
-export type NotificationType = "friend_request" | "duel_challenge" | "announcement";
+export type NotificationType =
+  | "friend_request"
+  | "friend_request_accepted"
+  | "duel_challenge"
+  | "duel_challenge_accepted"
+  | "announcement";
 
 export interface QuestionDoc {
   categoryId: string;
@@ -100,6 +105,15 @@ export interface UserDoc {
    * no write path for it in `firestore.rules`'s `users/{uid}` update rule,
    * so it can only be flipped by hand in the Firebase console. */
   isAdmin?: boolean;
+
+  /** FCM registration tokens for every device this player is currently
+   * signed into — see `PushNotificationService` on the client and
+   * `sendPushToUser` in `functions/src/lib/push.ts`. The client only ever
+   * adds/removes its own token (`arrayUnion`/`arrayRemove`, see
+   * `firestore.rules`'s narrow update path); a token FCM reports as dead is
+   * pruned server-side instead. Absent until a client's first successful
+   * token registration. */
+  fcmTokens?: string[];
 }
 
 /** One doc per unordered pair of users, id = sorted `${uidA}_${uidB}` (see
@@ -124,17 +138,20 @@ export interface FriendshipDoc {
 }
 
 /** A user's in-app inbox entry. Created only by Cloud Functions as a side
- * effect of the real action (`sendFriendRequest`, `sendDuelChallenge`);
- * `read` is the one field a client may update directly — see
- * `firestore.rules`. */
+ * effect of the real action (`sendFriendRequest`, `sendDuelChallenge`, and
+ * their accept paths); `read` is the one field a client may update
+ * directly — see `firestore.rules`. Every type here also fans out an FCM
+ * push via `functions/src/lib/push.ts` at the point it's created. */
 export interface NotificationDoc {
   userId: string;
   type: NotificationType;
   fromUserId: string;
   fromDisplayName: string;
-  /** The `friendships` or `duelInvites` doc id this notification is about,
-   * so its Accept/Decline buttons can act on the real thing directly. Empty
-   * for `"announcement"`, which isn't about any other document. */
+  /** The `friendships` doc id (`"friend_request"`/`"friend_request_accepted"`),
+   * the `duelInvites` doc id (`"duel_challenge"`), or the `duels` doc id
+   * (`"duel_challenge_accepted"` — the duel this challenge became, so tapping
+   * it can jump straight into `AppRoutes.duelIntroPath`). Empty for
+   * `"announcement"`, which isn't about any other document. */
   relatedId: string;
   read: boolean;
   createdAt: FirebaseFirestore.FieldValue | FirebaseFirestore.Timestamp;

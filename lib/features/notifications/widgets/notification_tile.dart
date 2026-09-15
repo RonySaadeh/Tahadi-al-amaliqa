@@ -37,8 +37,10 @@ class NotificationTile extends ConsumerWidget {
           if (duelId != null && context.mounted) {
             context.push(AppRoutes.duelIntroPath(duelId));
           }
+        case NotificationType.friendRequestAccepted:
+        case NotificationType.duelChallengeAccepted:
         case NotificationType.announcement:
-          break; // No response action — see the early return in build() below.
+          break; // No response action — these have no Accept/Decline buttons.
       }
     } catch (_) {
       if (context.mounted) {
@@ -101,11 +103,25 @@ class NotificationTile extends ConsumerWidget {
 
     final body = switch (notification.type) {
       NotificationType.friendRequest => l10n.friendsRequestBody(notification.fromDisplayName),
+      NotificationType.friendRequestAccepted => l10n.notificationsFriendAcceptedBody(
+        notification.fromDisplayName,
+      ),
       NotificationType.duelChallenge => l10n.notificationsChallengeBody(notification.fromDisplayName),
+      NotificationType.duelChallengeAccepted => l10n.notificationsChallengeAcceptedBody(
+        notification.fromDisplayName,
+      ),
       NotificationType.announcement => '', // handled above
     };
 
-    return Container(
+    // Only these two still have something to decide — the `*Accepted`
+    // types are purely informational: the decision already happened on
+    // whichever device responded to the original request/challenge.
+    final isActionable =
+        notification.type == NotificationType.friendRequest ||
+        notification.type == NotificationType.duelChallenge;
+    final isDuelAccepted = notification.type == NotificationType.duelChallengeAccepted;
+
+    final tile = Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: notification.read ? null : AppColors.primary.withValues(alpha: 0.06),
@@ -121,22 +137,35 @@ class NotificationTile extends ConsumerWidget {
               Expanded(child: Text(body, style: theme.textTheme.bodyMedium)),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(
-                onPressed: () => _respond(context, ref, accept: false),
-                child: Text(l10n.commonDecline),
-              ),
-              FilledButton(
-                onPressed: () => _respond(context, ref, accept: true),
-                child: Text(l10n.commonAccept),
-              ),
-            ],
-          ),
+          if (isActionable) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => _respond(context, ref, accept: false),
+                  child: Text(l10n.commonDecline),
+                ),
+                FilledButton(
+                  onPressed: () => _respond(context, ref, accept: true),
+                  child: Text(l10n.commonAccept),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
+    );
+
+    if (!isDuelAccepted) return tile;
+
+    // No Accept/Decline step left once a challenge is already accepted —
+    // tapping the whole tile jumps straight into the duel it became, since
+    // its round timer is already running.
+    return InkWell(
+      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      onTap: () => context.push(AppRoutes.duelIntroPath(notification.relatedId)),
+      child: tile,
     );
   }
 }

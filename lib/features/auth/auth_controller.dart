@@ -61,6 +61,23 @@ class AuthController extends Notifier<AsyncValue<void>> {
   }
 
   Future<void> signOut() async {
+    // Removes this device's push token *before* actually signing out, while
+    // `firestore.rules`' `request.auth.uid == uid` check can still pass —
+    // done from here rather than reacting to the uid change afterward,
+    // since by then auth would already be cleared and the write would just
+    // fail. Best-effort: a device that never registered one, or a write
+    // that fails for some other reason, must never block sign-out itself.
+    final uid = ref.read(currentUserIdProvider);
+    if (uid != null) {
+      try {
+        final token = await ref.read(pushNotificationServiceProvider).currentToken();
+        if (token != null) {
+          await ref.read(userRepositoryProvider).unregisterFcmToken(uid, token);
+        }
+      } catch (_) {
+        // Best-effort — see the comment above.
+      }
+    }
     await ref.read(firebaseAuthServiceProvider).signOut();
   }
 
