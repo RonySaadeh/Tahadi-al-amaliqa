@@ -63,7 +63,7 @@ class AppConstants {
   /// change this value, change the server copy to match, or round 1 either
   /// loses answer time (server shorter) or the timer visibly holds past 0
   /// on the live duel screen for a moment (server longer).
-  static const int duelIntroSeconds = 10;
+  static const int duelIntroSeconds = 5;
 
   /// How long `LiveDuelScreen` holds on a round's resolved state — colored
   /// answer tiles, the correct answer revealed, the "+N" score popup —

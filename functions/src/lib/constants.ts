@@ -32,7 +32,7 @@ export const DOUBLE_SCORE_POPUP_SECONDS = 3;
  * as every later round already does — not from several seconds before
  * that, which would otherwise silently rob round 1 of most of its time
  * limit. */
-export const DUEL_INTRO_SECONDS = 10;
+export const DUEL_INTRO_SECONDS = 5;
 
 export const BASE_POINTS_CORRECT = 100;
 export const MAX_SPEED_BONUS = 100;
