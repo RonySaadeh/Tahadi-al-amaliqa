@@ -77,6 +77,8 @@
   },
   "duelYourAnswer": "إجابتك",
   "duelWaitingOpponentAnswer": "بانتظار إجابة الخصم...",
+  "duelDoubleScoreTitle": "نقاط مضاعفة",
+  "duelDoubleScoreMessage": "نقاط هذه الجولة مضاعفة!",
   "duelReconnectingTitle": "انقطع اتصالك",
   "duelReconnectingMessage": "أعد الاتصال قبل انتهاء الوقت وإلا سيفوز خصمك تلقائيًا.",
   "duelReconnectTimeUpTitle": "انتهى الوقت",

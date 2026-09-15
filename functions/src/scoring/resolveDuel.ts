@@ -1,6 +1,12 @@
 import { HttpsError } from "firebase-functions/v2/https";
 import { db, FieldValue, Timestamp } from "../lib/admin";
-import { BASE_POINTS_CORRECT, MAX_SPEED_BONUS, ROUND_TIME_LIMIT_SECONDS } from "../lib/constants";
+import {
+  BASE_POINTS_CORRECT,
+  DOUBLE_SCORE_POPUP_SECONDS,
+  DOUBLE_SCORE_ROUND_MULTIPLIER,
+  MAX_SPEED_BONUS,
+  ROUND_TIME_LIMIT_SECONDS,
+} from "../lib/constants";
 import { DuelDoc, QuestionDoc, RoundDoc } from "../lib/types";
 import { eloDelta } from "./eloCalculator";
 
@@ -175,6 +181,11 @@ async function resolveRoundNow(
     const pointsAwarded: Record<string, number> = {};
     const playerAnswers: Record<string, number> = {};
 
+    // The last round of the duel is the "Double Score" bonus round — the
+    // client announces it with a popup (see `DoubleScorePopup`) before this
+    // round's question ever appears.
+    const isDoubleScoreRound = roundNumber === duel.totalRounds;
+
     for (const answer of answers) {
       playerAnswers[answer.uid] = answer.selectedIndex;
       const isCorrect = answer.selectedIndex === correctAnswerIndex;
@@ -187,6 +198,7 @@ async function resolveRoundNow(
         const latencyMs = Math.max(0, answer.answeredAt.toMillis() - startedAt.toMillis());
         const speedFraction = Math.max(0, 1 - latencyMs / timeLimitMs);
         points = BASE_POINTS_CORRECT + Math.round(MAX_SPEED_BONUS * speedFraction);
+        if (isDoubleScoreRound) points *= DOUBLE_SCORE_ROUND_MULTIPLIER;
       }
       pointsAwarded[answer.uid] = points;
     }
@@ -203,6 +215,7 @@ async function resolveRoundNow(
 
     if (!isFinalRound && nextQuestion) {
       const nextRoundNumber = roundNumber + 1;
+      const nextRoundIsDoubleScore = nextRoundNumber === duel.totalRounds;
       tx.update(duelRef, {
         player1Score: newPlayer1Score,
         player2Score: newPlayer2Score,
@@ -219,7 +232,13 @@ async function resolveRoundNow(
         correctAnswerIndex: null,
         playerAnswers: {},
         pointsAwarded: {},
-        startedAt: FieldValue.serverTimestamp(),
+        // Stamped in the future, same trick as round 1's `startedAt` in
+        // `createDuel.ts`, so the bonus round's answer window starts once
+        // the client's "Double Score" popup is gone rather than ticking
+        // down underneath it.
+        startedAt: nextRoundIsDoubleScore
+          ? Timestamp.fromMillis(Date.now() + DOUBLE_SCORE_POPUP_SECONDS * 1000)
+          : FieldValue.serverTimestamp(),
       } satisfies Partial<RoundDoc>);
       return;
     }

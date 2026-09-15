@@ -5,8 +5,23 @@
  * change it here (and update the Dart copy so the UI matches).
  */
 export const STARTING_ELO = 1200;
-export const ROUNDS_PER_DUEL = 5;
+export const ROUNDS_PER_DUEL = 8;
 export const ROUND_TIME_LIMIT_SECONDS = 15;
+
+/** The final round of every duel (round `ROUNDS_PER_DUEL`) awards this many
+ * times the normal points — see `resolveRoundNow` in `resolveDuel.ts`. The
+ * client announces it with a "Double Score" popup (see
+ * `DoubleScorePopup`/`AppConstants.doubleScorePopupSeconds`) before that
+ * round's question appears. */
+export const DOUBLE_SCORE_ROUND_MULTIPLIER = 2;
+
+/** How long the client holds the "Double Score" popup over the bonus round
+ * before revealing its question — mirrors `AppConstants.doubleScorePopupSeconds`.
+ * The bonus round's `startedAt` (set in `resolveDuel.ts`) is stamped this
+ * many seconds in the future, the same trick `DUEL_INTRO_SECONDS` uses for
+ * round 1, so the round's answer window starts once the popup is gone
+ * rather than ticking down underneath it. */
+export const DOUBLE_SCORE_POPUP_SECONDS = 3;
 
 /** How long the client holds every cold-matched duel on its "VS" intro
  * screen (see `DuelIntroScreen`) before it navigates into the live duel —

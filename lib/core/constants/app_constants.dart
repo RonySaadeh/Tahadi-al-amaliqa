@@ -7,7 +7,7 @@ class AppConstants {
   const AppConstants._();
 
   static const int startingElo = 1200;
-  static const int roundsPerDuel = 5;
+  static const int roundsPerDuel = 8;
   static const int roundTimeLimitSeconds = 15;
 
   /// Points for a correct answer, before the speed bonus.
@@ -16,6 +16,23 @@ class AppConstants {
   /// Extra points available for answering instantly, decaying linearly to
   /// zero as the player uses up the full time limit.
   static const int maxSpeedBonus = 100;
+
+  /// The final round of every duel (round [roundsPerDuel]) is the "Double
+  /// Score" bonus round — mirrors
+  /// `functions/src/lib/constants.ts`'s `DOUBLE_SCORE_ROUND_MULTIPLIER`,
+  /// which is the one that actually decides points. This copy exists only so
+  /// the client can describe the bonus in its own UI text.
+  static const int doubleScoreRoundMultiplier = 2;
+
+  /// How long `LiveDuelScreen` holds its "Double Score" popup over the bonus
+  /// round before revealing that round's question. Mirrors
+  /// `functions/src/lib/constants.ts`'s `DOUBLE_SCORE_POPUP_SECONDS`, which
+  /// is the one that actually matters: the bonus round's `startedAt` is
+  /// stamped that many seconds in the future server-side, precisely so its
+  /// answer window starts once this popup disappears rather than ticking
+  /// down underneath it. If you change this value, change the server copy to
+  /// match.
+  static const int doubleScorePopupSeconds = 3;
 
   /// Standard ELO K-factor. Higher = ratings move faster per duel.
   static const int eloKFactor = 32;

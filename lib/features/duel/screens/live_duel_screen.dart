@@ -13,11 +13,13 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/arena_panel.dart';
 import '../../../core/widgets/branded_loading_indicator.dart';
 import '../../../core/widgets/responsive_center.dart';
+import '../../../data/models/round_model.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../routing/app_router.dart';
 import '../live_duel_controller.dart';
 import '../widgets/answer_option_tile.dart';
 import '../widgets/arena_hud.dart';
+import '../widgets/double_score_popup.dart';
 import '../widgets/duel_disconnect_dialog.dart';
 import '../widgets/duel_timer.dart';
 import '../widgets/score_popup.dart';
@@ -65,10 +67,43 @@ class _LiveDuelScreenState extends ConsumerState<LiveDuelScreen> {
   /// while the pause is still running.
   bool _resultsScheduled = false;
 
+  /// Whether the "Double Score" popup is currently covering the arena — see
+  /// [_maybeAnnounceDoubleScore].
+  bool _showDoubleScorePopup = false;
+
+  /// The round number the popup has already been shown for, so a rebuild
+  /// (or the round doc's answers filling in) doesn't replay it.
+  int? _doubleScoreAnnouncedForRound;
+
+  Timer? _doubleScorePopupTimer;
+
   @override
   void dispose() {
     _pauseTimer?.cancel();
+    _doubleScorePopupTimer?.cancel();
     super.dispose();
+  }
+
+  /// Shows the "Double Score" popup the first time the duel's last round
+  /// comes into view, and hides it again once that round's (possibly
+  /// server-delayed — see `DOUBLE_SCORE_POPUP_SECONDS`) `startedAt` arrives,
+  /// so the popup disappears right as the round's answer window opens.
+  void _maybeAnnounceDoubleScore(RoundModel round, int totalRounds) {
+    if (round.roundNumber != totalRounds) return;
+    if (_doubleScoreAnnouncedForRound == round.roundNumber) return;
+    _doubleScoreAnnouncedForRound = round.roundNumber;
+
+    final delay = round.startedAt.difference(DateTime.now());
+    // A non-positive delay means this round's answer window is already
+    // open (e.g. rejoining mid-round after the popup would already have
+    // played out) — nothing left to announce.
+    if (delay <= Duration.zero) return;
+
+    setState(() => _showDoubleScorePopup = true);
+    _doubleScorePopupTimer?.cancel();
+    _doubleScorePopupTimer = Timer(delay, () {
+      if (mounted) setState(() => _showDoubleScorePopup = false);
+    });
   }
 
   /// Runs [action] after [AppConstants.roundResultPauseMs], unless a pause
@@ -153,6 +188,14 @@ class _LiveDuelScreenState extends ConsumerState<LiveDuelScreen> {
                     if (round == null) {
                       return const Center(child: BrandedLoadingIndicator(onDark: true));
                     }
+
+                    // Side effect, not a build-time decision — deferred to
+                    // after this frame since it may call `setState`. Runs on
+                    // every build but only acts once per round, guarded by
+                    // `_doubleScoreAnnouncedForRound` inside the method.
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) _maybeAnnounceDoubleScore(round, duel.totalRounds);
+                    });
 
                     final selectedIndex = ref.watch(selectedAnswerProvider(roundKey));
                     final hasAnswered = selectedIndex != null;
@@ -297,6 +340,8 @@ class _LiveDuelScreenState extends ConsumerState<LiveDuelScreen> {
               secondsRemaining: presence.opponentSecondsRemaining!,
               opponentName: duelAsync.value!.opponentDisplayNameFor(myUid),
             ),
+
+          if (_showDoubleScorePopup) const DoubleScorePopup(),
         ],
       ),
     );
