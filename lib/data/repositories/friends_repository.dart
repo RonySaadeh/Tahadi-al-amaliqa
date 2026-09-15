@@ -81,6 +81,10 @@ class FriendsRepository {
     return _cloudFunctions.respondToFriendRequest(otherUserId: otherUserId, accept: accept);
   }
 
+  Future<void> removeFriend({required String otherUserId}) {
+    return _cloudFunctions.removeFriend(otherUserId: otherUserId);
+  }
+
   /// Stamps this device's "last active" time on the signed-in user's own
   /// profile. A direct Firestore write, not a Cloud Function — see the
   /// narrow presence-only path carved out in `firestore.rules`'s

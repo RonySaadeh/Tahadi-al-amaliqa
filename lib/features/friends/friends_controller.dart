@@ -95,6 +95,13 @@ class FriendsController extends Notifier<AsyncValue<void>> {
       () => ref.read(friendsRepositoryProvider).respondToFriendRequest(otherUserId: otherUserId, accept: accept),
     );
   }
+
+  Future<void> removeFriend(String otherUserId) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(
+      () => ref.read(friendsRepositoryProvider).removeFriend(otherUserId: otherUserId),
+    );
+  }
 }
 
 final friendsControllerProvider = NotifierProvider<FriendsController, AsyncValue<void>>(

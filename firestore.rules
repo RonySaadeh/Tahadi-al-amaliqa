@@ -186,16 +186,22 @@ service cloud.firestore {
     // --- notifications/{notificationId} ---
     // A user's in-app inbox (friend requests, challenges). Created only by
     // Cloud Functions (`sendFriendRequest`, `sendDuelChallenge`) as a side
-    // effect of the real action — never directly. The one thing a client
-    // legitimately owns here is dismissing its own unread badge, so `read`
-    // gets a narrow client-writable exception the same way a duel's
-    // presence heartbeat does on `users/{uid}` above.
+    // effect of the real action — never directly. The two things a client
+    // legitimately owns here are dismissing its own unread badge (`read`,
+    // the same narrow client-writable exception a duel's presence heartbeat
+    // gets on `users/{uid}` above) and deleting its own notification
+    // outright — unlike everything else in this collection, a delete here
+    // needs no server-side trust logic (it's not a side effect of anything
+    // else, doesn't affect any other document, and every pending request/
+    // challenge this could delete is still actionable from its own screen —
+    // see `incomingFriendRequestsProvider`/`InviteCard` — not just the inbox).
     match /notifications/{notificationId} {
       allow read: if isSignedIn() && request.auth.uid == resource.data.userId;
       allow update: if isSignedIn()
         && request.auth.uid == resource.data.userId
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
-      allow create, delete: if false;
+      allow delete: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow create: if false;
     }
 
     // --- appControl/status ---

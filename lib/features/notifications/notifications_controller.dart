@@ -25,4 +25,8 @@ class NotificationsController {
   Future<void> markRead(String notificationId) {
     return _ref.read(notificationsRepositoryProvider).markRead(notificationId);
   }
+
+  Future<void> delete(String notificationId) {
+    return _ref.read(notificationsRepositoryProvider).deleteNotification(notificationId);
+  }
 }

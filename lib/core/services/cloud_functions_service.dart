@@ -90,6 +90,10 @@ class CloudFunctionsService {
     });
   }
 
+  Future<void> removeFriend({required String otherUserId}) async {
+    await _functions.httpsCallable('removeFriend').call({'otherUserId': otherUserId});
+  }
+
   // --- App Control (admin-only; each callable re-checks `isAdmin` server
   // side — see `functions/src/admin/appControl.ts`) ---
 

@@ -171,3 +171,38 @@ export const respondToFriendRequest = onCall(async (request) => {
 
   return { success: true };
 });
+
+/**
+ * Removes an existing friendship. Either side of the pair can call this —
+ * unlike declining a *pending* request, there's no "who initiated it"
+ * asymmetry once two people are actually friends. Deletes the friendship
+ * doc outright rather than introducing a `"removed"` status: an absent doc
+ * is exactly what `sendFriendRequest` already treats as "no relationship
+ * yet", so either person is free to send a fresh request later without any
+ * extra branching there.
+ *
+ * No notification/push to the other person — same reasoning as skipping one
+ * for a decline: an awkward thing to be told, with nothing actionable to do
+ * about it.
+ */
+export const removeFriend = onCall(async (request) => {
+  const uid = request.auth?.uid;
+  if (!uid) throw new HttpsError("unauthenticated", "You must be signed in.");
+
+  const { otherUserId } = request.data as { otherUserId?: unknown };
+  if (typeof otherUserId !== "string" || otherUserId.length === 0) {
+    throw new HttpsError("invalid-argument", "otherUserId is required.");
+  }
+
+  const friendshipRef = db.collection("friendships").doc(friendshipId(uid, otherUserId));
+  const friendshipSnap = await friendshipRef.get();
+  if (!friendshipSnap.exists) throw new HttpsError("not-found", "You're not friends with this person.");
+  const friendship = friendshipSnap.data() as FriendshipDoc;
+
+  if (friendship.status !== "accepted") {
+    throw new HttpsError("failed-precondition", "You're not friends with this person.");
+  }
+
+  await friendshipRef.delete();
+  return { success: true };
+});

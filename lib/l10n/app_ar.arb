@@ -183,6 +183,13 @@
   "@friendsRequestBody": {
     "placeholders": {"name": {"type": "String"}}
   },
+  "friendsRemoveAction": "إزالة الصديق",
+  "friendsRemoveConfirmTitle": "إزالة الصديق؟",
+  "friendsRemoveConfirmMessage": "سيتم إزالة {name} من قائمة أصدقائك. يمكنك دائمًا إرسال طلب صداقة جديد لاحقًا.",
+  "@friendsRemoveConfirmMessage": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "friendsRemoved": "تمت إزالة الصديق",
   "friendsOnline": "متصل الآن",
   "friendsLastSeenUnknown": "غير متصل",
   "friendsLastSeenMinutes": "آخر ظهور قبل {minutes} دقيقة",

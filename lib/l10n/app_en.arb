@@ -181,6 +181,13 @@
   "@friendsRequestBody": {
     "placeholders": {"name": {"type": "String"}}
   },
+  "friendsRemoveAction": "Remove Friend",
+  "friendsRemoveConfirmTitle": "Remove Friend?",
+  "friendsRemoveConfirmMessage": "{name} will be removed from your friends list. You can always send a new friend request later.",
+  "@friendsRemoveConfirmMessage": {
+    "placeholders": {"name": {"type": "String"}}
+  },
+  "friendsRemoved": "Friend removed",
   "friendsOnline": "Online",
   "friendsLastSeenUnknown": "Offline",
   "friendsLastSeenMinutes": "Last seen {minutes} minutes ago",

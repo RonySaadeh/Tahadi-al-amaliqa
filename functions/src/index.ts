@@ -11,7 +11,7 @@ export { heartbeat, forfeitDuel } from "./scoring/presence";
 export { sendDuelChallenge, respondToDuelChallenge } from "./matchmaking/duelChallenges";
 export { joinOpenLobby, leaveOpenLobby } from "./matchmaking/openLobby";
 
-export { sendFriendRequest, respondToFriendRequest } from "./social/friends";
+export { sendFriendRequest, respondToFriendRequest, removeFriend } from "./social/friends";
 
 export {
   setMaintenanceMode,

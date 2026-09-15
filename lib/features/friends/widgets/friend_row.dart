@@ -11,6 +11,7 @@ import '../../../core/widgets/modular_avatar.dart';
 import '../../../core/widgets/skeleton_loader.dart';
 import '../../../core/widgets/slab_button.dart';
 import '../../../l10n/app_localizations.dart';
+import '../friends_controller.dart';
 
 /// One row on the friends list: avatar (with an online dot when
 /// applicable), name, last-seen line, and a Challenge button — same
@@ -22,6 +23,36 @@ class FriendRow extends ConsumerWidget {
   final String friendUid;
   final VoidCallback onTap;
   final VoidCallback onChallenge;
+
+  Future<void> _confirmAndRemove(BuildContext context, WidgetRef ref, String name) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.friendsRemoveConfirmTitle),
+        content: Text(l10n.friendsRemoveConfirmMessage(name)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.friendsRemoveAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    await ref.read(friendsControllerProvider.notifier).removeFriend(friendUid);
+    if (!context.mounted) return;
+    final failed = ref.read(friendsControllerProvider).hasError;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(failed ? l10n.commonError : l10n.friendsRemoved)));
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -102,6 +133,19 @@ class FriendRow extends ConsumerWidget {
                   foreground: online ? Colors.white : AppColors.textSecondary,
                   depthColor: online ? null : AppColors.surfaceBorder,
                   onPressed: onChallenge,
+                ),
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert_rounded, color: AppColors.textSecondary),
+                  onSelected: (_) => _confirmAndRemove(context, ref, name),
+                  itemBuilder: (context) => [
+                    PopupMenuItem<String>(
+                      value: 'remove',
+                      child: Text(
+                        l10n.friendsRemoveAction,
+                        style: const TextStyle(color: AppColors.error),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

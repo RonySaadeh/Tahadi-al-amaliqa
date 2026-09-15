@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/widgets/responsive_center.dart';
 import '../../../core/widgets/skeleton_loader.dart';
@@ -10,8 +11,11 @@ import '../widgets/notification_tile.dart';
 
 /// The notifications inbox opened from the bell on the home screen. Opening
 /// it marks whatever's currently unread as read, same as most apps' bell
-/// menus — the badge is about "anything new since I last looked", not a
-/// per-item manual dismissal.
+/// menus — the badge is about "anything new since I last looked". A player
+/// can still dismiss any one entry permanently by swiping it away — safe
+/// even for a still-pending friend request/duel challenge, since both stay
+/// actionable from their own screen (the Friends tab, the home invite
+/// card), not just here.
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
@@ -59,7 +63,25 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               padding: const EdgeInsets.all(AppSpacing.md),
               itemCount: notifications.length,
               separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-              itemBuilder: (context, index) => NotificationTile(notification: notifications[index]),
+              itemBuilder: (context, index) {
+                final notification = notifications[index];
+                return Dismissible(
+                  key: ValueKey(notification.id),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    alignment: AlignmentDirectional.centerEnd,
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                    decoration: BoxDecoration(
+                      color: AppColors.error,
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                    ),
+                    child: const Icon(Icons.delete_rounded, color: Colors.white),
+                  ),
+                  onDismissed: (_) =>
+                      ref.read(notificationsControllerProvider).delete(notification.id),
+                  child: NotificationTile(notification: notification),
+                );
+              },
             );
           },
         ),
