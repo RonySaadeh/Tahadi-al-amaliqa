@@ -52,6 +52,7 @@ class _AppControlScreenState extends ConsumerState<AppControlScreen> {
   bool _savingUpdate = false;
   bool _savingEvent = false;
   bool _sendingNotification = false;
+  bool _cleaningUpNotifications = false;
 
   @override
   void dispose() {
@@ -155,6 +156,21 @@ class _AppControlScreenState extends ConsumerState<AppControlScreen> {
       _showSnackBar(l10n.commonError);
     } finally {
       if (mounted) setState(() => _sendingNotification = false);
+    }
+  }
+
+  Future<void> _cleanupResolvedNotifications() async {
+    final l10n = AppLocalizations.of(context)!;
+    setState(() => _cleaningUpNotifications = true);
+    try {
+      final result = await ref.read(appControlControllerProvider).cleanupResolvedNotifications();
+      final deleted = (result['deleted'] as num?)?.toInt() ?? 0;
+      final scanned = (result['scanned'] as num?)?.toInt() ?? 0;
+      _showSnackBar(l10n.appControlCleanupResult(deleted, scanned));
+    } catch (_) {
+      _showSnackBar(l10n.commonError);
+    } finally {
+      if (mounted) setState(() => _cleaningUpNotifications = false);
     }
   }
 
@@ -337,6 +353,17 @@ class _AppControlScreenState extends ConsumerState<AppControlScreen> {
                     decoration: InputDecoration(labelText: l10n.appControlNotificationMessageLabel),
                   ),
                 ],
+              ),
+
+              _SectionCard(
+                title: l10n.appControlCleanupSection,
+                hint: l10n.appControlCleanupHint,
+                icon: Icons.cleaning_services_rounded,
+                saving: _cleaningUpNotifications,
+                onSave: _cleanupResolvedNotifications,
+                saveLabel: l10n.appControlCleanupRun,
+                l10n: l10n,
+                children: const [],
               ),
             ],
           ),

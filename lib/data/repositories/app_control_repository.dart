@@ -53,4 +53,8 @@ class AppControlRepository {
   Future<void> sendGlobalNotification({required String title, required String message}) {
     return _cloudFunctions.sendGlobalNotification(title: title, message: message);
   }
+
+  Future<Map<String, dynamic>> cleanupResolvedNotifications() {
+    return _cloudFunctions.cleanupResolvedNotifications();
+  }
 }

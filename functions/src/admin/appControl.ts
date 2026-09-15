@@ -163,3 +163,75 @@ export const sendGlobalNotification = onCall(async (request) => {
 
   return { success: true, sent };
 });
+
+const RESOLVABLE_NOTIFICATION_TYPES = ["friend_request", "duel_challenge"] as const;
+type ResolvableNotificationType = (typeof RESOLVABLE_NOTIFICATION_TYPES)[number];
+
+/** Which collection holds the "thing" each resolvable notification type is
+ * about — `relatedId` is a doc id in this collection. */
+const RELATED_COLLECTION_FOR_TYPE: Record<ResolvableNotificationType, string> = {
+  friend_request: "friendships",
+  duel_challenge: "duelInvites",
+};
+
+/**
+ * One-off admin cleanup for notifications left behind by a bug where
+ * `respondToFriendRequest`/`respondToDuelChallenge` updated the friendship/
+ * invite doc on accept or decline but never touched the matching
+ * notification — see those two functions' current form, which now deletes
+ * it as part of responding. This callable is only for notifications that bug
+ * already created before the fix landed.
+ *
+ * Deletes every `friend_request`/`duel_challenge` notification whose related
+ * friendship/invite is no longer `"pending"` (already accepted, declined, or
+ * expired) or has been deleted outright. Idempotent — safe to run more than
+ * once, since a second run just finds nothing left to clean up.
+ */
+export const cleanupResolvedNotifications = onCall(async (request) => {
+  await requireAdmin(request.auth?.uid);
+
+  const notificationsSnap = await db
+    .collection("notifications")
+    .where("type", "in", RESOLVABLE_NOTIFICATION_TYPES)
+    .get();
+
+  if (notificationsSnap.empty) return { success: true, scanned: 0, deleted: 0 };
+
+  // One read per notification's related doc to find out whether it's still
+  // pending — a one-off admin cleanup, not a hot path, so `getAll` batching
+  // those reads (rather than one at a time) is what matters here, chunked
+  // the same conservative size the write batches below use.
+  const notificationDocs = notificationsSnap.docs;
+  const relatedRefs = notificationDocs.map((doc) => {
+    const data = doc.data() as NotificationDoc;
+    const collection = RELATED_COLLECTION_FOR_TYPE[data.type as ResolvableNotificationType];
+    return db.collection(collection).doc(data.relatedId);
+  });
+
+  const relatedSnaps: FirebaseFirestore.DocumentSnapshot[] = [];
+  for (let i = 0; i < relatedRefs.length; i += NOTIFICATION_BATCH_SIZE) {
+    const chunk = relatedRefs.slice(i, i + NOTIFICATION_BATCH_SIZE);
+    relatedSnaps.push(...(await db.getAll(...chunk)));
+  }
+
+  const staleDocs = notificationDocs.filter((_, index) => {
+    const relatedSnap = relatedSnaps[index];
+    if (!relatedSnap.exists) return true; // the friendship/invite is gone entirely
+    return relatedSnap.data()?.status !== "pending";
+  });
+
+  let deleteBatch = db.batch();
+  let opsInDeleteBatch = 0;
+  for (const doc of staleDocs) {
+    deleteBatch.delete(doc.ref);
+    opsInDeleteBatch++;
+    if (opsInDeleteBatch === NOTIFICATION_BATCH_SIZE) {
+      await deleteBatch.commit();
+      deleteBatch = db.batch();
+      opsInDeleteBatch = 0;
+    }
+  }
+  if (opsInDeleteBatch > 0) await deleteBatch.commit();
+
+  return { success: true, scanned: notificationDocs.length, deleted: staleDocs.length };
+});

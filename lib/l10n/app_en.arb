@@ -229,6 +229,13 @@
   "appControlNotificationMessageLabel": "Message",
   "appControlNotificationSend": "Send to Everyone",
   "appControlNotificationSent": "Sent to every player",
+  "appControlCleanupSection": "Clean Up Stale Notifications",
+  "appControlCleanupHint": "Deletes friend request / duel challenge notifications for requests that were already accepted or declined.",
+  "appControlCleanupRun": "Run Cleanup",
+  "appControlCleanupResult": "Deleted {deleted} of {scanned} notifications",
+  "@appControlCleanupResult": {
+    "placeholders": {"deleted": {"type": "int"}, "scanned": {"type": "int"}}
+  },
   "appControlEnabledLabel": "Enabled",
   "appControlSaved": "Saved",
 

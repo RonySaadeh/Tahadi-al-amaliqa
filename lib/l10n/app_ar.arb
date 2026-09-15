@@ -231,6 +231,13 @@
   "appControlNotificationMessageLabel": "الرسالة",
   "appControlNotificationSend": "إرسال للجميع",
   "appControlNotificationSent": "تم الإرسال لجميع اللاعبين",
+  "appControlCleanupSection": "تنظيف الإشعارات القديمة",
+  "appControlCleanupHint": "يحذف إشعارات طلبات الصداقة وتحديات المبارزة التي سبق قبولها أو رفضها.",
+  "appControlCleanupRun": "تشغيل التنظيف",
+  "appControlCleanupResult": "تم حذف {deleted} من أصل {scanned} إشعارًا",
+  "@appControlCleanupResult": {
+    "placeholders": {"deleted": {"type": "int"}, "scanned": {"type": "int"}}
+  },
   "appControlEnabledLabel": "مفعّل",
   "appControlSaved": "تم الحفظ",
 

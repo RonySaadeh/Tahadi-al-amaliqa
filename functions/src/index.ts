@@ -18,4 +18,5 @@ export {
   setForceUpdate,
   setLimitedEvent,
   sendGlobalNotification,
+  cleanupResolvedNotifications,
 } from "./admin/appControl";

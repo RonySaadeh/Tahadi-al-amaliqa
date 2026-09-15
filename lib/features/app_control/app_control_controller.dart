@@ -60,4 +60,8 @@ class AppControlController {
   Future<void> sendGlobalNotification({required String title, required String message}) {
     return _ref.read(appControlRepositoryProvider).sendGlobalNotification(title: title, message: message);
   }
+
+  Future<Map<String, dynamic>> cleanupResolvedNotifications() {
+    return _ref.read(appControlRepositoryProvider).cleanupResolvedNotifications();
+  }
 }

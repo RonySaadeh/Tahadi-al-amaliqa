@@ -137,4 +137,13 @@ class CloudFunctionsService {
       'message': message,
     });
   }
+
+  /// One-off cleanup for friend-request/duel-challenge notifications a past
+  /// bug left behind after they were already accepted or declined — see
+  /// `cleanupResolvedNotifications` in `functions/src/admin/appControl.ts`.
+  /// Returns how many notifications were scanned and how many were deleted.
+  Future<Map<String, dynamic>> cleanupResolvedNotifications() async {
+    final result = await _functions.httpsCallable('cleanupResolvedNotifications').call();
+    return Map<String, dynamic>.from(result.data as Map);
+  }
 }
