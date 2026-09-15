@@ -28,9 +28,10 @@ export async function ensureCategoryGroups(): Promise<void> {
 
 /** Creates the category doc if it doesn't already exist. For one that
  * already exists, merge-updates only the display-text fields (name,
- * nameEn, description, descriptionEn, groupId) so re-running the seed
- * script after editing `categoryTaxonomy.ts` backfills text changes —
- * `questionCount`, `ownerId`, and `createdAt` are never touched here. */
+ * nameEn, description, descriptionEn, groupId, iconKey) so re-running the
+ * seed script after editing `categoryTaxonomy.ts` backfills text/icon
+ * changes — `questionCount`, `ownerId`, and `createdAt` are never touched
+ * here. */
 export async function ensureCategory(seed: (typeof CATEGORIES)[number]): Promise<void> {
   const ref = db.collection("categories").doc(seed.id);
   const snap = await ref.get();
@@ -41,6 +42,7 @@ export async function ensureCategory(seed: (typeof CATEGORIES)[number]): Promise
     description: seed.description,
     descriptionEn: seed.descriptionEn,
     groupId: seed.groupId,
+    iconKey: seed.iconKey,
   };
 
   if (!snap.exists) {

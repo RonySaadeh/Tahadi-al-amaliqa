@@ -20,6 +20,7 @@ class CategoryModel extends Equatable {
     this.groupId,
     this.questionCount = 0,
     required this.createdAt,
+    this.iconKey = 'general',
   });
 
   final String id;
@@ -41,6 +42,14 @@ class CategoryModel extends Equatable {
   final String? groupId;
   final int questionCount;
   final DateTime createdAt;
+
+  /// Looked up via `categoryIcon()` in `core/utils/category_icons.dart` for
+  /// this category's own icon/accent color in the picker — same mechanism
+  /// as `CategoryGroupModel.iconKey`, and often literally the same key as
+  /// this category's group for a "general" catch-all. Defaults to
+  /// `'general'` (a neutral fallback icon) for any category seeded before
+  /// this field existed.
+  final String iconKey;
 
   /// Picks [nameEn] when `locale` is `'en'` and one was seeded, otherwise
   /// [name] — matches `users/{uid}.locale` ('ar'/'en'), see
@@ -64,6 +73,7 @@ class CategoryModel extends Equatable {
       groupId: data['groupId'] as String?,
       questionCount: (data['questionCount'] as num?)?.toInt() ?? 0,
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      iconKey: data['iconKey'] as String? ?? 'general',
     );
   }
 
@@ -78,5 +88,6 @@ class CategoryModel extends Equatable {
     groupId,
     questionCount,
     createdAt,
+    iconKey,
   ];
 }

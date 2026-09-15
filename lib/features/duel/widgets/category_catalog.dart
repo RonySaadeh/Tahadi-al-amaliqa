@@ -111,7 +111,6 @@ class _CatalogSection extends StatelessWidget {
                 final category = categories[index];
                 return _CategoryChip(
                   category: category,
-                  icon: icon,
                   selected: category.id == selectedCategoryId,
                   onTap: () => onSelect(category),
                   locale: locale,
@@ -128,20 +127,25 @@ class _CatalogSection extends StatelessWidget {
 class _CategoryChip extends StatelessWidget {
   const _CategoryChip({
     required this.category,
-    required this.icon,
     required this.selected,
     required this.onTap,
     required this.locale,
   });
 
   final CategoryModel category;
-  final IconData icon;
   final bool selected;
   final VoidCallback onTap;
   final String? locale;
 
   @override
   Widget build(BuildContext context) {
+    // Each category gets its own icon/accent color (see `categoryIcon` in
+    // `core/utils/category_icons.dart`) rather than inheriting its group's
+    // — otherwise every sub-category in a section (e.g. every Sports team)
+    // would render as the exact same glyph, with nothing but the label to
+    // tell them apart.
+    final (:icon, :color) = categoryIcon(category.iconKey);
+
     return InkWell(
       borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
       onTap: onTap,
@@ -157,7 +161,7 @@ class _CategoryChip extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: selected ? Colors.white : AppColors.primary),
+            Icon(icon, color: selected ? Colors.white : color),
             const SizedBox(height: AppSpacing.xs),
             Text(
               category.displayName(locale),
